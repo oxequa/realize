@@ -20,12 +20,12 @@ func (h *Config) Create() bool{
 	var config = Check(h.App_file)
 	if config[0] == false {
 		if w, err := os.Create(h.App_file); err == nil {
+			defer w.Close()
 			y, err := yaml.Marshal(&h)
-			w.WriteString(string(y))
 			if err != nil {
 				defer panic(err)
 			}
-			w.Close()
+			w.WriteString(string(y))
 			return true
 		}else{
 			panic(err)
