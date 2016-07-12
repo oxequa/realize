@@ -23,9 +23,8 @@ _testmain.go
 *.test
 *.prof
 
-
-.idea
 .glide
+.idea
 .DS_Store
 
 docker
