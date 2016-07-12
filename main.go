@@ -1,8 +1,6 @@
 package main
 
 import (
-	//"os"
-	//"gopkg.in/urfave/cli.v2"
 	"github.com/tockins/realize/realize"
 	"gopkg.in/urfave/cli.v2"
 	"fmt"
