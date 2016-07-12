@@ -6,13 +6,14 @@ import (
 	"github.com/tockins/realize/realize"
 )
 
+type person struct {
+	name string
+	age  int
+}
+
 func main() {
 
-	t := realize.Config{
-		App_file:"realize.config.yaml",
-		App_version:"1.0",
-		App_main:[]string{"main.go"},
-	}
+	t := realize.Init()
 	t.Create()
 
 	//app := &cli.App{
