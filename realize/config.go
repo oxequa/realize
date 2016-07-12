@@ -2,14 +2,15 @@ package realize
 
 import (
 	"os"
+	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
 	App_file string
-	app_main []string
-	app_version string
-	app_build bool
-	app_run struct {
+	App_main []string
+	App_version string
+	App_build bool
+	App_run struct {
 		before, after, paths, ext []string
 	}
 }
@@ -18,7 +19,13 @@ type Config struct {
 func (h *Config) Create() bool{
 	var config = Check(h.App_file)
 	if config[0] == false {
-		if _, err := os.Create("realize.config.yml"); err == nil {
+		if w, err := os.Create(h.App_file); err == nil {
+			y, err := yaml.Marshal(&h)
+			w.WriteString(string(y))
+			if err != nil {
+				defer panic(err)
+			}
+			w.Close()
 			return true
 		}else{
 			panic(err)
