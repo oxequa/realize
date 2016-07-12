@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/tockins/realize/realize"
-	"gopkg.in/urfave/cli.v2"
-	"fmt"
 	"os"
+	"fmt"
+	"gopkg.in/urfave/cli.v2"
+	"github.com/tockins/realize/realize"
 )
 
 func main() {
@@ -27,7 +27,8 @@ func main() {
 				Category: "config",
 				Usage: "create the initial config file",
 				Action: func(c *cli.Context) error {
-					realize.Init().Create()
+					t := realize.Init()
+					t.Create()
 					fmt.Printf("Hello %q", c.String("run"))
 					return nil
 				},

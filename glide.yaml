@@ -1,5 +1,4 @@
 package: github.com/tockins/realize
 import:
 - package: gopkg.in/urfave/cli.v2
-  version: ^1.18.0
 - package: gopkg.in/yaml.v2
