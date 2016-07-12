@@ -1,9 +1,5 @@
 package: github.com/tockins/realize
 import:
-- package: github.com/labstack/echo
-  version: ^2.0.2
-  subpackages:
-  - engine/standard
 - package: gopkg.in/urfave/cli.v2
   version: ^1.18.0
 - package: gopkg.in/yaml.v2

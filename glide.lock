@@ -1,10 +1,6 @@
 hash: d127a34fbdc647df727f89190f0cfa8b658627ccdf8fb497c598e441a03dc1f0
 updated: 2016-07-12T16:17:37.755334805+02:00
 imports:
-- name: github.com/labstack/echo
-  version: fbcdf70c52c155ae9aa58e72ee0532fa2f1cad2e
-  subpackages:
-  - engine/standard
 - name: gopkg.in/urfave/cli.v2
   version: 1efa31f08b9333f1bd4882d61f9d668a70cd902e
 - name: gopkg.in/yaml.v2
