@@ -9,6 +9,13 @@ import (
 
 func main() {
 
+	handle := func(err error) error{
+		if err != nil {
+			return cli.Exit(err, 86)
+		}
+		return nil
+	}
+
 	app := &cli.App{
 		Name: "realize",
 		Version: "1.0",
@@ -28,9 +35,9 @@ func main() {
 				Usage: "create the initial config file",
 				Action: func(c *cli.Context) error {
 					t := realize.Init()
-					t.Create()
-					fmt.Printf("Hello %q", c.String("run"))
-					return nil
+					_, err := t.Create()
+					return handle(err)
+
 				},
 			},
 		},

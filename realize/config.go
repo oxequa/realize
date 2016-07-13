@@ -3,6 +3,7 @@ package realize
 import (
 	"os"
 	"gopkg.in/yaml.v2"
+	"errors"
 )
 
 type Config struct {
@@ -20,17 +21,15 @@ type Watchers struct{
 	Ext []string `yaml:"app_ext,omitempty"`
 }
 
-
 // Check files exists
-func Check(files ...string) []bool{
-	var result []bool
+func Check(files ...string) (result []bool, err error){
 	for _, val := range files {
 		if _, err := os.Stat(val); err == nil {
 			result = append(result,true)
 		}
 		result = append(result, false)
 	}
-	return result
+	return
 }
 
 // Default value
@@ -49,22 +48,22 @@ func Init() Config{
 }
 
 // Create config yaml file
-func (h *Config) Create() bool{
-	var config = Check(h.File)
+func (h *Config) Create() (result bool, err error){
+	config, err := Check(h.File)
 	if config[0] == false {
 		if w, err := os.Create(h.File); err == nil {
 			defer w.Close()
 			y, err := yaml.Marshal(h)
+			_, err = w.WriteString(string(y))
 			if err != nil {
-				panic(err)
+				os.Remove(h.File)
+				return false, err
 			}
-			w.WriteString(string(y))
-			return true
-		}else{
-			panic(err)
+			return true, nil
 		}
+		return false, err
 	}
-	return false
+	return false, errors.New("already exist")
 }
 
 // Read config file
