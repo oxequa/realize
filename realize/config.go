@@ -4,25 +4,35 @@ import (
 	"os"
 	"gopkg.in/yaml.v2"
 	"errors"
+	"gopkg.in/urfave/cli.v2"
+	"path/filepath"
+	"io/ioutil"
 )
 
 type Config struct {
-	File string `yaml:"app_file,omitempty"`
-	Main []string `yaml:"app_main,omitempty"`
-	Version string `yaml:"app_version,omitempty"`
-	Build bool `yaml:"app_build,omitempty"`
-	Watchers
+	file string `yaml:"app_file,omitempty"`
+	Version string `yaml:"version,omitempty"`
+	Projects []Project
 }
 
-type Watchers struct{
-	Before []string `yaml:"app_before,omitempty"`
-	After []string `yaml:"app_after,omitempty"`
-	Paths []string `yaml:"app_paths,omitempty"`
-	Ext []string `yaml:"app_ext,omitempty"`
+type Project struct {
+	Run bool `yaml:"app_run,omitempty"`
+	Build bool `yaml:"app_build,omitempty"`
+	Main string `yaml:"app_main,omitempty"`
+	Watcher Watcher `yaml:"app_watcher,omitempty"`
 }
+
+type Watcher struct{
+	Before []string `yaml:"before,omitempty"`
+	After []string `yaml:"after,omitempty"`
+	Paths []string `yaml:"paths,omitempty"`
+	Exts []string `yaml:"exts,omitempty"`
+}
+
+var file = "realize.config.yaml"
 
 // Check files exists
-func Check(files ...string) (result []bool, err error){
+func Check(files ...string) (result []bool){
 	for _, val := range files {
 		if _, err := os.Stat(val); err == nil {
 			result = append(result,true)
@@ -33,41 +43,63 @@ func Check(files ...string) (result []bool, err error){
 }
 
 // Default value
-func Init() Config{
-	config := Config{
-		File:"realize.config.yaml",
-		Main:[]string{"main.go"},
-		Version:"1.0",
-		Build: true,
-		Watchers: Watchers{
-			Paths: []string{"/"},
-			Ext: []string{"go"},
+func (h *Config) Init(params *cli.Context) {
+	h.file = file
+	h.Version = "1.0"
+	h.Projects = []Project{
+		{
+			Main: params.String("main"),
+			Run: params.Bool("run"),
+			Build: params.Bool("build"),
+			Watcher: Watcher{
+				Paths: []string{"/"},
+				Exts: []string{"go"},
+			},
 		},
 	}
-	return config
-}
-
-// Create config yaml file
-func (h *Config) Create() (result bool, err error){
-	config, err := Check(h.File)
-	if config[0] == false {
-		if w, err := os.Create(h.File); err == nil {
-			defer w.Close()
-			y, err := yaml.Marshal(h)
-			_, err = w.WriteString(string(y))
-			if err != nil {
-				os.Remove(h.File)
-				return false, err
-			}
-			return true, nil
-		}
-		return false, err
-	}
-	return false, errors.New("already exist")
 }
 
 // Read config file
-func (h *Config) Read(field string) bool {
-	return true
+func (h *Config) Read() error{
+	if filename, err := filepath.Abs("./"+file); err == nil{
+		y, err := ioutil.ReadFile(filename)
+		if err != nil {
+			return err
+		}
+		return yaml.Unmarshal(y, &h)
+	}else{
+		return err
+	}
+}
+
+// Create config yaml file
+func (h *Config) Create() error{
+	config := Check(h.file)
+	if config[0] == false {
+		if w, err := os.Create(h.file); err == nil {
+			y, err := yaml.Marshal(h)
+			if err != nil {
+				os.Remove(h.file)
+				return err
+			}
+			_, err = w.WriteString(string(y))
+			return err
+		}
+		return errors.New("There is a problem with the file's creation")
+	}
+	return errors.New("The configuration file already exist")
+}
+
+// Add another project
+func (h *Config) Add(params *cli.Context) {
+	//new := Project{
+	//	Main: params.String("main"),
+	//	Run: params.Bool("run"),
+	//	Build: params.Bool("build"),
+	//	Watcher: Watcher{
+	//		Paths: []string{"/"},
+	//		Exts: []string{"go"},
+	//	},
+	//}
 }
 
