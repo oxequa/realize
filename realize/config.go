@@ -5,7 +5,6 @@ import (
 	"gopkg.in/yaml.v2"
 	"errors"
 	"gopkg.in/urfave/cli.v2"
-	"path/filepath"
 	"io/ioutil"
 )
 
@@ -34,7 +33,7 @@ var file = "realize.config.yaml"
 // Check files exists
 func Check(files ...string) (result []bool){
 	for _, val := range files {
-		if _, err := os.Stat(val); err == nil {
+		if _, err := ioutil.ReadFile(val); err == nil {
 			result = append(result,true)
 		}
 		result = append(result, false)
@@ -61,12 +60,8 @@ func (h *Config) Init(params *cli.Context) {
 
 // Read config file
 func (h *Config) Read() error{
-	if filename, err := filepath.Abs("./"+file); err == nil{
-		y, err := ioutil.ReadFile(filename)
-		if err != nil {
-			return err
-		}
-		return yaml.Unmarshal(y, &h)
+	if file, err :=  ioutil.ReadFile(file); err == nil{
+		return yaml.Unmarshal(file, &h)
 	}else{
 		return err
 	}
@@ -76,31 +71,42 @@ func (h *Config) Read() error{
 func (h *Config) Create() error{
 	config := Check(h.file)
 	if config[0] == false {
-		if w, err := os.Create(h.file); err == nil {
-			y, err := yaml.Marshal(h)
+		if y, err := yaml.Marshal(h); err == nil {
+			err = ioutil.WriteFile(h.file, y, 0755)
 			if err != nil {
 				os.Remove(h.file)
 				return err
 			}
-			_, err = w.WriteString(string(y))
+			return err
+		}else{
 			return err
 		}
-		return errors.New("There is a problem with the file's creation")
 	}
 	return errors.New("The configuration file already exist")
 }
 
 // Add another project
-func (h *Config) Add(params *cli.Context) {
-	new := Project{
-		Main: params.String("main"),
-		Run: params.Bool("run"),
-		Build: params.Bool("build"),
-		Watcher: Watcher{
-			Paths: []string{"/"},
-			Exts: []string{"go"},
-		},
+func (h *Config) Add(params *cli.Context) error{
+	config := Check(file)
+	if config[0] == true {
+		new := Project{
+			Main: params.String("main"),
+			Run: params.Bool("run"),
+			Build: params.Bool("build"),
+			Watcher: Watcher{
+				Paths: []string{"/"},
+				Exts: []string{"go"},
+			},
+		}
+		h.Projects = append(h.Projects, new)
+		y, err := yaml.Marshal(h)
+		if err != nil {
+			return err
+		}
+		err = ioutil.WriteFile(file, y, 0755)
+		return err
 	}
-	h.Projects = append(h.Projects, new)
+	return errors.New("The configuration file doesn't exist")
 }
+
 
