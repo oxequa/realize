@@ -92,14 +92,15 @@ func (h *Config) Create() error{
 
 // Add another project
 func (h *Config) Add(params *cli.Context) {
-	//new := Project{
-	//	Main: params.String("main"),
-	//	Run: params.Bool("run"),
-	//	Build: params.Bool("build"),
-	//	Watcher: Watcher{
-	//		Paths: []string{"/"},
-	//		Exts: []string{"go"},
-	//	},
-	//}
+	new := Project{
+		Main: params.String("main"),
+		Run: params.Bool("run"),
+		Build: params.Bool("build"),
+		Watcher: Watcher{
+			Paths: []string{"/"},
+			Exts: []string{"go"},
+		},
+	}
+	h.Projects = append(h.Projects, new)
 }
 

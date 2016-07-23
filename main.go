@@ -64,6 +64,7 @@ func main() {
 				Action: func(params *cli.Context) error {
 					y := realize.Config{}
 					err := y.Read()
+					y.Add(params)
 					return handle(err)
 				},
 			},
