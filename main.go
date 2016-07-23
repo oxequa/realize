@@ -11,14 +11,20 @@ func main() {
 
 	handle := func(err error) error{
 		if err != nil {
-			return cli.Exit(err, 86)
+			return cli.Exit(err.Error(), 86)
 		}
 		return nil
 	}
 
 	app := &cli.App{
-		Name: "realize",
-		Version: "1.0",
+		Name: "Realize",
+		Version: "v1.0",
+		Authors: []*cli.Author{
+			&cli.Author{
+				Name:  "Alessio Pracchia",
+				Email: "pracchia@hastega.it",
+			},
+		},
 		Usage: "A sort of Webpack for Go. Run, build and watch file changes with custom paths",
 		Commands: []*cli.Command{
 			{
@@ -32,22 +38,43 @@ func main() {
 			{
 				Name:     "start",
 				Category: "config",
+				Aliases:     []string{"s"},
 				Usage: "create the initial config file",
-				Action: func(c *cli.Context) error {
-					t := realize.Init()
-					_, err := t.Create()
+				Flags: []cli.Flag{
+					&cli.StringFlag{Name: "main", Aliases: []string{"m"}, Value: "main.go"},
+					&cli.BoolFlag{Name: "build", Aliases: []string{"b"}, Value: true},
+					&cli.BoolFlag{Name: "run", Aliases: []string{"r"}, Value: true},
+				},
+				Action: func(params *cli.Context) error {
+					y := realize.Config{}
+					y.Init(params)
+					return handle(y.Create())
+				},
+			},
+			{
+				Name:     "add",
+				Category: "config",
+				Aliases:     []string{"s"},
+				Usage: "add another project in config file",
+				Flags: []cli.Flag{
+					&cli.StringFlag{Name: "main", Aliases: []string{"m"}, Value: "main.go"},
+					&cli.BoolFlag{Name: "build", Aliases: []string{"b"}, Value: true},
+					&cli.BoolFlag{Name: "run", Aliases: []string{"r"}, Value: true},
+				},
+				Action: func(params *cli.Context) error {
+					y := realize.Config{}
+					err := y.Read()
 					return handle(err)
-
 				},
 			},
 		},
-		Flags: []cli.Flag {
-			&cli.StringFlag{
-				Name:    "run",
-				Value:   "main.go",
-				Usage:   "main file of your project",
-			},
-		},
+		//Flags: []cli.Flag {
+		//	&cli.StringFlag{
+		//		Name:    "run",
+		//		Value:   "main.go",
+		//		Usage:   "main file of your project",
+		//	},
+		//},
 	}
 
 	app.Run(os.Args)
