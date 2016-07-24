@@ -46,9 +46,8 @@ func main() {
 					&cli.BoolFlag{Name: "run", Aliases: []string{"r"}, Value: true},
 				},
 				Action: func(params *cli.Context) error {
-					y := realize.Config{}
-					y.Init(params)
-					return handle(y.Create())
+					y := realize.New(params)
+					return handle(y.Create(params))
 				},
 			},
 			{
@@ -62,10 +61,9 @@ func main() {
 					&cli.BoolFlag{Name: "run", Aliases: []string{"r"}, Value: true},
 				},
 				Action: func(params *cli.Context) error {
-					y := realize.Config{}
-					err := y.Read()
-					y.Add(params)
-					return handle(err)
+					y := realize.New(params)
+					y.Read()
+					return handle(y.Add(params))
 				},
 			},
 		},
