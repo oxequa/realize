@@ -30,15 +30,14 @@ type Watcher struct{
 
 var file = "realize.config.yaml"
 
-// Check files exists
-func Check(files ...string) (result []bool){
-	for _, val := range files {
-		if _, err := ioutil.ReadFile(val); err == nil {
-			result = append(result,true)
-		}
-		result = append(result, false)
+// Check file exists and clean by duplicates
+func (h *Config) Check() error{
+	// clean duplicates
+	_, err := ioutil.ReadFile(h.file);
+	if err != nil {
+		return err
 	}
-	return
+	return nil
 }
 
 // Default value
@@ -68,9 +67,9 @@ func (h *Config) Read() error{
 }
 
 // Create config yaml file
-func (h *Config) Create() error{
-	config := Check(h.file)
-	if config[0] == false {
+func (h *Config) Create(params *cli.Context) error{
+	h.Init(params)
+	if h.Check() == nil {
 		if y, err := yaml.Marshal(h); err == nil {
 			err = ioutil.WriteFile(h.file, y, 0755)
 			if err != nil {
@@ -87,8 +86,7 @@ func (h *Config) Create() error{
 
 // Add another project
 func (h *Config) Add(params *cli.Context) error{
-	config := Check(file)
-	if config[0] == true {
+	if h.Check() == nil {
 		new := Project{
 			Main: params.String("main"),
 			Run: params.Bool("run"),
