@@ -41,6 +41,7 @@ func main() {
 				Aliases:     []string{"s"},
 				Usage: "create the initial config file",
 				Flags: []cli.Flag{
+					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "Sample App"},
 					&cli.StringFlag{Name: "main", Aliases: []string{"m"}, Value: "main.go"},
 					&cli.BoolFlag{Name: "build", Aliases: []string{"b"}, Value: true},
 					&cli.BoolFlag{Name: "run", Aliases: []string{"r"}, Value: true},
@@ -56,14 +57,37 @@ func main() {
 				Aliases:     []string{"s"},
 				Usage: "add another project in config file",
 				Flags: []cli.Flag{
+					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "Sample App"},
 					&cli.StringFlag{Name: "main", Aliases: []string{"m"}, Value: "main.go"},
 					&cli.BoolFlag{Name: "build", Aliases: []string{"b"}, Value: true},
 					&cli.BoolFlag{Name: "run", Aliases: []string{"r"}, Value: true},
 				},
 				Action: func(params *cli.Context) error {
 					y := realize.New(params)
-					y.Read()
 					return handle(y.Add(params))
+				},
+			},
+			{
+				Name:     "remove",
+				Category: "config",
+				Aliases:     []string{"s"},
+				Usage: "remove a project in config file",
+				Flags: []cli.Flag{
+					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "Sample App"},
+				},
+				Action: func(params *cli.Context) error {
+					y := realize.New(params)
+					return handle(y.Remove(params))
+				},
+			},
+			{
+				Name:     "list",
+				Category: "config",
+				Aliases:     []string{"s"},
+				Usage: "projects list",
+				Action: func(params *cli.Context) error {
+					y := realize.New(params)
+					return handle(y.List())
 				},
 			},
 		},

@@ -1,6 +1,16 @@
 hash: ef1aaff11d9be4abdfb2f2152fe8bcb49e255fe27796ab61b938144a0098f883
-updated: 2016-07-25T00:16:27.960277787+02:00
+updated: 2016-07-26T18:14:33.237501635+02:00
 imports:
+- name: github.com/fatih/color
+  version: 87d4004f2ab62d0d255e0a38f1680aa534549fe3
+- name: github.com/mattn/go-colorable
+  version: 9056b7a9f2d1f2d96498d6d146acd1f9d5ed3d59
+- name: github.com/mattn/go-isatty
+  version: 56b76bdf51f7708750eac80fa38b952bb9f32639
+- name: golang.org/x/sys
+  version: a646d33e2ee3172a661fc09bca23bb4889a41bc8
+  subpackages:
+  - unix
 - name: gopkg.in/urfave/cli.v2
   version: ee2e8aa5b22f55f006c27fd35765c62249a39aad
 - name: gopkg.in/yaml.v2
