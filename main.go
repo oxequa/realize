@@ -13,7 +13,6 @@ const(
 	email = "pracchia@hastega.it"
 	description = "Run and build your applications on file changes. Watch custom paths and specific extensions. Define additional commands and multiple projects"
 	author = "Alessio Pracchia"
-
 )
 
 func main() {
@@ -39,8 +38,8 @@ func main() {
 			{
 				Name: "run",
 				Usage: "Build and watch file changes",
-				Action: func(c *cli.Context) error {
-					fmt.Printf("Hello %q", c.String("run"))
+				Action: func(p *cli.Context) error {
+					fmt.Printf("Hello %q", p.String("run"))
 					return nil
 				},
 			},
@@ -55,15 +54,15 @@ func main() {
 					&cli.BoolFlag{Name: "build", Aliases: []string{"b"}, Value: true},
 					&cli.BoolFlag{Name: "run", Aliases: []string{"r"}, Value: true},
 				},
-				Action: func(params *cli.Context) error {
-					y := realize.New(params)
-					return handle(y.Create(params))
+				Action: func(p *cli.Context) error {
+					y := realize.New(p)
+					return handle(y.Create(p))
 				},
 			},
 			{
 				Name:     "add",
 				Category: "config",
-				Aliases:     []string{"s"},
+				Aliases:     []string{"a"},
 				Usage: "Add another project",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "Sample App"},
@@ -71,31 +70,31 @@ func main() {
 					&cli.BoolFlag{Name: "build", Aliases: []string{"b"}, Value: true},
 					&cli.BoolFlag{Name: "run", Aliases: []string{"r"}, Value: true},
 				},
-				Action: func(params *cli.Context) error {
-					y := realize.New(params)
-					return handle(y.Add(params))
+				Action: func(p *cli.Context) error {
+					y := realize.New(p)
+					return handle(y.Add(p))
 				},
 			},
 			{
 				Name:     "remove",
 				Category: "config",
-				Aliases:     []string{"s"},
+				Aliases:     []string{"r"},
 				Usage: "Remove a project",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "Sample App"},
 				},
-				Action: func(params *cli.Context) error {
-					y := realize.New(params)
-					return handle(y.Remove(params))
+				Action: func(p *cli.Context) error {
+					y := realize.New(p)
+					return handle(y.Remove(p))
 				},
 			},
 			{
 				Name:     "list",
 				Category: "config",
-				Aliases:     []string{"s"},
+				Aliases:     []string{"l"},
 				Usage: "Projects list",
-				Action: func(params *cli.Context) error {
-					y := realize.New(params)
+				Action: func(p *cli.Context) error {
+					y := realize.New(p)
 					return handle(y.List())
 				},
 			},
