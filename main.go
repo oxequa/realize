@@ -7,6 +7,15 @@ import (
 	"github.com/tockins/realize/realize"
 )
 
+const(
+	name = "Realize"
+	version = "v1.0"
+	email = "pracchia@hastega.it"
+	description = "Run and build your applications on file changes. Watch custom paths and specific extensions. Define additional commands and multiple projects"
+	author = "Alessio Pracchia"
+
+)
+
 func main() {
 
 	handle := func(err error) error{
@@ -17,15 +26,15 @@ func main() {
 	}
 
 	app := &cli.App{
-		Name: "Realize",
-		Version: "v1.0",
+		Name: name,
+		Version: version,
 		Authors: []*cli.Author{
 			&cli.Author{
-				Name:  "Alessio Pracchia",
-				Email: "pracchia@hastega.it",
+				Name:  author,
+				Email: email,
 			},
 		},
-		Usage: "A sort of Webpack for Go. Run, build and watch file changes with custom paths",
+		Usage: description,
 		Commands: []*cli.Command{
 			{
 				Name: "run",
@@ -91,13 +100,6 @@ func main() {
 				},
 			},
 		},
-		//Flags: []cli.Flag {
-		//	&cli.StringFlag{
-		//		Name:    "run",
-		//		Value:   "main.go",
-		//		Usage:   "main file of your project",
-		//	},
-		//},
 	}
 
 	app.Run(os.Args)

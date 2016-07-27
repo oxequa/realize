@@ -10,6 +10,10 @@ import (
 	"fmt"
 )
 
+const(
+	file = "realize.config.yaml"
+)
+
 type Config struct {
 	file string `yaml:"app_file,omitempty"`
 	Version string `yaml:"version,omitempty"`
@@ -34,7 +38,7 @@ type Watcher struct{
 // Default value
 func New(params *cli.Context) *Config{
 	return &Config{
-		file: "realize.config.yaml",
+		file: file,
 		Version: "1.0",
 		Projects: []Project{
 			{
