@@ -12,7 +12,12 @@ import (
 
 const(
 	file = "realize.config.yaml"
+	ext = "go"
+	path = "/"
 )
+
+var green = color.New(color.FgGreen, color.Bold).SprintFunc()
+var greenl = color.New(color.FgHiGreen).SprintFunc()
 
 type Config struct {
 	file string `yaml:"app_file,omitempty"`
@@ -47,8 +52,8 @@ func New(params *cli.Context) *Config{
 				Run: params.Bool("run"),
 				Build: params.Bool("build"),
 				Watcher: Watcher{
-				Paths: []string{"/"},
-				Exts: []string{"go"},
+				Paths: []string{ext},
+				Exts: []string{path},
 				},
 			},
 		},
@@ -120,8 +125,8 @@ func (h *Config) Add(params *cli.Context) error{
 			Run: params.Bool("run"),
 			Build: params.Bool("build"),
 			Watcher: Watcher{
-				Paths: []string{"/"},
-				Exts: []string{"go"},
+				Paths: []string{ext},
+				Exts: []string{path},
 			},
 		}
 		if Duplicates(new, h.Projects) {
@@ -152,8 +157,6 @@ func (h *Config) Remove(params *cli.Context) error{
 // List of projects
 func (h *Config) List() error{
 	if err := h.Read(); err == nil {
-		green := color.New(color.FgGreen, color.Bold).SprintFunc()
-		greenl := color.New(color.FgHiGreen).SprintFunc()
 		red := color.New(color.FgRed).SprintFunc()
 		for _, val := range h.Projects {
 			fmt.Println(green("|"), green(val.Name))

@@ -5,15 +5,21 @@ import (
 	"fmt"
 	"gopkg.in/urfave/cli.v2"
 	"github.com/tockins/realize/realize"
+	"github.com/fatih/color"
 )
 
 const(
 	name = "Realize"
 	version = "v1.0"
 	email = "pracchia@hastega.it"
-	description = "Run and build your applications on file changes. Watch custom paths and specific extensions. Define additional commands and multiple projects"
+	//description = "Run and build your applications on file changes. Watch custom paths and specific extensions. Define additional commands and multiple projects"
+	description = "Run and build your applications on file changes."
 	author = "Alessio Pracchia"
 )
+
+
+var blue = color.New(color.FgBlue, color.Bold).SprintFunc()
+var bluel = color.New(color.FgBlue).SprintFunc()
 
 func main() {
 
@@ -22,6 +28,11 @@ func main() {
 			return cli.Exit(err.Error(), 86)
 		}
 		return nil
+	}
+
+	header := func(){
+		fmt.Println(blue(name)+" - "+blue(version))
+		fmt.Println(bluel(description)+"\n")
 	}
 
 	app := &cli.App{
@@ -42,6 +53,10 @@ func main() {
 					fmt.Printf("Hello %q", p.String("run"))
 					return nil
 				},
+				Before: func(c *cli.Context) error {
+					header()
+					return nil
+				},
 			},
 			{
 				Name:     "start",
@@ -57,6 +72,10 @@ func main() {
 				Action: func(p *cli.Context) error {
 					y := realize.New(p)
 					return handle(y.Create(p))
+				},
+				Before: func(c *cli.Context) error {
+					header()
+					return nil
 				},
 			},
 			{
@@ -74,6 +93,10 @@ func main() {
 					y := realize.New(p)
 					return handle(y.Add(p))
 				},
+				Before: func(c *cli.Context) error {
+					header()
+					return nil
+				},
 			},
 			{
 				Name:     "remove",
@@ -87,6 +110,10 @@ func main() {
 					y := realize.New(p)
 					return handle(y.Remove(p))
 				},
+				Before: func(c *cli.Context) error {
+					header()
+					return nil
+				},
 			},
 			{
 				Name:     "list",
@@ -96,6 +123,10 @@ func main() {
 				Action: func(p *cli.Context) error {
 					y := realize.New(p)
 					return handle(y.List())
+				},
+				Before: func(c *cli.Context) error {
+					header()
+					return nil
 				},
 			},
 		},
