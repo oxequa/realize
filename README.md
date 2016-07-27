@@ -9,5 +9,7 @@ Run, build and watch file changes with custom paths
 - [x] Command remove - remove project from the config file
 - [ ] Command watch - watch changes
 - [x] Command list - print projects list
-- [ ] Live reload for web project
 - [x] Remove duplicate projects
+
+### Proposals
+- [ ] Live reload for web project
