@@ -12,4 +12,4 @@ Run, build and watch file changes with custom paths
 - [x] Remove duplicate projects
 
 ### Proposals
-- [ ] Live reload for web project
+- [ ] Live reload for web project 
