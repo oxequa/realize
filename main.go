@@ -48,7 +48,7 @@ func main() {
 				Name:     "start",
 				Category: "config",
 				Aliases:     []string{"s"},
-				Usage: "create the initial config file",
+				Usage: "Create the initial config",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "Sample App"},
 					&cli.StringFlag{Name: "main", Aliases: []string{"m"}, Value: "main.go"},
@@ -64,7 +64,7 @@ func main() {
 				Name:     "add",
 				Category: "config",
 				Aliases:     []string{"s"},
-				Usage: "add another project in config file",
+				Usage: "Add another project",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "Sample App"},
 					&cli.StringFlag{Name: "main", Aliases: []string{"m"}, Value: "main.go"},
@@ -80,7 +80,7 @@ func main() {
 				Name:     "remove",
 				Category: "config",
 				Aliases:     []string{"s"},
-				Usage: "remove a project in config file",
+				Usage: "Remove a project",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "Sample App"},
 				},
@@ -93,7 +93,7 @@ func main() {
 				Name:     "list",
 				Category: "config",
 				Aliases:     []string{"s"},
-				Usage: "projects list",
+				Usage: "Projects list",
 				Action: func(params *cli.Context) error {
 					y := realize.New(params)
 					return handle(y.List())
