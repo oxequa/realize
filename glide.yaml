@@ -3,3 +3,7 @@ import:
 - package: gopkg.in/urfave/cli.v2
 - package: gopkg.in/yaml.v2
 - package: github.com/fatih/color
+- package: golang.org/x/sys
+  subpackages:
+  - '...'
+- package: github.com/fsnotify/fsnotify
