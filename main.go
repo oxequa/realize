@@ -66,8 +66,9 @@ func main() {
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "Sample App"},
 					&cli.StringFlag{Name: "main", Aliases: []string{"m"}, Value: "main.go"},
-					&cli.BoolFlag{Name: "build", Aliases: []string{"b"}, Value: true},
+					&cli.BoolFlag{Name: "build", Aliases: []string{"b"}, Value: false},
 					&cli.BoolFlag{Name: "run", Aliases: []string{"r"}, Value: true},
+					&cli.BoolFlag{Name: "bin", Aliases: []string{"r"}, Value: true},
 				},
 				Action: func(p *cli.Context) error {
 					y := realize.New(p)
@@ -86,8 +87,9 @@ func main() {
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "Sample App"},
 					&cli.StringFlag{Name: "main", Aliases: []string{"m"}, Value: "main.go"},
-					&cli.BoolFlag{Name: "build", Aliases: []string{"b"}, Value: true},
+					&cli.BoolFlag{Name: "build", Aliases: []string{"b"}, Value: false},
 					&cli.BoolFlag{Name: "run", Aliases: []string{"r"}, Value: true},
+					&cli.BoolFlag{Name: "bin", Aliases: []string{"r"}, Value: true},
 				},
 				Action: func(p *cli.Context) error {
 					y := realize.New(p)
