@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"github.com/fatih/color"
 	"fmt"
+	"time"
 )
 
 const(
@@ -31,9 +32,11 @@ type Project struct {
 	Build bool `yaml:"app_build,omitempty"`
 	Main string `yaml:"app_main,omitempty"`
 	Watcher Watcher `yaml:"app_watcher,omitempty"`
+	updatedAt time.Time
 }
 
 type Watcher struct{
+	// different before and after on rerun?
 	Before []string `yaml:"before,omitempty"`
 	After []string `yaml:"after,omitempty"`
 	Paths []string `yaml:"paths,omitempty"`
@@ -84,11 +87,14 @@ func (h *Config) Clean() {
 // Check, Read and remove duplicates from the config file
 func (h *Config) Read() error{
 	if file, err :=  ioutil.ReadFile(h.file); err == nil{
-		err = yaml.Unmarshal(file, h)
-		if err == nil {
-			h.Clean()
+		if len(h.Projects) <= 0 {
+			err = yaml.Unmarshal(file, h)
+			if err == nil {
+				h.Clean()
+			}
+			return err
 		}
-		return err
+		return errors.New("There are no projects")
 	}else{
 		return err
 	}
