@@ -29,6 +29,7 @@ type Config struct {
 type Project struct {
 	Name string `yaml:"app_name,omitempty"`
 	Run bool `yaml:"app_run,omitempty"`
+	Bin bool `yaml:"app_bin,omitempty"`
 	Build bool `yaml:"app_build,omitempty"`
 	Main string `yaml:"app_main,omitempty"`
 	Watcher Watcher `yaml:"app_watcher,omitempty"`
@@ -54,6 +55,7 @@ func New(params *cli.Context) *Config{
 				Main: params.String("main"),
 				Run: params.Bool("run"),
 				Build: params.Bool("build"),
+				Bin: params.Bool("bin"),
 				Watcher: Watcher{
 				Paths: []string{ext},
 				Exts: []string{path},

@@ -12,6 +12,7 @@ func (h *Config) Watch() error{
 	if err != nil{
 		panic(err)
 	}
+	defer watcher.Close()
 
 	walking := func(path string, info os.FileInfo, err error) error{
 		if info.IsDir() {
