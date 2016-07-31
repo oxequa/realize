@@ -7,6 +7,7 @@ import (
 	"os"
 	"log"
 	"strings"
+	"sync"
 )
 
 func InArray(str string, list []string) bool{
@@ -31,10 +32,9 @@ func (h *Config) Watch() error{
 
 	var current Watcher
 
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil{
-		fmt.Println(err)
-	}
+	var wg sync.WaitGroup
+
+	var watcher *fsnotify.Watcher
 
 	walk := func(path string, info os.FileInfo, err error) error{
 		if !Ignore(path,current.Ignore) {
@@ -51,7 +51,16 @@ func (h *Config) Watch() error{
 		return nil
 	}
 
-	watch := func(){
+	watch := func(val Project){
+		watcher, _ = fsnotify.NewWatcher()
+		for _, dir := range val.Watcher.Paths {
+			path, _ := os.Getwd()
+			current = val.Watcher
+			if err := filepath.Walk(path + dir, walk); err != nil {
+				fmt.Println(err)
+			}
+		}
+
 		for {
 			select {
 				case event := <-watcher.Events:
@@ -63,35 +72,20 @@ func (h *Config) Watch() error{
 					log.Println("error:", err)
 			}
 		}
-	}
 
-	defer func(){
+		wg.Done()
 		watcher.Close()
-		// kill process
-	}()
+	}
 
 	// add to watcher
 	if err := h.Read(); err == nil {
+
 		// loop projects
+		wg.Add(len(h.Projects))
 		for _, val := range h.Projects {
-			// add paths
-			for _, dir := range val.Watcher.Paths {
-				path, _ := os.Getwd()
-				current = val.Watcher
-				if err := filepath.Walk(path+dir, walk); err != nil{
-					fmt.Println(err)
-				}
-			}
+			go watch(val)
 		}
-
-		// watch changes
-		watch()
-
-		// build
-
-		// install
-
-		// run
+		wg.Wait()
 
 		return nil
 	}else{
