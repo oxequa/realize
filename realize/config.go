@@ -13,8 +13,9 @@ import (
 
 const(
 	file = "realize.config.yaml"
-	ext = "go"
+	ext = ".go"
 	path = "/"
+	ignore = "vendor"
 )
 
 var green = color.New(color.FgGreen, color.Bold).SprintFunc()
@@ -41,6 +42,7 @@ type Watcher struct{
 	Before []string `yaml:"before,omitempty"`
 	After []string `yaml:"after,omitempty"`
 	Paths []string `yaml:"paths,omitempty"`
+	Ignore []string `yaml:"ignore_paths,omitempty"`
 	Exts []string `yaml:"exts,omitempty"`
 }
 
@@ -57,8 +59,9 @@ func New(params *cli.Context) *Config{
 				Build: params.Bool("build"),
 				Bin: params.Bool("bin"),
 				Watcher: Watcher{
-				Paths: []string{ext},
-				Exts: []string{path},
+				Paths: []string{path},
+				Ignore: []string{ignore},
+				Exts: []string{ext},
 				},
 			},
 		},
@@ -133,8 +136,8 @@ func (h *Config) Add(params *cli.Context) error{
 			Run: params.Bool("run"),
 			Build: params.Bool("build"),
 			Watcher: Watcher{
-				Paths: []string{ext},
-				Exts: []string{path},
+				Paths: []string{path},
+				Exts: []string{ext},
 			},
 		}
 		if Duplicates(new, h.Projects) {
