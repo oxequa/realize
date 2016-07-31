@@ -55,10 +55,10 @@ func (h *Config) Watch() error{
 		for {
 			select {
 				case event := <-watcher.Events:
-					log.Println("event:", event)
-					if event.Op&fsnotify.Write == fsnotify.Write {
-						log.Println("modified file:", event.Name)
+					if event.Op&fsnotify.Chmod == fsnotify.Chmod {
+						continue
 					}
+					log.Println("event:", event)
 				case err := <-watcher.Errors:
 					log.Println("error:", err)
 			}
@@ -75,10 +75,10 @@ func (h *Config) Watch() error{
 		// loop projects
 		for _, val := range h.Projects {
 			// add paths
-			for _, path := range val.Watcher.Paths {
-				p, _ := os.Getwd()
+			for _, dir := range val.Watcher.Paths {
+				path, _ := os.Getwd()
 				current = val.Watcher
-				if err := filepath.Walk(p+path, walk); err != nil{
+				if err := filepath.Walk(path+dir, walk); err != nil{
 					fmt.Println(err)
 				}
 			}
