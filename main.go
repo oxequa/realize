@@ -50,7 +50,8 @@ func main() {
 				Name: "run",
 				Usage: "Build and watch file changes",
 				Action: func(p *cli.Context) error {
-					fmt.Printf("Hello %q", p.String("run"))
+					y := realize.New(p)
+					y.Watch()
 					return nil
 				},
 				Before: func(c *cli.Context) error {
@@ -66,9 +67,9 @@ func main() {
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "Sample App"},
 					&cli.StringFlag{Name: "main", Aliases: []string{"m"}, Value: "main.go"},
-					&cli.BoolFlag{Name: "build", Aliases: []string{"b"}, Value: false},
-					&cli.BoolFlag{Name: "run", Aliases: []string{"r"}, Value: true},
-					&cli.BoolFlag{Name: "bin", Aliases: []string{"r"}, Value: true},
+					&cli.BoolFlag{Name: "build", Value: false},
+					&cli.BoolFlag{Name: "run", Value: true},
+					&cli.BoolFlag{Name: "bin", Value: true},
 				},
 				Action: func(p *cli.Context) error {
 					y := realize.New(p)
@@ -87,9 +88,9 @@ func main() {
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "Sample App"},
 					&cli.StringFlag{Name: "main", Aliases: []string{"m"}, Value: "main.go"},
-					&cli.BoolFlag{Name: "build", Aliases: []string{"b"}, Value: false},
-					&cli.BoolFlag{Name: "run", Aliases: []string{"r"}, Value: true},
-					&cli.BoolFlag{Name: "bin", Aliases: []string{"r"}, Value: true},
+					&cli.BoolFlag{Name: "build", Value: false},
+					&cli.BoolFlag{Name: "run", Value: true},
+					&cli.BoolFlag{Name: "bin", Value: true},
 				},
 				Action: func(p *cli.Context) error {
 					y := realize.New(p)
