@@ -89,7 +89,8 @@ func (h *Config) Clean() {
 // Check, Read and remove duplicates from the config file
 func (h *Config) Read() error{
 	if file, err :=  ioutil.ReadFile(h.file); err == nil{
-		if len(h.Projects) <= 0 {
+		fmt.Println(len(h.Projects))
+		if len(h.Projects) > 0 {
 			err = yaml.Unmarshal(file, h)
 			if err == nil {
 				h.Clean()
