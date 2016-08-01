@@ -64,7 +64,6 @@ func New(params *cli.Context) *Config{
 				Paths: []string{path},
 				Ignore: []string{ignore},
 				Exts: []string{ext},
-				Preview: false,
 				},
 			},
 		},
@@ -142,7 +141,6 @@ func (h *Config) Add(params *cli.Context) error{
 				Paths: []string{path},
 				Exts: []string{ext},
 				Ignore: []string{ignore},
-				Preview: false,
 			},
 		}
 		if Duplicates(new, h.Projects) {
