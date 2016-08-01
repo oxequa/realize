@@ -20,6 +20,7 @@ const(
 
 var green = color.New(color.FgGreen, color.Bold).SprintFunc()
 var greenl = color.New(color.FgHiGreen).SprintFunc()
+var red = color.New(color.FgRed).SprintFunc()
 
 type Config struct {
 	file string
