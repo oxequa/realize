@@ -45,7 +45,7 @@ func (p *Project) Watching(){
 		if !Ignore(path,p.Watcher.Ignore) {
 			if (info.IsDir() && len(filepath.Ext(path)) == 0 && !strings.Contains(path, "/.")) || (InArray(filepath.Ext(path), p.Watcher.Exts)){
 				if p.Watcher.Preview {
-					fmt.Println(p.Name + ": " + path)
+					fmt.Println(p.Name + ": \t" + path)
 				}
 				if err = watcher.Add(path); err != nil {
 					return filepath.SkipDir
@@ -76,6 +76,8 @@ func (p *Project) Watching(){
 			fmt.Println(err)
 		}
 	}
+
+	fmt.Println("\nWatching..\n")
 
 	for {
 		select {
