@@ -62,7 +62,7 @@ func (h *Config) Watch() error{
 		for _, dir := range val.Watcher.Paths {
 			path, _ := os.Getwd()
 			current = val.Watcher
-			// add dir of project 
+			// add dir of project
 			if err := filepath.Walk(path + dir, walk); err != nil {
 				fmt.Println(err)
 			}
