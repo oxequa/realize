@@ -22,12 +22,14 @@ var green = color.New(color.FgGreen, color.Bold).SprintFunc()
 var greenl = color.New(color.FgHiGreen).SprintFunc()
 
 type Config struct {
-	file string `yaml:"app_file,omitempty"`
+	file string
 	Version string `yaml:"version,omitempty"`
 	Projects []Project
 }
 
 type Project struct {
+	base string
+	reload time.Time
 	Name string `yaml:"app_name,omitempty"`
 	Run bool `yaml:"app_run,omitempty"`
 	Bin bool `yaml:"app_bin,omitempty"`
@@ -138,6 +140,7 @@ func (h *Config) Add(params *cli.Context) error{
 			Watcher: Watcher{
 				Paths: []string{path},
 				Exts: []string{ext},
+				Ignore: []string{ignore},
 			},
 		}
 		if Duplicates(new, h.Projects) {
@@ -179,6 +182,7 @@ func (h *Config) List() error{
 			fmt.Println(greenl("|"),"\t\t", green("Before:"), red(val.Watcher.Before))
 			fmt.Println(greenl("|"),"\t\t", green("Extensions:"), red(val.Watcher.Exts))
 			fmt.Println(greenl("|"),"\t\t", green("Paths:"), red(val.Watcher.Paths))
+			fmt.Println(greenl("|"),"\t\t", green("Paths ignored:"), red(val.Watcher.Ignore))
 		}
 		return nil
 	}else{
