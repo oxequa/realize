@@ -32,9 +32,8 @@ func Ignore(str string, list []string) bool{
 	return false
 }
 
-func Watching(val Project){
+func (p *Project) Watching(){
 
-	var current Project
 	var watcher *fsnotify.Watcher
 	watcher, _ = fsnotify.NewWatcher()
 	defer func(){
@@ -43,14 +42,11 @@ func Watching(val Project){
 	}()
 
 	walk := func(path string, info os.FileInfo, err error) error{
-		if !Ignore(path,current.Watcher.Ignore) {
-			if info.IsDir() && len(filepath.Ext(path)) == 0 && !strings.Contains(path, "/.") {
-				fmt.Println(current.Name +": "+path)
-				if err = watcher.Add(path); err != nil {
-					return filepath.SkipDir
+		if !Ignore(path,p.Watcher.Ignore) {
+			if (info.IsDir() && len(filepath.Ext(path)) == 0 && !strings.Contains(path, "/.")) || (InArray(filepath.Ext(path), p.Watcher.Exts)){
+				if p.Watcher.Preview {
+					fmt.Println(p.Name + ": " + path)
 				}
-			} else if InArray(filepath.Ext(path), current.Watcher.Exts) {
-				fmt.Println(current.Name +": "+path)
 				if err = watcher.Add(path); err != nil {
 					return filepath.SkipDir
 				}
@@ -61,14 +57,13 @@ func Watching(val Project){
 
 	// run, bin, build
 
-	val.reload = time.Now().Truncate(time.Second)
+	p.reload = time.Now().Truncate(time.Second)
 
-	for _, dir := range val.Watcher.Paths {
+	for _, dir := range p.Watcher.Paths {
 
 		var base bytes.Buffer
 		path, _ := os.Getwd()
-		current = val
-		split := strings.Split(val.Main, "/")
+		split := strings.Split(p.Main, "/")
 
 		// get base path from mail field
 		for key, str := range split{
@@ -85,18 +80,18 @@ func Watching(val Project){
 	for {
 		select {
 		case event := <-watcher.Events:
-			if time.Now().Truncate(time.Second).After(val.reload) {
+			if time.Now().Truncate(time.Second).After(p.reload) {
 				if event.Op & fsnotify.Chmod == fsnotify.Chmod {
 					continue
 				}
 				if _, err := os.Stat(event.Name); err == nil {
 
 					i := strings.Index(event.Name, filepath.Ext(event.Name))
-					log.Println("event:", event.Name[:i])
+					log.Println(green(p.Name+":")+"\t", event.Name[:i])
 
 					// run, bin, build
 
-					val.reload = time.Now().Truncate(time.Second)
+					p.reload = time.Now().Truncate(time.Second)
 				}
 			}
 		case err := <-watcher.Errors:
@@ -109,8 +104,8 @@ func (h *Config) Watch() error{
 	if err := h.Read(); err == nil {
 		// loop projects
 		wg.Add(len(h.Projects))
-		for _, val := range h.Projects {
-			go Watching(val)
+		for k := range h.Projects {
+			go h.Projects[k].Watching()
 		}
 		wg.Wait()
 		return nil
