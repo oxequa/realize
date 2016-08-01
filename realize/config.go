@@ -36,7 +36,6 @@ type Project struct {
 	Build bool `yaml:"app_build,omitempty"`
 	Main string `yaml:"app_main,omitempty"`
 	Watcher Watcher `yaml:"app_watcher,omitempty"`
-	updatedAt time.Time
 }
 
 type Watcher struct{
