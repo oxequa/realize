@@ -45,6 +45,7 @@ type Watcher struct{
 	Paths []string `yaml:"paths,omitempty"`
 	Ignore []string `yaml:"ignore_paths,omitempty"`
 	Exts []string `yaml:"exts,omitempty"`
+	Preview bool `yaml:"preview,omitempty"`
 }
 
 // Default value
@@ -63,6 +64,7 @@ func New(params *cli.Context) *Config{
 				Paths: []string{path},
 				Ignore: []string{ignore},
 				Exts: []string{ext},
+				Preview: false,
 				},
 			},
 		},
@@ -140,6 +142,7 @@ func (h *Config) Add(params *cli.Context) error{
 				Paths: []string{path},
 				Exts: []string{ext},
 				Ignore: []string{ignore},
+				Preview: false,
 			},
 		}
 		if Duplicates(new, h.Projects) {
@@ -182,6 +185,7 @@ func (h *Config) List() error{
 			fmt.Println(greenl("|"),"\t\t", green("Extensions:"), red(val.Watcher.Exts))
 			fmt.Println(greenl("|"),"\t\t", green("Paths:"), red(val.Watcher.Paths))
 			fmt.Println(greenl("|"),"\t\t", green("Paths ignored:"), red(val.Watcher.Ignore))
+			fmt.Println(greenl("|"),"\t\t", green("Watch preview:"), red(val.Watcher.Preview))
 		}
 		return nil
 	}else{
