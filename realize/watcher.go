@@ -72,8 +72,17 @@ func (p *Project) Watching(){
 			}
 		}
 
-		if err := filepath.Walk(path + base.String() + dir, walk); err != nil {
-			fmt.Println(err)
+		// add slash if doesn't exist
+		if string(dir[0]) != "/"{
+			dir = "/"+dir
+		}
+
+		if _, err := os.Stat(path + base.String() + dir); err == nil {
+			if err := filepath.Walk(path + base.String() + dir, walk); err != nil {
+				fmt.Println(err)
+			}
+		}else{
+			fmt.Println(red(p.Name + ": \t"+path + base.String() + dir +" doesn't exist"))
 		}
 	}
 
@@ -87,12 +96,9 @@ func (p *Project) Watching(){
 					continue
 				}
 				if _, err := os.Stat(event.Name); err == nil {
-
 					i := strings.Index(event.Name, filepath.Ext(event.Name))
 					log.Println(green(p.Name+":")+"\t", event.Name[:i])
-
 					// run, bin, build
-
 					p.reload = time.Now().Truncate(time.Second)
 				}
 			}
