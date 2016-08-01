@@ -8,6 +8,7 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"time"
 )
 
 func InArray(str string, list []string) bool{
@@ -52,29 +53,39 @@ func (h *Config) Watch() error{
 	}
 
 	watch := func(val Project){
+
 		watcher, _ = fsnotify.NewWatcher()
+
+		// run, bin, build
+		val.reload = time.Now().Truncate(time.Second)
+
 		for _, dir := range val.Watcher.Paths {
 			path, _ := os.Getwd()
 			current = val.Watcher
+			// add dir of project 
 			if err := filepath.Walk(path + dir, walk); err != nil {
 				fmt.Println(err)
 			}
 		}
-
 		for {
 			select {
 				case event := <-watcher.Events:
-					if event.Op&fsnotify.Chmod == fsnotify.Chmod {
-						continue
+					if time.Now().Truncate(time.Second).After(val.reload) {
+						if event.Op & fsnotify.Chmod == fsnotify.Chmod {
+							continue
+						}
+						if _, err := os.Stat(event.Name); err == nil {
+							log.Println("event:", event)
+							// run, bin, build
+							val.reload = time.Now().Truncate(time.Second)
+						}
 					}
-					log.Println("event:", event)
 				case err := <-watcher.Errors:
 					log.Println("error:", err)
 			}
 		}
-
-		wg.Done()
 		watcher.Close()
+		wg.Done()
 	}
 
 	// add to watcher
