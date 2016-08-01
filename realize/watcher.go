@@ -9,7 +9,10 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"bytes"
 )
+
+var wg sync.WaitGroup
 
 func InArray(str string, list []string) bool{
 	for _, v := range list {
@@ -29,21 +32,25 @@ func Ignore(str string, list []string) bool{
 	return false
 }
 
-func (h *Config) Watch() error{
+func Watching(val Project){
 
-	var current Watcher
-
-	var wg sync.WaitGroup
-
+	var current Project
 	var watcher *fsnotify.Watcher
+	watcher, _ = fsnotify.NewWatcher()
+	defer func(){
+		watcher.Close()
+		wg.Done()
+	}()
 
 	walk := func(path string, info os.FileInfo, err error) error{
-		if !Ignore(path,current.Ignore) {
+		if !Ignore(path,current.Watcher.Ignore) {
 			if info.IsDir() && len(filepath.Ext(path)) == 0 && !strings.Contains(path, "/.") {
+				fmt.Println(current.Name +": "+path)
 				if err = watcher.Add(path); err != nil {
 					return filepath.SkipDir
 				}
-			} else if InArray(filepath.Ext(path), current.Exts) {
+			} else if InArray(filepath.Ext(path), current.Watcher.Exts) {
+				fmt.Println(current.Name +": "+path)
 				if err = watcher.Add(path); err != nil {
 					return filepath.SkipDir
 				}
@@ -52,52 +59,60 @@ func (h *Config) Watch() error{
 		return nil
 	}
 
-	watch := func(val Project){
+	// run, bin, build
 
-		watcher, _ = fsnotify.NewWatcher()
+	val.reload = time.Now().Truncate(time.Second)
 
-		// run, bin, build
-		val.reload = time.Now().Truncate(time.Second)
+	for _, dir := range val.Watcher.Paths {
 
-		for _, dir := range val.Watcher.Paths {
-			path, _ := os.Getwd()
-			current = val.Watcher
-			// add dir of project
-			if err := filepath.Walk(path + dir, walk); err != nil {
-				fmt.Println(err)
+		var base bytes.Buffer
+		path, _ := os.Getwd()
+		current = val
+		split := strings.Split(val.Main, "/")
+
+		// get base path from mail field
+		for key, str := range split{
+			if(key < len(split)-1) {
+				base.WriteString("/" + str)
 			}
 		}
-		for {
-			select {
-				case event := <-watcher.Events:
-					if time.Now().Truncate(time.Second).After(val.reload) {
-						if event.Op & fsnotify.Chmod == fsnotify.Chmod {
-							continue
-						}
-						if _, err := os.Stat(event.Name); err == nil {
-							log.Println("event:", event)
-							// run, bin, build
-							val.reload = time.Now().Truncate(time.Second)
-						}
-					}
-				case err := <-watcher.Errors:
-					log.Println("error:", err)
-			}
+
+		if err := filepath.Walk(path + base.String() + dir, walk); err != nil {
+			fmt.Println(err)
 		}
-		watcher.Close()
-		wg.Done()
 	}
 
-	// add to watcher
-	if err := h.Read(); err == nil {
+	for {
+		select {
+		case event := <-watcher.Events:
+			if time.Now().Truncate(time.Second).After(val.reload) {
+				if event.Op & fsnotify.Chmod == fsnotify.Chmod {
+					continue
+				}
+				if _, err := os.Stat(event.Name); err == nil {
 
+					i := strings.Index(event.Name, filepath.Ext(event.Name))
+					log.Println("event:", event.Name[:i])
+
+					// run, bin, build
+
+					val.reload = time.Now().Truncate(time.Second)
+				}
+			}
+		case err := <-watcher.Errors:
+			log.Println("error:", err)
+		}
+	}
+}
+
+func (h *Config) Watch() error{
+	if err := h.Read(); err == nil {
 		// loop projects
 		wg.Add(len(h.Projects))
 		for _, val := range h.Projects {
-			go watch(val)
+			go Watching(val)
 		}
 		wg.Wait()
-
 		return nil
 	}else{
 		return err
