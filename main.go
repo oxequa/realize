@@ -2,26 +2,13 @@ package main
 
 import (
 	"os"
-	"fmt"
 	"gopkg.in/urfave/cli.v2"
 	"github.com/tockins/realize/realize"
-	"github.com/fatih/color"
 )
-
-const(
-	name = "Realize"
-	version = "v1.0"
-	email = "pracchia@hastega.it"
-	//description = "Run and build your applications on file changes. Watch custom paths and specific extensions. Define additional commands and multiple projects"
-	description = "Run and build your applications on file changes."
-	author = "Alessio Pracchia"
-)
-
-
-var blue = color.New(color.FgBlue, color.Bold).SprintFunc()
-var bluel = color.New(color.FgBlue).SprintFunc()
 
 func main() {
+
+	app := realize.Init()
 
 	handle := func(err error) error{
 		if err != nil {
@@ -31,20 +18,19 @@ func main() {
 	}
 
 	header := func(){
-		fmt.Println(blue(name)+" - "+blue(version))
-		fmt.Println(bluel(description)+"\n")
+		app.Information()
 	}
 
-	app := &cli.App{
-		Name: name,
-		Version: version,
+	cli := &cli.App{
+		Name: app.Name,
+		Version: app.Version,
 		Authors: []*cli.Author{
 			&cli.Author{
-				Name:  author,
-				Email: email,
+				Name:  app.Author,
+				Email: app.Email,
 			},
 		},
-		Usage: description,
+		Usage: app.Description,
 		Commands: []*cli.Command{
 			{
 				Name: "run",
@@ -65,8 +51,9 @@ func main() {
 				Aliases:     []string{"s"},
 				Usage: "Create the initial config",
 				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "Sample App"},
-					&cli.StringFlag{Name: "main", Aliases: []string{"m"}, Value: "main.go"},
+					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "Sample App", Usage: "Project name \t"},
+					&cli.StringFlag{Name: "main", Aliases: []string{"m"}, Value: "main.go", Usage: "Project main file \t"},
+					&cli.StringFlag{Name: "base", Aliases: []string{"b"}, Value: "/", Usage: "Project base path \t"},
 					&cli.BoolFlag{Name: "build", Value: false},
 					&cli.BoolFlag{Name: "run", Value: true},
 					&cli.BoolFlag{Name: "bin", Value: true},
@@ -86,8 +73,9 @@ func main() {
 				Aliases:     []string{"a"},
 				Usage: "Add another project",
 				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "Sample App"},
-					&cli.StringFlag{Name: "main", Aliases: []string{"m"}, Value: "main.go"},
+					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "Sample App", Usage: "Project name \t"},
+					&cli.StringFlag{Name: "main", Aliases: []string{"m"}, Value: "main.go", Usage: "Project main file \t"},
+					&cli.StringFlag{Name: "base", Aliases: []string{"b"}, Value: "/", Usage: "Project base path \t"},
 					&cli.BoolFlag{Name: "build", Value: false},
 					&cli.BoolFlag{Name: "run", Value: true},
 					&cli.BoolFlag{Name: "bin", Value: true},
@@ -135,5 +123,5 @@ func main() {
 		},
 	}
 
-	app.Run(os.Args)
+	cli.Run(os.Args)
 }
