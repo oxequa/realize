@@ -6,21 +6,8 @@ import (
 	"errors"
 	"gopkg.in/urfave/cli.v2"
 	"io/ioutil"
-	"github.com/fatih/color"
 	"fmt"
-	"time"
 )
-
-const(
-	file = "realize.config.yaml"
-	ext = ".go"
-	path = "/"
-	ignore = "vendor"
-)
-
-var green = color.New(color.FgGreen, color.Bold).SprintFunc()
-var greenl = color.New(color.FgHiGreen).SprintFunc()
-var red = color.New(color.FgRed).SprintFunc()
 
 type Config struct {
 	file string
@@ -28,43 +15,23 @@ type Config struct {
 	Projects []Project
 }
 
-type Project struct {
-	base string
-	reload time.Time
-	Name string `yaml:"app_name,omitempty"`
-	Run bool `yaml:"app_run,omitempty"`
-	Bin bool `yaml:"app_bin,omitempty"`
-	Build bool `yaml:"app_build,omitempty"`
-	Main string `yaml:"app_main,omitempty"`
-	Watcher Watcher `yaml:"app_watcher,omitempty"`
-}
-
-type Watcher struct{
-	// different before and after on rerun?
-	Before []string `yaml:"before,omitempty"`
-	After []string `yaml:"after,omitempty"`
-	Paths []string `yaml:"paths,omitempty"`
-	Ignore []string `yaml:"ignore_paths,omitempty"`
-	Exts []string `yaml:"exts,omitempty"`
-	Preview bool `yaml:"preview,omitempty"`
-}
-
 // Default value
 func New(params *cli.Context) *Config{
 	return &Config{
-		file: file,
+		file: app_file,
 		Version: "1.0",
 		Projects: []Project{
 			{
 				Name: params.String("name"),
 				Main: params.String("main"),
+				Path: params.String("base"),
 				Run: params.Bool("run"),
 				Build: params.Bool("build"),
 				Bin: params.Bool("bin"),
 				Watcher: Watcher{
-				Paths: []string{path},
-				Ignore: []string{ignore},
-				Exts: []string{ext},
+				Paths: []string{watcher_path},
+				Ignore: []string{watcher_ignore},
+				Exts: []string{watcher_ext},
 				},
 			},
 		},
@@ -136,12 +103,13 @@ func (h *Config) Add(params *cli.Context) error{
 		new := Project{
 			Name: params.String("name"),
 			Main: params.String("main"),
+			Path: params.String("base"),
 			Run: params.Bool("run"),
 			Build: params.Bool("build"),
 			Watcher: Watcher{
-				Paths: []string{path},
-				Exts: []string{ext},
-				Ignore: []string{ignore},
+				Paths: []string{watcher_path},
+				Exts: []string{watcher_ext},
+				Ignore: []string{watcher_ignore},
 			},
 		}
 		if Duplicates(new, h.Projects) {
@@ -172,10 +140,10 @@ func (h *Config) Remove(params *cli.Context) error{
 // List of projects
 func (h *Config) List() error{
 	if err := h.Read(); err == nil {
-		red := color.New(color.FgRed).SprintFunc()
 		for _, val := range h.Projects {
 			fmt.Println(green("|"), green(val.Name))
-			fmt.Println(greenl("|"),"\t", green("Main Path:"), red(val.Main))
+			fmt.Println(greenl("|"),"\t", green("Main File:"), red(val.Main))
+			fmt.Println(greenl("|"),"\t", green("Base Path:"), red(val.Path))
 			fmt.Println(greenl("|"),"\t", green("Run:"), red(val.Run))
 			fmt.Println(greenl("|"),"\t", green("Build:"), red(val.Build))
 			fmt.Println(greenl("|"),"\t", green("Watcher:"))
