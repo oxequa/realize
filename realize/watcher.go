@@ -7,29 +7,17 @@ import (
 	"os"
 	"log"
 	"strings"
-	"sync"
 	"time"
-	"bytes"
 )
 
-var wg sync.WaitGroup
-
-func InArray(str string, list []string) bool{
-	for _, v := range list {
-		if v == str {
-			return true
-		}
-	}
-	return false
-}
-
-func Ignore(str string, list []string) bool{
-	for _, v := range list {
-		if strings.Contains(str, v) {
-			return true
-		}
-	}
-	return false
+type Watcher struct{
+	// different before and after on re-run?
+	Before []string `yaml:"before,omitempty"`
+	After []string `yaml:"after,omitempty"`
+	Paths []string `yaml:"paths,omitempty"`
+	Ignore []string `yaml:"ignore_paths,omitempty"`
+	Exts []string `yaml:"exts,omitempty"`
+	Preview bool `yaml:"preview,omitempty"`
 }
 
 func (p *Project) Watching(){
@@ -56,37 +44,25 @@ func (p *Project) Watching(){
 	}
 
 	// run, bin, build
+	p.GoBuild()
 
 	p.reload = time.Now().Truncate(time.Second)
 
 	for _, dir := range p.Watcher.Paths {
 
-		var base bytes.Buffer
-		path, _ := os.Getwd()
-		split := strings.Split(p.Main, "/")
+		base, _ := os.Getwd()
 
-		// get base path from mail field
-		for key, str := range split{
-			if(key < len(split)-1) {
-				base.WriteString("/" + str)
-			}
-		}
-
-		// add slash if doesn't exist
-		if string(dir[0]) != "/"{
-			dir = "/"+dir
-		}
-
-		if _, err := os.Stat(path + base.String() + dir); err == nil {
-			if err := filepath.Walk(path + base.String() + dir, walk); err != nil {
+		// check path existence
+		if _, err := os.Stat(base + p.Path + dir); err == nil {
+			if err := filepath.Walk(base + p.Path + dir, walk); err != nil {
 				fmt.Println(err)
 			}
 		}else{
-			fmt.Println(red(p.Name + ": \t"+path + base.String() + dir +" doesn't exist"))
+			fmt.Println(red(p.Name + ": \t"+base + p.Path + dir +" path doesn't exist"))
 		}
 	}
 
-	fmt.Println("\nWatching..\n")
+	fmt.Println(red("Watching: '"+ p.Name +"'\n"))
 
 	for {
 		select {
@@ -120,4 +96,22 @@ func (h *Config) Watch() error{
 	}else{
 		return err
 	}
+}
+
+func InArray(str string, list []string) bool{
+	for _, v := range list {
+		if v == str {
+			return true
+		}
+	}
+	return false
+}
+
+func Ignore(str string, list []string) bool{
+	for _, v := range list {
+		if strings.Contains(str, v) {
+			return true
+		}
+	}
+	return false
 }
