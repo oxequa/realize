@@ -40,6 +40,15 @@ func Init() *App{
 	}
 }
 
+func Fail(msg string){
+	fmt.Println(red(msg))
+}
+
+func Success(msg string){
+	fmt.Println(green(msg))
+}
+
+
 func (app *App) Information(){
 	fmt.Println(blue(app.Name)+" - "+blue(app.Version))
 	fmt.Println(bluel(app.Description)+"\n")
