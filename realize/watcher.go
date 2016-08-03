@@ -20,6 +20,26 @@ type Watcher struct{
 	Preview bool `yaml:"preview,omitempty"`
 }
 
+func (p *Project) install(){
+	if p.Bin {
+		if err := p.GoInstall(); err != nil{
+			Fail(err.Error())
+		}else{
+			Success(p.Name + ": Installed")
+		}
+	}
+}
+
+func (p *Project) build(){
+	if p.Build {
+		if err := p.GoBuild(); err != nil{
+			Fail(err.Error())
+		}else{
+			Success(p.Name + ": Builded")
+		}
+	}
+}
+
 func (p *Project) Watching(){
 
 	var watcher *fsnotify.Watcher
@@ -43,8 +63,11 @@ func (p *Project) Watching(){
 		return nil
 	}
 
-	// run, bin, build
-	p.GoBuild()
+	// run go build
+	go p.build()
+
+	// run go install
+	p.install()
 
 	p.reload = time.Now().Truncate(time.Second)
 
@@ -74,7 +97,13 @@ func (p *Project) Watching(){
 				if _, err := os.Stat(event.Name); err == nil {
 					i := strings.Index(event.Name, filepath.Ext(event.Name))
 					log.Println(green(p.Name+":")+"\t", event.Name[:i])
-					// run, bin, build
+
+					// run go build
+					go p.build()
+
+					// run go install
+					p.install()
+
 					p.reload = time.Now().Truncate(time.Second)
 				}
 			}
