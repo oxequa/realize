@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"os"
 	"bytes"
+	"fmt"
 )
 
 type Project struct {
@@ -25,10 +26,19 @@ func GoRun () error{
 func (p *Project) GoBuild() error{
 	var out bytes.Buffer
 	base, _ := os.Getwd()
-	build := exec.Command("go", "build", base + p.Path + p.Main)
-	//build.Dir = base + p.Path
+	path := base + p.Path
+
+	// create bin dir
+	if _, err := os.Stat(path + "bin"); err != nil {
+		if err = os.Mkdir(path + "bin", 0777); err != nil{
+			fmt.Println(err)
+		}
+	}
+	build := exec.Command("go", "build", path + p.Main)
+	build.Dir = path + "bin"
 	build.Stdout = &out
 	if err := build.Run(); err != nil {
+		fmt.Println(err)
 		return err
 	}
 	return nil

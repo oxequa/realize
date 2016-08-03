@@ -29,9 +29,9 @@ func New(params *cli.Context) *Config{
 				Build: params.Bool("build"),
 				Bin: params.Bool("bin"),
 				Watcher: Watcher{
-				Paths: []string{watcher_path},
-				Ignore: []string{watcher_ignore},
-				Exts: []string{watcher_ext},
+					Paths: watcher_paths,
+					Ignore: watcher_ignores,
+					Exts: watcher_exts,
 				},
 			},
 		},
@@ -107,9 +107,9 @@ func (h *Config) Add(params *cli.Context) error{
 			Run: params.Bool("run"),
 			Build: params.Bool("build"),
 			Watcher: Watcher{
-				Paths: []string{watcher_path},
-				Exts: []string{watcher_ext},
-				Ignore: []string{watcher_ignore},
+				Paths: watcher_paths,
+				Exts: watcher_exts,
+				Ignore: watcher_ignores,
 			},
 		}
 		if Duplicates(new, h.Projects) {

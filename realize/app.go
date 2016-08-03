@@ -13,9 +13,6 @@ const(
 	app_description = "Run and build your applications on file changes."
 	app_author = "Alessio Pracchia"
 	app_file = "realize.config.yaml"
-	watcher_ext = ".go"
-	watcher_path = "/"
-	watcher_ignore = "vendor"
 )
 
 var wg sync.WaitGroup
@@ -24,6 +21,10 @@ var greenl = color.New(color.FgHiGreen).SprintFunc()
 var red = color.New(color.FgRed).SprintFunc()
 var blue = color.New(color.FgBlue, color.Bold).SprintFunc()
 var bluel = color.New(color.FgBlue).SprintFunc()
+
+var watcher_ignores = []string {"vendor","bin"}
+var watcher_exts = []string {".go"}
+var watcher_paths = []string {"/"}
 
 type App struct{
 	Name,Version,Description,Author,Email string
