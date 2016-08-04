@@ -20,34 +20,28 @@ type Watcher struct{
 	Preview bool `yaml:"preview,omitempty"`
 }
 
-func (p *Project) install(){
-	if p.Bin {
-		if err := p.GoInstall(); err != nil{
-			Fail(err.Error())
-		}else{
-			Success(p.Name + ": Installed")
+func (h *Config) Watch() error{
+	if err := h.Read(); err == nil {
+		// loop projects
+		wg.Add(len(h.Projects))
+		for k := range h.Projects {
+			if string(h.Projects[k].Path[0]) != "/" {
+				h.Projects[k].Path = "/"+h.Projects[k].Path
+			}
+			go h.Projects[k].Watching()
 		}
-	}
-}
-
-func (p *Project) build(){
-	if p.Build {
-		if err := p.GoBuild(); err != nil{
-			Fail(err.Error())
-		}else{
-			Success(p.Name + ": Builded")
-		}
+		wg.Wait()
+		return nil
+	}else{
+		return err
 	}
 }
 
 func (p *Project) Watching(){
 
 	var watcher *fsnotify.Watcher
+	channel := make(chan bool)
 	watcher, _ = fsnotify.NewWatcher()
-	defer func(){
-		watcher.Close()
-		wg.Done()
-	}()
 
 	walk := func(path string, info os.FileInfo, err error) error{
 		if !Ignore(path,p.Watcher.Ignore) {
@@ -63,68 +57,88 @@ func (p *Project) Watching(){
 		return nil
 	}
 
-	// run go build
-	go p.build()
-
-	// run go install
-	p.install()
-
-	p.reload = time.Now().Truncate(time.Second)
-
 	for _, dir := range p.Watcher.Paths {
-
 		base, _ := os.Getwd()
-
 		// check path existence
 		if _, err := os.Stat(base + p.Path + dir); err == nil {
 			if err := filepath.Walk(base + p.Path + dir, walk); err != nil {
-				fmt.Println(err)
+				Fail(err.Error())
 			}
 		}else{
-			fmt.Println(red(p.Name + ": \t"+base + p.Path + dir +" path doesn't exist"))
+			Fail(p.Name + ": \t"+base + p.Path + dir +" path doesn't exist")
 		}
 	}
 
-	fmt.Println(red("Watching: '"+ p.Name +"'\n"))
+	// go build, install, run
+	go p.build(); p.install(); p.run(channel);
+
+	fmt.Println(red("\n Watching: '"+ p.Name +"'\n"))
+
+	p.reload = time.Now().Truncate(time.Second)
 
 	for {
 		select {
-		case event := <-watcher.Events:
-			if time.Now().Truncate(time.Second).After(p.reload) {
-				if event.Op & fsnotify.Chmod == fsnotify.Chmod {
-					continue
+			case event := <-watcher.Events:
+				if time.Now().Truncate(time.Second).After(p.reload) {
+					if event.Op & fsnotify.Chmod == fsnotify.Chmod {
+						continue
+					}
+					if _, err := os.Stat(event.Name); err == nil {
+						i := strings.Index(event.Name, filepath.Ext(event.Name))
+						log.Println(green(p.Name+":")+"\t", event.Name[:i])
+
+						// stop and run again
+						close(channel)
+						channel = make(chan bool)
+						go p.build(); p.install(); p.run(channel);
+
+						p.reload = time.Now().Truncate(time.Second)
+					}
 				}
-				if _, err := os.Stat(event.Name); err == nil {
-					i := strings.Index(event.Name, filepath.Ext(event.Name))
-					log.Println(green(p.Name+":")+"\t", event.Name[:i])
-
-					// run go build
-					go p.build()
-
-					// run go install
-					p.install()
-
-					p.reload = time.Now().Truncate(time.Second)
-				}
-			}
-		case err := <-watcher.Errors:
-			log.Println("error:", err)
+			case err := <-watcher.Errors:
+				Fail(err.Error())
 		}
 	}
+
+	watcher.Close()
+	wg.Done()
 }
 
-func (h *Config) Watch() error{
-	if err := h.Read(); err == nil {
-		// loop projects
-		wg.Add(len(h.Projects))
-		for k := range h.Projects {
-			go h.Projects[k].Watching()
+func (p *Project) install(){
+	if p.Bin {
+		LogSuccess(p.Name + ": Installing..")
+		if err := p.GoInstall(); err != nil{
+			Fail(err.Error())
+			return
+		}else{
+			LogSuccess(p.Name + ": Installed")
+			return
 		}
-		wg.Wait()
-		return nil
-	}else{
-		return err
 	}
+	return
+}
+
+func (p *Project) build(){
+	if p.Build {
+		LogSuccess(p.Name + ": Building..")
+		if err := p.GoBuild(); err != nil{
+			Fail(err.Error())
+			return
+		}else{
+			LogSuccess(p.Name + ": Builded")
+			return
+		}
+	}
+	return
+}
+
+func (p *Project) run(channel chan bool){
+	if p.Run {
+		LogSuccess(p.Name + ": Running..")
+		go p.GoRun(channel)
+		LogSuccess(p.Name + ": Runned")
+	}
+	return
 }
 
 func InArray(str string, list []string) bool{
