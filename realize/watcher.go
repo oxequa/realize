@@ -85,7 +85,7 @@ func (p *Project) Watching(){
 					}
 					if _, err := os.Stat(event.Name); err == nil {
 						i := strings.Index(event.Name, filepath.Ext(event.Name))
-						log.Println(green(p.Name+":")+"\t", event.Name[:i])
+						log.Println(green(p.Name+":"), event.Name[:i])
 
 						// stop and run again
 						close(channel)

@@ -39,7 +39,7 @@ func (p *Project) GoRun (channel chan bool) error{
 	for in.Scan() {
 		select {
 			default:
-				log.Printf(in.Text())
+				log.Println(p.Name+":",in.Text())
 			case <- channel:
 				return nil
 		}
