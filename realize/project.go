@@ -5,6 +5,8 @@ import (
 	"os/exec"
 	"os"
 	"bytes"
+	"bufio"
+	"log"
 )
 
 type Project struct {
@@ -18,7 +20,30 @@ type Project struct {
 	Watcher Watcher `yaml:"app_watcher,omitempty"`
 }
 
-func GoRun () error{
+func (p *Project) GoRun (channel chan bool) error{
+	base, _ := os.Getwd()
+	build := exec.Command("go", "run", p.Main)
+	path := base + p.Path
+	build.Dir = path
+
+
+	stdout, err := build.StdoutPipe()
+	if err != nil {
+		Fail(err.Error())
+	}
+	if err := build.Start(); err != nil {
+		Fail(err.Error())
+	}
+
+	in := bufio.NewScanner(stdout)
+	for in.Scan() {
+		select {
+			default:
+				log.Printf(in.Text())
+			case <- channel:
+				return nil
+		}
+	}
 	return nil
 }
 
@@ -46,7 +71,7 @@ func (p *Project) GoBuild() error{
 func (p *Project) GoInstall() error{
 	var out bytes.Buffer
 	base, _ := os.Getwd()
-	path := base
+	path := base + p.Path
 
 	build := exec.Command("go", "install")
 	build.Dir = path
@@ -57,6 +82,3 @@ func (p *Project) GoInstall() error{
 	return nil
 }
 
-func Stop() error{
-	return nil
-}
