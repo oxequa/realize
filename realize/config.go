@@ -10,13 +10,13 @@ import (
 )
 
 type Config struct {
-	file string
-	Version string `yaml:"version,omitempty"`
+	file     string
+	Version  string `yaml:"version,omitempty"`
 	Projects []Project
 }
 
 // Default value
-func New(params *cli.Context) *Config{
+func New(params *cli.Context) *Config {
 	return &Config{
 		file: app_file,
 		Version: "1.0",
@@ -39,9 +39,9 @@ func New(params *cli.Context) *Config{
 }
 
 // check for duplicates
-func Duplicates(value Project, arr []Project) bool{
-	for _, val := range arr{
-		if value.Main == val.Main || value.Name == val.Name{
+func Duplicates(value Project, arr []Project) bool {
+	for _, val := range arr {
+		if value.Main == val.Main || value.Name == val.Name {
 			return true
 		}
 	}
@@ -52,16 +52,16 @@ func Duplicates(value Project, arr []Project) bool{
 func (h *Config) Clean() {
 	arr := h.Projects
 	for key, val := range arr {
-		 if Duplicates(val, arr[key+1:]) {
-			 h.Projects = append(arr[:key], arr[key+1:]...)
-			 break
-		 }
+		if Duplicates(val, arr[key + 1:]) {
+			h.Projects = append(arr[:key], arr[key + 1:]...)
+			break
+		}
 	}
 }
 
 // Check, Read and remove duplicates from the config file
-func (h *Config) Read() error{
-	if file, err :=  ioutil.ReadFile(h.file); err == nil{
+func (h *Config) Read() error {
+	if file, err := ioutil.ReadFile(h.file); err == nil {
 		if len(h.Projects) > 0 {
 			err = yaml.Unmarshal(file, h)
 			if err == nil {
@@ -70,13 +70,13 @@ func (h *Config) Read() error{
 			return err
 		}
 		return errors.New("There are no projects")
-	}else{
+	} else {
 		return err
 	}
 }
 
 // write and marshal
-func (h *Config) Write() error{
+func (h *Config) Write() error {
 	y, err := yaml.Marshal(h)
 	if err != nil {
 		return err
@@ -85,12 +85,12 @@ func (h *Config) Write() error{
 }
 
 // Create config yaml file
-func (h *Config) Create(params *cli.Context) error{
+func (h *Config) Create(params *cli.Context) error {
 	if h.Read() != nil {
 		if err := h.Write(); err != nil {
 			os.Remove(h.file)
 			return err
-		}else{
+		} else {
 			return err
 		}
 	}
@@ -98,7 +98,7 @@ func (h *Config) Create(params *cli.Context) error{
 }
 
 // Add another project
-func (h *Config) Add(params *cli.Context) error{
+func (h *Config) Add(params *cli.Context) error {
 	if err := h.Read(); err == nil {
 		new := Project{
 			Name: params.String("name"),
@@ -117,45 +117,45 @@ func (h *Config) Add(params *cli.Context) error{
 		}
 		h.Projects = append(h.Projects, new)
 		return h.Write()
-	}else{
+	} else {
 		return err
 	}
 }
 
 // remove a project in list
-func (h *Config) Remove(params *cli.Context) error{
+func (h *Config) Remove(params *cli.Context) error {
 	if err := h.Read(); err == nil {
 		for key, val := range h.Projects {
 			if params.String("name") == val.Name {
-				h.Projects = append(h.Projects[:key], h.Projects[key+1:]...)
+				h.Projects = append(h.Projects[:key], h.Projects[key + 1:]...)
 				return h.Write()
 			}
 		}
 		return errors.New("No project found")
-	}else{
+	} else {
 		return err
 	}
 }
 
 // List of projects
-func (h *Config) List() error{
+func (h *Config) List() error {
 	if err := h.Read(); err == nil {
 		for _, val := range h.Projects {
 			fmt.Println(green("|"), green(val.Name))
-			fmt.Println(greenl("|"),"\t", green("Main File:"), red(val.Main))
-			fmt.Println(greenl("|"),"\t", green("Base Path:"), red(val.Path))
-			fmt.Println(greenl("|"),"\t", green("Run:"), red(val.Run))
-			fmt.Println(greenl("|"),"\t", green("Build:"), red(val.Build))
-			fmt.Println(greenl("|"),"\t", green("Watcher:"))
-			fmt.Println(greenl("|"),"\t\t", green("After:"), red(val.Watcher.After))
-			fmt.Println(greenl("|"),"\t\t", green("Before:"), red(val.Watcher.Before))
-			fmt.Println(greenl("|"),"\t\t", green("Extensions:"), red(val.Watcher.Exts))
-			fmt.Println(greenl("|"),"\t\t", green("Paths:"), red(val.Watcher.Paths))
-			fmt.Println(greenl("|"),"\t\t", green("Paths ignored:"), red(val.Watcher.Ignore))
-			fmt.Println(greenl("|"),"\t\t", green("Watch preview:"), red(val.Watcher.Preview))
+			fmt.Println(greenl("|"), "\t", green("Main File:"), red(val.Main))
+			fmt.Println(greenl("|"), "\t", green("Base Path:"), red(val.Path))
+			fmt.Println(greenl("|"), "\t", green("Run:"), red(val.Run))
+			fmt.Println(greenl("|"), "\t", green("Build:"), red(val.Build))
+			fmt.Println(greenl("|"), "\t", green("Watcher:"))
+			fmt.Println(greenl("|"), "\t\t", green("After:"), red(val.Watcher.After))
+			fmt.Println(greenl("|"), "\t\t", green("Before:"), red(val.Watcher.Before))
+			fmt.Println(greenl("|"), "\t\t", green("Extensions:"), red(val.Watcher.Exts))
+			fmt.Println(greenl("|"), "\t\t", green("Paths:"), red(val.Watcher.Paths))
+			fmt.Println(greenl("|"), "\t\t", green("Paths ignored:"), red(val.Watcher.Ignore))
+			fmt.Println(greenl("|"), "\t\t", green("Watch preview:"), red(val.Watcher.Preview))
 		}
 		return nil
-	}else{
+	} else {
 		return err
 	}
 }

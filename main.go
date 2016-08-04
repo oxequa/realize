@@ -10,14 +10,14 @@ func main() {
 
 	app := realize.Init()
 
-	handle := func(err error) error{
+	handle := func(err error) error {
 		if err != nil {
 			return cli.Exit(err.Error(), 86)
 		}
 		return nil
 	}
 
-	header := func(){
+	header := func() {
 		app.Information()
 	}
 

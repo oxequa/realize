@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-const(
+const (
 	app_name = "Realize"
 	app_version = "v1.0"
 	app_email = "pracchia@hastega.it"
@@ -23,15 +23,15 @@ var red = color.New(color.FgRed).SprintFunc()
 var blue = color.New(color.FgBlue, color.Bold).SprintFunc()
 var bluel = color.New(color.FgBlue).SprintFunc()
 
-var watcher_ignores = []string {"vendor","bin"}
-var watcher_exts = []string {".go"}
-var watcher_paths = []string {"/"}
+var watcher_ignores = []string{"vendor", "bin"}
+var watcher_exts = []string{".go"}
+var watcher_paths = []string{"/"}
 
-type App struct{
-	Name,Version,Description,Author,Email string
+type App struct {
+	Name, Version, Description, Author, Email string
 }
 
-func Init() *App{
+func Init() *App {
 	return &App{
 		Name: app_name,
 		Version: app_version,
@@ -41,21 +41,20 @@ func Init() *App{
 	}
 }
 
-func Fail(msg string){
+func Fail(msg string) {
 	fmt.Println(red(msg))
 }
 
-func Success(msg string){
+func Success(msg string) {
 	fmt.Println(green(msg))
 }
 
-func LogSuccess(msg string){
+func LogSuccess(msg string) {
 	log.Println(green(msg))
 }
 
-
-func (app *App) Information(){
-	fmt.Println(blue(app.Name)+" - "+blue(app.Version))
-	fmt.Println(bluel(app.Description)+"\n")
+func (app *App) Information() {
+	fmt.Println(blue(app.Name) + " - " + blue(app.Version))
+	fmt.Println(bluel(app.Description) + "\n")
 }
 
