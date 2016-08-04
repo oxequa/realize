@@ -42,6 +42,10 @@ func (p *Project) Watching(){
 	var watcher *fsnotify.Watcher
 	channel := make(chan bool)
 	watcher, _ = fsnotify.NewWatcher()
+	defer func(){
+		watcher.Close()
+		wg.Done()
+	}()
 
 	walk := func(path string, info os.FileInfo, err error) error{
 		if !Ignore(path,p.Watcher.Ignore) {
@@ -59,7 +63,13 @@ func (p *Project) Watching(){
 
 	for _, dir := range p.Watcher.Paths {
 		base, _ := os.Getwd()
-		// check path existence
+		// check main existence
+		if _, err := os.Stat(base + p.Path + dir + p.Main); err != nil {
+			Fail(p.Name + ": \t"+base + p.Path + dir + p.Main+ " doesn't exist. Main is required")
+			return
+		}
+
+		// check paths existence
 		if _, err := os.Stat(base + p.Path + dir); err == nil {
 			if err := filepath.Walk(base + p.Path + dir, walk); err != nil {
 				Fail(err.Error())
@@ -99,9 +109,6 @@ func (p *Project) Watching(){
 				Fail(err.Error())
 		}
 	}
-
-	watcher.Close()
-	wg.Done()
 }
 
 func (p *Project) install(){
