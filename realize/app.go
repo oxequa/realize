@@ -4,6 +4,7 @@ import (
 	"github.com/fatih/color"
 	"sync"
 	"fmt"
+	"log"
 )
 
 const(
@@ -46,6 +47,10 @@ func Fail(msg string){
 
 func Success(msg string){
 	fmt.Println(green(msg))
+}
+
+func LogSuccess(msg string){
+	log.Println(green(msg))
 }
 
 
