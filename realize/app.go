@@ -11,7 +11,7 @@ const (
 	app_name = "Realize"
 	app_version = "v1.0"
 	app_email = "pracchia@hastega.it"
-	app_description = "Run and build your applications on file changes."
+	app_description = "Run, install or build your applications on file changes. Output preview and multi project support"
 	app_author = "Alessio Pracchia"
 	app_file = "realize.config.yaml"
 )
