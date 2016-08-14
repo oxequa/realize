@@ -91,6 +91,7 @@ func (h *Config) Create(params *cli.Context) error {
 			os.Remove(h.file)
 			return err
 		} else {
+			Success("The config file was successfully created")
 			return err
 		}
 	}
@@ -116,7 +117,11 @@ func (h *Config) Add(params *cli.Context) error {
 			return errors.New("There is already one project with same path or name")
 		}
 		h.Projects = append(h.Projects, new)
-		return h.Write()
+		err = h.Write()
+		if err == nil {
+			Success("Your project was successfully added")
+		}
+		return err
 	} else {
 		return err
 	}
@@ -128,7 +133,11 @@ func (h *Config) Remove(params *cli.Context) error {
 		for key, val := range h.Projects {
 			if params.String("name") == val.Name {
 				h.Projects = append(h.Projects[:key], h.Projects[key + 1:]...)
-				return h.Write()
+				err = h.Write()
+				if err == nil{
+					Success("Your project was successfully removed")
+				}
+				return err
 			}
 		}
 		return errors.New("No project found")
@@ -146,6 +155,7 @@ func (h *Config) List() error {
 			fmt.Println(greenl("|"), "\t", green("Base Path:"), red(val.Path))
 			fmt.Println(greenl("|"), "\t", green("Run:"), red(val.Run))
 			fmt.Println(greenl("|"), "\t", green("Build:"), red(val.Build))
+			fmt.Println(greenl("|"), "\t", green("Install:"), red(val.Bin))
 			fmt.Println(greenl("|"), "\t", green("Watcher:"))
 			fmt.Println(greenl("|"), "\t\t", green("After:"), red(val.Watcher.After))
 			fmt.Println(greenl("|"), "\t\t", green("Before:"), red(val.Watcher.Before))
