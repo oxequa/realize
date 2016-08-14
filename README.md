@@ -14,7 +14,7 @@ Run, build and watch file changes with custom paths
 - [x] Watcher files preview
 
 
-- [ ] Support for directories with duplicates names
-- [ ] Unit testing
+- [x] Support for directories with duplicates names
+- [ ] Unit test
 - [ ] Documentation
-- [ ] Cli feedback
+- [x] Cli feedback
