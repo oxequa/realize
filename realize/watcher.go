@@ -25,7 +25,7 @@ func (h *Config) Watch() error {
 		// loop projects
 		wg.Add(len(h.Projects))
 		for k := range h.Projects {
-			if string(h.Projects[k].Path[0]) != "/" {
+			if !slash(string(h.Projects[k].Path[0])) {
 				h.Projects[k].Path = "/" + h.Projects[k].Path
 			}
 			go h.Projects[k].Watching()
@@ -69,12 +69,20 @@ func (p *Project) Watching() {
 			return
 		}
 		// check paths existence
-		if _, err := os.Stat(base + p.Path + dir); err == nil {
-			if err := filepath.Walk(base + p.Path + dir, walk); err != nil {
+		if slash(dir) {
+			base = base + p.Path
+		}else{
+			base = base + p.Path + dir
+		}
+		if _, err := os.Stat(base); err == nil {
+			if err := filepath.Walk(base, walk); err != nil {
 				Fail(err.Error())
 			}
+			if slash(dir) {
+				break
+			}
 		} else {
-			Fail(p.Name + ": \t" + base + p.Path + dir + " path doesn't exist")
+			Fail(p.Name + ": \t" + base + " path doesn't exist")
 		}
 	}
 
@@ -157,10 +165,21 @@ func InArray(str string, list []string) bool {
 }
 
 func Ignore(str string, list []string) bool {
+	base, _ := os.Getwd()
 	for _, v := range list {
-		if strings.Contains(str, v) {
+		if !slash(v) {
+			v = "/" +v
+		}
+		if strings.Contains(str, base + v) {
 			return true
 		}
+	}
+	return false
+}
+
+func slash(str string) bool{
+	if string(str[0]) == "/" {
+		return true
 	}
 	return false
 }
