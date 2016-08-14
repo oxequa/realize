@@ -3,16 +3,17 @@ package main
 import (
 	"os"
 	"gopkg.in/urfave/cli.v2"
-	"github.com/tockins/realize/realize"
+	r "github.com/tockins/realize/realize"
 )
 
 func main() {
 
-	app := realize.Init()
+	app := r.Init()
 
 	handle := func(err error) error {
 		if err != nil {
-			return cli.Exit(err.Error(), 86)
+			r.Fail(err.Error())
+			return nil
 		}
 		return nil
 	}
@@ -36,7 +37,7 @@ func main() {
 				Name: "run",
 				Usage: "Build and watch file changes",
 				Action: func(p *cli.Context) error {
-					y := realize.New(p)
+					y := r.New(p)
 					y.Watch()
 					return nil
 				},
@@ -59,7 +60,7 @@ func main() {
 					&cli.BoolFlag{Name: "bin", Value: true},
 				},
 				Action: func(p *cli.Context) error {
-					y := realize.New(p)
+					y := r.New(p)
 					return handle(y.Create(p))
 				},
 				Before: func(c *cli.Context) error {
@@ -81,7 +82,7 @@ func main() {
 					&cli.BoolFlag{Name: "bin", Value: true},
 				},
 				Action: func(p *cli.Context) error {
-					y := realize.New(p)
+					y := r.New(p)
 					return handle(y.Add(p))
 				},
 				Before: func(c *cli.Context) error {
@@ -98,7 +99,7 @@ func main() {
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "Sample App"},
 				},
 				Action: func(p *cli.Context) error {
-					y := realize.New(p)
+					y := r.New(p)
 					return handle(y.Remove(p))
 				},
 				Before: func(c *cli.Context) error {
@@ -112,7 +113,7 @@ func main() {
 				Aliases:     []string{"l"},
 				Usage: "Projects list",
 				Action: func(p *cli.Context) error {
-					y := realize.New(p)
+					y := r.New(p)
 					return handle(y.List())
 				},
 				Before: func(c *cli.Context) error {
