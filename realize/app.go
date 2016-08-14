@@ -19,7 +19,7 @@ const (
 var wg sync.WaitGroup
 var green = color.New(color.FgGreen, color.Bold).SprintFunc()
 var greenl = color.New(color.FgHiGreen).SprintFunc()
-var red = color.New(color.FgRed).SprintFunc()
+var red = color.New(color.FgRed, color.Bold).SprintFunc()
 var blue = color.New(color.FgBlue, color.Bold).SprintFunc()
 var bluel = color.New(color.FgBlue).SprintFunc()
 
