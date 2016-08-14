@@ -12,8 +12,6 @@ Run, build and watch file changes with custom paths
 - [x] Remove duplicate projects
 - [x] Support for multiples projects
 - [x] Watcher files preview
-
-
 - [x] Support for directories with duplicates names
 - [ ] Unit test
 - [ ] Documentation
