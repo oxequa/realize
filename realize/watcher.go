@@ -25,9 +25,7 @@ func (h *Config) Watch() error {
 		// loop projects
 		wg.Add(len(h.Projects))
 		for k := range h.Projects {
-			if !slash(string(h.Projects[k].Path[0])) {
-				h.Projects[k].Path = "/" + h.Projects[k].Path
-			}
+			_, h.Projects[k].Path = slash(h.Projects[k].Path)
 			go h.Projects[k].Watching()
 		}
 		wg.Wait()
@@ -48,8 +46,8 @@ func (p *Project) Watching() {
 	}()
 
 	walk := func(path string, info os.FileInfo, err error) error {
-		if !Ignore(path, p.Watcher.Ignore) {
-			if (info.IsDir() && len(filepath.Ext(path)) == 0 && !strings.Contains(path, "/.")) || (InArray(filepath.Ext(path), p.Watcher.Exts)) {
+		if !ignore(path, p.Watcher.Ignore) {
+			if (info.IsDir() && len(filepath.Ext(path)) == 0 && !strings.Contains(path, "/.")) || (inArray(filepath.Ext(path), p.Watcher.Exts)) {
 				if p.Watcher.Preview {
 					fmt.Println(p.Name + ": \t" + path)
 				}
@@ -68,17 +66,16 @@ func (p *Project) Watching() {
 			Fail(p.Name + ": \t" + base + p.Path + dir + p.Main + " doesn't exist. Main is required")
 			return
 		}
-		// check paths existence
-		if slash(dir) {
-			base = base + p.Path
-		}else{
+
+		base = base + p.Path
+		if check, _ := slash(dir); check != true && len(dir) >= 1 {
 			base = base + p.Path + dir
 		}
 		if _, err := os.Stat(base); err == nil {
 			if err := filepath.Walk(base, walk); err != nil {
 				Fail(err.Error())
 			}
-			if slash(dir) {
+			if check, _ := slash(dir); check == true && len(dir) <= 1  {
 				break
 			}
 		} else {
@@ -155,7 +152,7 @@ func (p *Project) run(channel chan bool) {
 	return
 }
 
-func InArray(str string, list []string) bool {
+func inArray(str string, list []string) bool {
 	for _, v := range list {
 		if v == str {
 			return true
@@ -164,12 +161,10 @@ func InArray(str string, list []string) bool {
 	return false
 }
 
-func Ignore(str string, list []string) bool {
+func ignore(str string, list []string) bool {
 	base, _ := os.Getwd()
 	for _, v := range list {
-		if !slash(v) {
-			v = "/" +v
-		}
+		_, v = slash(v)
 		if strings.Contains(str, base + v) {
 			return true
 		}
@@ -177,9 +172,9 @@ func Ignore(str string, list []string) bool {
 	return false
 }
 
-func slash(str string) bool{
+func slash(str string) (bool, string){
 	if string(str[0]) == "/" {
-		return true
+		return true, str
 	}
-	return false
+	return false, "/"+str
 }
