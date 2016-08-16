@@ -8,6 +8,7 @@ import (
 	"log"
 	"strings"
 	"time"
+	"sync"
 )
 
 type Watcher struct {
@@ -37,8 +38,9 @@ func (h *Config) Watch() error {
 
 func (p *Project) Watching() {
 
+	channel := make(chan bool,1)
+	var wr sync.WaitGroup
 	var watcher *fsnotify.Watcher
-	channel := make(chan bool)
 	watcher, _ = fsnotify.NewWatcher()
 	defer func() {
 		watcher.Close()
@@ -57,6 +59,11 @@ func (p *Project) Watching() {
 			}
 		}
 		return nil
+	}
+	routines := func(){
+		channel = make(chan bool)
+		wr.Add(1)
+		go p.build(); p.install(); p.run(channel, &wr);
 	}
 
 	for _, dir := range p.Watcher.Paths {
@@ -83,8 +90,7 @@ func (p *Project) Watching() {
 		}
 	}
 
-	// go build, install, run
-	go p.build(); p.install(); p.run(channel);
+	routines()
 
 	fmt.Println(red("\n Watching: '" + p.Name + "'\n"))
 
@@ -103,8 +109,8 @@ func (p *Project) Watching() {
 
 					// stop and run again
 					close(channel)
-					channel = make(chan bool)
-					go p.build(); p.install(); p.run(channel);
+					wr.Wait()
+					routines()
 
 					p.reload = time.Now().Truncate(time.Second)
 				}
@@ -143,10 +149,10 @@ func (p *Project) build() {
 	return
 }
 
-func (p *Project) run(channel chan bool) {
+func (p *Project) run(channel chan bool,  wr *sync.WaitGroup) {
 	if p.Run {
 		LogSuccess(p.Name + ": Running..")
-		go p.GoRun(channel)
+		go p.GoRun(channel, wr)
 		LogSuccess(p.Name + ": Runned")
 	}
 	return

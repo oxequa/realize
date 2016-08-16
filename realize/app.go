@@ -53,6 +53,10 @@ func LogSuccess(msg string) {
 	log.Println(green(msg))
 }
 
+func LogFail(msg string) {
+	log.Println(red(msg))
+}
+
 func (app *App) Information() {
 	fmt.Println(blue(app.Name) + " - " + blue(app.Version))
 	fmt.Println(bluel(app.Description) + "\n")

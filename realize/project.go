@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"bufio"
 	"log"
+	"sync"
 )
 
 type Project struct {
@@ -20,11 +21,15 @@ type Project struct {
 	Watcher Watcher `yaml:"app_watcher,omitempty"`
 }
 
-func (p *Project) GoRun(channel chan bool) error {
+func (p *Project) GoRun(channel chan bool, wr *sync.WaitGroup) error {
 	base, _ := os.Getwd()
 	build := exec.Command("go", "run", p.Main)
 	path := base + p.Path
 	build.Dir = path
+	defer func() {
+		LogFail(p.Name + ": Stopped")
+		wr.Done()
+	}()
 
 	stdout, err := build.StdoutPipe()
 	if err != nil {
@@ -39,7 +44,7 @@ func (p *Project) GoRun(channel chan bool) error {
 		select {
 		default:
 			log.Println(p.Name + ":", in.Text())
-		case <-channel:
+		case <- channel:
 			return nil
 		}
 	}
