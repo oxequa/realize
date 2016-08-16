@@ -15,4 +15,5 @@ Run, build and watch file changes with custom paths
 - [x] Support for directories with duplicates names
 - [ ] Unit test
 - [ ] Documentation
+- [ ] Support for server start/stop 
 - [x] Cli feedback
