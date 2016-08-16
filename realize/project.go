@@ -27,6 +27,9 @@ func (p *Project) GoRun(channel chan bool, wr *sync.WaitGroup) error {
 	path := base + p.Path
 	build.Dir = path
 	defer func() {
+		if err := build.Process.Kill(); err != nil {
+			log.Fatal("failed to stop: ", err)
+		}
 		LogFail(p.Name + ": Stopped")
 		wr.Done()
 	}()
@@ -40,7 +43,7 @@ func (p *Project) GoRun(channel chan bool, wr *sync.WaitGroup) error {
 	}
 
 	in := bufio.NewScanner(stdout)
-	for in.Scan() {
+	for in.Scan(){
 		select {
 		default:
 			log.Println(p.Name + ":", in.Text())
@@ -57,14 +60,13 @@ func (p *Project) GoBuild() error {
 	path := base + p.Path
 
 	// create bin dir
-	if _, err := os.Stat(path + "bin"); err != nil {
-		if err = os.Mkdir(path + "bin", 0777); err != nil {
+	if _, err := os.Stat(path + "/bin"); err != nil {
+		if err = os.Mkdir(path + "/bin", 0777); err != nil {
 			return err
 		}
 	}
-
-	build := exec.Command("go", "build", path + p.Main)
-	build.Dir = path + "bin"
+	build := exec.Command("go", "build", path + "/" + p.Main)
+	build.Dir = path + "/bin"
 	build.Stdout = &out
 	if err := build.Run(); err != nil {
 		return err
