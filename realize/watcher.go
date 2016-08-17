@@ -75,19 +75,18 @@ func (p *Project) Watching() {
 
 	defer end()
 
-	p.Path = slash(p.Path)
 	p.Main = slash(p.Main)
-	p.Base = base + p.Path
+	p.base = base + p.Path
 
 	for _, dir := range p.Watcher.Paths {
 		// check main existence
 		dir = slash(dir)
-		if _, err := os.Stat(p.Base + dir + p.Main); err != nil {
-			Fail(p.Name + ": \t" + p.Base + dir + p.Main + " doesn't exist. Main is required")
+		if _, err := os.Stat(p.base + dir + p.Main); err != nil {
+			Fail(p.Name + ": \t" + p.base + dir + p.Main + " doesn't exist. Main is required")
 			return
 		}
 
-		base = p.Base + dir
+		base = p.base + dir
 		if _, err := os.Stat(base); err == nil {
 			if err := filepath.Walk(base, walk); err != nil {
 				Fail(err.Error())
@@ -167,7 +166,7 @@ func (p *Project) run(channel chan bool,  wr *sync.WaitGroup) {
 func (p *Project) ignore(str string) bool {
 	for _, v := range p.Watcher.Ignore {
 		v = slash(v)
-		if strings.Contains(str, p.Base + v) {
+		if strings.Contains(str, p.base + v) {
 			return true
 		}
 	}
