@@ -50,7 +50,7 @@ A Golang file watchers with live reload. Run, build and watch file changes with 
 - Build, Run and watch file changes. Realize will re-build and re-run your projects on each changes
 
     ```
-    realize run 
+    $ realize run 
     ```
 
 #### Config file example
