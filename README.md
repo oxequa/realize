@@ -6,7 +6,7 @@ Run, build and watch file changes with custom paths
 
 #### Features
 
-- Build, Install and Run
+- Build, Install and Run in the same time
 - Live reload on file changes (re-build, re-install and re-run)
 - Watch custom paths
 - Watch specific file extensions
