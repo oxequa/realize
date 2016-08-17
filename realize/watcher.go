@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"path/filepath"
 	"os"
-	"log"
 	"strings"
+	"log"
 	"time"
 	"sync"
 )
@@ -26,7 +26,7 @@ func (h *Config) Watch() error {
 		// loop projects
 		wg.Add(len(h.Projects))
 		for k := range h.Projects {
-			_, h.Projects[k].Path = slash(h.Projects[k].Path)
+			h.Projects[k].Path = slash(h.Projects[k].Path)
 			go h.Projects[k].Watching()
 		}
 		wg.Wait()
@@ -38,17 +38,20 @@ func (h *Config) Watch() error {
 
 func (p *Project) Watching() {
 
-	channel := make(chan bool,1)
 	var wr sync.WaitGroup
 	var watcher *fsnotify.Watcher
-	watcher, _ = fsnotify.NewWatcher()
-	defer func() {
-		watcher.Close()
-		wg.Done()
-	}()
+	watcher, err := fsnotify.NewWatcher()
+	if(err != nil){
+		Fail(p.Name + ": \t" + err.Error())
+	}
+	channel := make(chan bool,1)
+	base, err := os.Getwd()
+	if(err != nil){
+		Fail(p.Name + ": \t" + err.Error())
+	}
 
 	walk := func(path string, info os.FileInfo, err error) error {
-		if !ignore(path, p.Watcher.Ignore) {
+		if !p.ignore(path) {
 			if (info.IsDir() && len(filepath.Ext(path)) == 0 && !strings.Contains(path, "/.")) || (inArray(filepath.Ext(path), p.Watcher.Exts)) {
 				if p.Watcher.Preview {
 					fmt.Println(p.Name + ": \t" + path)
@@ -65,31 +68,34 @@ func (p *Project) Watching() {
 		wr.Add(1)
 		go p.build(); p.install(); p.run(channel, &wr);
 	}
+	end := func(){
+		watcher.Close()
+		wg.Done()
+	}
+
+	defer end()
+
+	p.Path = slash(p.Path)
+	p.Main = slash(p.Main)
+	p.Base = base + p.Path
 
 	for _, dir := range p.Watcher.Paths {
-		base, _ := os.Getwd()
 		// check main existence
-		if _, err := os.Stat(base + p.Path + dir + p.Main); err != nil {
-			Fail(p.Name + ": \t" + base + p.Path + dir + p.Main + " doesn't exist. Main is required")
+		dir = slash(dir)
+		if _, err := os.Stat(p.Base + dir + p.Main); err != nil {
+			Fail(p.Name + ": \t" + p.Base + dir + p.Main + " doesn't exist. Main is required")
 			return
 		}
 
-		base = base + p.Path
-		if check, _ := slash(dir); check != true && len(dir) >= 1 {
-			base = base + p.Path + dir
-		}
+		base = p.Base + dir
 		if _, err := os.Stat(base); err == nil {
 			if err := filepath.Walk(base, walk); err != nil {
 				Fail(err.Error())
-			}
-			if check, _ := slash(dir); check == true && len(dir) <= 1  {
-				break
 			}
 		} else {
 			Fail(p.Name + ": \t" + base + " path doesn't exist")
 		}
 	}
-
 	routines()
 
 	fmt.Println(red("\n Watching: '" + p.Name + "'\n"))
@@ -158,6 +164,16 @@ func (p *Project) run(channel chan bool,  wr *sync.WaitGroup) {
 	return
 }
 
+func (p *Project) ignore(str string) bool {
+	for _, v := range p.Watcher.Ignore {
+		v = slash(v)
+		if strings.Contains(str, p.Base + v) {
+			return true
+		}
+	}
+	return false
+}
+
 func inArray(str string, list []string) bool {
 	for _, v := range list {
 		if v == str {
@@ -167,20 +183,16 @@ func inArray(str string, list []string) bool {
 	return false
 }
 
-func ignore(str string, list []string) bool {
-	base, _ := os.Getwd()
-	for _, v := range list {
-		_, v = slash(v)
-		if strings.Contains(str, base + v) {
-			return true
+func slash(str string) string{
+	if string(str[0]) != "/" {
+		str = "/"+str
+	}
+	if string(str[len(str)-1]) == "/"{
+		if(string(str) == "/"){
+			str = ""
+		}else {
+			str = str[0:len(str) - 2]
 		}
 	}
-	return false
-}
-
-func slash(str string) (bool, string){
-	if string(str[0]) == "/" {
-		return true, str
-	}
-	return false, "/"+str
+	return str
 }

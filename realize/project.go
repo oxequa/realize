@@ -8,10 +8,12 @@ import (
 	"bufio"
 	"log"
 	"sync"
+	"strings"
 )
 
 type Project struct {
 	reload  time.Time
+	Base 	string
 	Name    string `yaml:"app_name,omitempty"`
 	Path    string `yaml:"app_path,omitempty"`
 	Main    string `yaml:"app_main,omitempty"`
@@ -22,10 +24,9 @@ type Project struct {
 }
 
 func (p *Project) GoRun(channel chan bool, wr *sync.WaitGroup) error {
-	base, _ := os.Getwd()
-	build := exec.Command("go", "run", p.Main)
-	path := base + p.Path
-	build.Dir = path
+	name := strings.Split(p.Path, "/")
+	build := exec.Command(name[len(name)-1], os.Getenv("PATH"))
+	build.Dir = p.Base
 	defer func() {
 		if err := build.Process.Kill(); err != nil {
 			log.Fatal("failed to stop: ", err)
@@ -43,30 +44,36 @@ func (p *Project) GoRun(channel chan bool, wr *sync.WaitGroup) error {
 	}
 
 	in := bufio.NewScanner(stdout)
-	for in.Scan(){
+	go func() {
+		for in.Scan() {
+			select {
+			default:
+				log.Println(p.Name + ":", in.Text())
+			}
+		}
+	}()
+
+	for{
 		select {
-		default:
-			log.Println(p.Name + ":", in.Text())
-		case <- channel:
+		case <-channel:
 			return nil
 		}
 	}
+
 	return nil
 }
 
 func (p *Project) GoBuild() error {
 	var out bytes.Buffer
-	base, _ := os.Getwd()
-	path := base + p.Path
 
 	// create bin dir
-	if _, err := os.Stat(path + "/bin"); err != nil {
-		if err = os.Mkdir(path + "/bin", 0777); err != nil {
+	if _, err := os.Stat(p.Base + "/bin"); err != nil {
+		if err = os.Mkdir(p.Base + "/bin", 0777); err != nil {
 			return err
 		}
 	}
-	build := exec.Command("go", "build", path + "/" + p.Main)
-	build.Dir = path + "/bin"
+	build := exec.Command("go", "build", p.Base + p.Main)
+	build.Dir = p.Base + "/bin"
 	build.Stdout = &out
 	if err := build.Run(); err != nil {
 		return err
