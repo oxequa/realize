@@ -65,7 +65,7 @@ A Golang file watchers with live reload. Run, build and watch file changes with 
 - [x] Watcher files preview
 - [x] Support for directories with duplicates names
 - [ ] Unit test
-- [ ] Documentation
+- [ ] Go doc
 - [x] Support for server start/stop 
 - [x] Cli feedback
 
