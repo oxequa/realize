@@ -10,6 +10,7 @@ Run, build and watch file changes with custom paths
     $ go get github.com/ghodss/yaml
     ```
 - From the root of your project/projects:
+
     ```
     realize start 
     ```
@@ -21,18 +22,22 @@ Run, build and watch file changes with custom paths
     realize start --name="Project Name" --main="main.go" --base="/"
     ```
 - Add another project whenever you want    
+
     ```
     realize add --name="Project Name" --main="main.go" --base="/"
     ```
 - Remove a project by his name
+
     ```
     realize remove --name="Project Name"
     ```
 - Lists all projects
+
     ```
     realize list
     ```
 - Build, Run and watch file changes. Realize will re-build and re-run your projects on each changes
+
     ```
     realize run 
     ```
