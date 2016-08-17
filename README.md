@@ -55,7 +55,6 @@ A Golang file watchers with live reload. Run, build and watch file changes with 
 
 #### Config file example
 
-    ```
     version: "1.0"
     projects:
         - app_name: App One
@@ -86,8 +85,6 @@ A Golang file watchers with live reload. Run, build and watch file changes with 
             - bin
             exts:
             - .go
-
-    ```
 
 #### To do
 - [x] Cli start, remove, add, list, run
