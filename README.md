@@ -53,6 +53,41 @@ A Golang file watchers with live reload. Run, build and watch file changes with 
     realize run 
     ```
 
+#### Config file example
+
+    ```
+    version: "1.0"
+    projects:
+        - app_name: App One
+          app_path: one
+          app_main: main.go
+          app_run: true
+          app_bin: true
+          app_watcher:
+            paths:
+            - /
+            ignore_paths:
+            - vendor
+            - bin
+            exts:
+            - .go
+        - app_name: App Two
+          app_path: two
+          app_main: main.go
+          app_run: true
+          app_build: true
+          app_bin: true
+          app_watcher:
+            preview: true
+            paths:
+            - /
+            ignore_paths:
+            - vendor
+            - bin
+            exts:
+            - .go
+
+    ```
 
 #### To do
 - [x] Cli start, remove, add, list, run
