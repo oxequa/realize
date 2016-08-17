@@ -23,29 +23,29 @@ A Golang file watchers with live reload. Run, build and watch file changes with 
 - From the root of your project/projects:
 
     ```
-    realize start 
+    $ realize start 
     ```
     Will create a realize.config.yaml file with a sample project.
     
     You can pass additional parameters for your first project, such as the project name, the main file name and the base path. 
     
     ```
-    realize start --name="Project Name" --main="main.go" --base="/"
+    $ realize start --name="Project Name" --main="main.go" --base="/"
     ```
 - Add another project whenever you want    
 
     ```
-    realize add --name="Project Name" --main="main.go" --base="/"
+    $ realize add --name="Project Name" --main="main.go" --base="/"
     ```
 - Remove a project by his name
 
     ```
-    realize remove --name="Project Name"
+    $ realize remove --name="Project Name"
     ```
 - Lists all projects
 
     ```
-    realize list
+    $ realize list
     ```
 - Build, Run and watch file changes. Realize will re-build and re-run your projects on each changes
 
