@@ -1,13 +1,13 @@
 ## Realize
-######v1.0 Beta
 
 Run, build and watch file changes with custom paths
 
 #### Installation and usage
 
 - Run this for get/install it:
+
     ```
-    $ go get github.com/tockins/realize
+    $ go get github.com/tockins/realize/...
     ```
 - From the root of your project/projects:
 
