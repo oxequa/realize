@@ -72,8 +72,6 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 			return nil
 		}
 	}
-
-	return nil
 }
 
 func (p *Project) GoBuild() error {
