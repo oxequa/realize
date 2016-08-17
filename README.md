@@ -5,6 +5,8 @@
 
 A Golang build system with file watchers and live reload. Run, build and watch file changes with custom paths
 
+![Preview](http://i.imgur.com/bTBkRjH.png)
+
 #### Features
 
 - Build, Install and Run in the same time
@@ -85,11 +87,7 @@ A Golang build system with file watchers and live reload. Run, build and watch f
             - vendor
             - bin
             exts:
-            - .go
-                        
-#### Preview
-![Preview](http://i.imgur.com/bTBkRjH.png)
-                        
+            - .go             
 
 #### To do
 - [x] Cli start, remove, add, list, run
