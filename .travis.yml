@@ -1,0 +1,14 @@
+language: go
+
+go:
+    - 1.6
+    - 1.7
+    - tip
+install:
+    - go get gopkg.in/urfave/cli.v2
+    - go get gopkg.in/yaml.v2
+    - go get github.com/fatih/color
+    - go get golang.org/x/sys
+matrix:
+  allow_failures:
+    - go: tip    
