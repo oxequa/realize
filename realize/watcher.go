@@ -1,14 +1,14 @@
 package realize
 
 import (
-	"github.com/fsnotify/fsnotify"
 	"fmt"
-	"path/filepath"
-	"os"
-	"strings"
+	"github.com/fsnotify/fsnotify"
 	"log"
-	"time"
+	"os"
+	"path/filepath"
+	"strings"
 	"sync"
+	"time"
 )
 
 type Watcher struct {
@@ -18,7 +18,7 @@ type Watcher struct {
 	Paths   []string `yaml:"paths,omitempty"`
 	Ignore  []string `yaml:"ignore_paths,omitempty"`
 	Exts    []string `yaml:"exts,omitempty"`
-	Preview bool `yaml:"preview,omitempty"`
+	Preview bool     `yaml:"preview,omitempty"`
 }
 
 func (h *Config) Watch() error {
@@ -41,12 +41,12 @@ func (p *Project) Watching() {
 	var wr sync.WaitGroup
 	var watcher *fsnotify.Watcher
 	watcher, err := fsnotify.NewWatcher()
-	if(err != nil){
+	if err != nil {
 		Fail(p.Name + ": \t" + err.Error())
 	}
-	channel := make(chan bool,1)
+	channel := make(chan bool, 1)
 	base, err := os.Getwd()
-	if(err != nil){
+	if err != nil {
 		Fail(p.Name + ": \t" + err.Error())
 	}
 
@@ -63,12 +63,14 @@ func (p *Project) Watching() {
 		}
 		return nil
 	}
-	routines := func(){
+	routines := func() {
 		channel = make(chan bool)
 		wr.Add(1)
-		go p.build(); p.install(); p.run(channel, &wr);
+		go p.build()
+		p.install()
+		p.run(channel, &wr)
 	}
-	end := func(){
+	end := func() {
 		watcher.Close()
 		wg.Done()
 	}
@@ -105,12 +107,12 @@ func (p *Project) Watching() {
 		select {
 		case event := <-watcher.Events:
 			if time.Now().Truncate(time.Second).After(p.reload) {
-				if event.Op & fsnotify.Chmod == fsnotify.Chmod {
+				if event.Op&fsnotify.Chmod == fsnotify.Chmod {
 					continue
 				}
 				if _, err := os.Stat(event.Name); err == nil {
 					i := strings.Index(event.Name, filepath.Ext(event.Name))
-					log.Println(green(p.Name + ":"), event.Name[:i])
+					log.Println(green(p.Name+":"), event.Name[:i])
 
 					// stop and run again
 					close(channel)
@@ -154,20 +156,20 @@ func (p *Project) build() {
 	return
 }
 
-func (p *Project) run(channel chan bool,  wr *sync.WaitGroup) {
-	if p.Run{
+func (p *Project) run(channel chan bool, wr *sync.WaitGroup) {
+	if p.Run {
 		if p.Bin {
-			runner := make(chan bool,1)
+			runner := make(chan bool, 1)
 			LogSuccess(p.Name + ": Running..")
 			go p.GoRun(channel, runner, wr)
-			for{
+			for {
 				select {
-				case <- runner:
+				case <-runner:
 					LogSuccess(p.Name + ": Runned")
 					return
 				}
 			}
-		}else{
+		} else {
 			LogFail("Set 'app_run' to true for launch run")
 		}
 	}
@@ -177,7 +179,7 @@ func (p *Project) run(channel chan bool,  wr *sync.WaitGroup) {
 func (p *Project) ignore(str string) bool {
 	for _, v := range p.Watcher.Ignore {
 		v = slash(v)
-		if strings.Contains(str, p.base + v) {
+		if strings.Contains(str, p.base+v) {
 			return true
 		}
 	}
@@ -193,15 +195,15 @@ func inArray(str string, list []string) bool {
 	return false
 }
 
-func slash(str string) string{
+func slash(str string) string {
 	if string(str[0]) != "/" {
-		str = "/"+str
+		str = "/" + str
 	}
-	if string(str[len(str)-1]) == "/"{
-		if(string(str) == "/"){
+	if string(str[len(str)-1]) == "/" {
+		if string(str) == "/" {
 			str = ""
-		}else {
-			str = str[0:len(str) - 2]
+		} else {
+			str = str[0 : len(str)-2]
 		}
 	}
 	return str

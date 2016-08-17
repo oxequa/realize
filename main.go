@@ -1,9 +1,9 @@
 package main
 
 import (
-	"os"
-	"gopkg.in/urfave/cli.v2"
 	r "github.com/tockins/realize/realize"
+	"gopkg.in/urfave/cli.v2"
+	"os"
 )
 
 func main() {
@@ -23,7 +23,7 @@ func main() {
 	}
 
 	cli := &cli.App{
-		Name: app.Name,
+		Name:    app.Name,
 		Version: app.Version,
 		Authors: []*cli.Author{
 			&cli.Author{
@@ -34,7 +34,7 @@ func main() {
 		Usage: app.Description,
 		Commands: []*cli.Command{
 			{
-				Name: "run",
+				Name:  "run",
 				Usage: "Build and watch file changes",
 				Action: func(p *cli.Context) error {
 					y := r.New(p)
@@ -49,8 +49,8 @@ func main() {
 			{
 				Name:     "start",
 				Category: "config",
-				Aliases:     []string{"s"},
-				Usage: "Create the initial config",
+				Aliases:  []string{"s"},
+				Usage:    "Create the initial config",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "Sample App", Usage: "Project name \t"},
 					&cli.StringFlag{Name: "main", Aliases: []string{"m"}, Value: "main.go", Usage: "Project main file \t"},
@@ -71,8 +71,8 @@ func main() {
 			{
 				Name:     "add",
 				Category: "config",
-				Aliases:     []string{"a"},
-				Usage: "Add another project",
+				Aliases:  []string{"a"},
+				Usage:    "Add another project",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "Sample App", Usage: "Project name \t"},
 					&cli.StringFlag{Name: "main", Aliases: []string{"m"}, Value: "main.go", Usage: "Project main file \t"},
@@ -93,8 +93,8 @@ func main() {
 			{
 				Name:     "remove",
 				Category: "config",
-				Aliases:     []string{"r"},
-				Usage: "Remove a project",
+				Aliases:  []string{"r"},
+				Usage:    "Remove a project",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "Sample App"},
 				},
@@ -110,8 +110,8 @@ func main() {
 			{
 				Name:     "list",
 				Category: "config",
-				Aliases:     []string{"l"},
-				Usage: "Projects list",
+				Aliases:  []string{"l"},
+				Usage:    "Projects list",
 				Action: func(p *cli.Context) error {
 					y := r.New(p)
 					return handle(y.List())

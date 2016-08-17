@@ -1,12 +1,12 @@
 package realize
 
 import (
-	"os"
-	"gopkg.in/yaml.v2"
 	"errors"
-	"gopkg.in/urfave/cli.v2"
-	"io/ioutil"
 	"fmt"
+	"gopkg.in/urfave/cli.v2"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"os"
 )
 
 type Config struct {
@@ -18,20 +18,20 @@ type Config struct {
 // Default value
 func New(params *cli.Context) *Config {
 	return &Config{
-		file: app_file,
+		file:    app_file,
 		Version: "1.0",
 		Projects: []Project{
 			{
-				Name: params.String("name"),
-				Main: params.String("main"),
-				Path: params.String("base"),
-				Run: params.Bool("run"),
+				Name:  params.String("name"),
+				Main:  params.String("main"),
+				Path:  params.String("base"),
+				Run:   params.Bool("run"),
 				Build: params.Bool("build"),
-				Bin: params.Bool("bin"),
+				Bin:   params.Bool("bin"),
 				Watcher: Watcher{
-					Paths: watcher_paths,
+					Paths:  watcher_paths,
 					Ignore: watcher_ignores,
-					Exts: watcher_exts,
+					Exts:   watcher_exts,
 				},
 			},
 		},
@@ -52,8 +52,8 @@ func Duplicates(value Project, arr []Project) bool {
 func (h *Config) Clean() {
 	arr := h.Projects
 	for key, val := range arr {
-		if Duplicates(val, arr[key + 1:]) {
-			h.Projects = append(arr[:key], arr[key + 1:]...)
+		if Duplicates(val, arr[key+1:]) {
+			h.Projects = append(arr[:key], arr[key+1:]...)
 			break
 		}
 	}
@@ -102,14 +102,14 @@ func (h *Config) Create(params *cli.Context) error {
 func (h *Config) Add(params *cli.Context) error {
 	if err := h.Read(); err == nil {
 		new := Project{
-			Name: params.String("name"),
-			Main: params.String("main"),
-			Path: params.String("base"),
-			Run: params.Bool("run"),
+			Name:  params.String("name"),
+			Main:  params.String("main"),
+			Path:  params.String("base"),
+			Run:   params.Bool("run"),
 			Build: params.Bool("build"),
 			Watcher: Watcher{
-				Paths: watcher_paths,
-				Exts: watcher_exts,
+				Paths:  watcher_paths,
+				Exts:   watcher_exts,
 				Ignore: watcher_ignores,
 			},
 		}
@@ -132,9 +132,9 @@ func (h *Config) Remove(params *cli.Context) error {
 	if err := h.Read(); err == nil {
 		for key, val := range h.Projects {
 			if params.String("name") == val.Name {
-				h.Projects = append(h.Projects[:key], h.Projects[key + 1:]...)
+				h.Projects = append(h.Projects[:key], h.Projects[key+1:]...)
 				err = h.Write()
-				if err == nil{
+				if err == nil {
 					Success("Your project was successfully removed")
 				}
 				return err
@@ -169,5 +169,3 @@ func (h *Config) List() error {
 		return err
 	}
 }
-
-

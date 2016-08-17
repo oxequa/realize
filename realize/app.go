@@ -1,19 +1,19 @@
 package realize
 
 import (
-	"github.com/fatih/color"
-	"sync"
 	"fmt"
+	"github.com/fatih/color"
 	"log"
+	"sync"
 )
 
 const (
-	app_name = "Realize"
-	app_version = "v1.0"
-	app_email = "pracchia@hastega.it"
+	app_name        = "Realize"
+	app_version     = "v1.0"
+	app_email       = "pracchia@hastega.it"
 	app_description = "Run, install or build your applications on file changes. Output preview and multi project support"
-	app_author = "Alessio Pracchia"
-	app_file = "realize.config.yaml"
+	app_author      = "Alessio Pracchia"
+	app_file        = "realize.config.yaml"
 )
 
 var wg sync.WaitGroup
@@ -33,11 +33,11 @@ type App struct {
 
 func Init() *App {
 	return &App{
-		Name: app_name,
-		Version: app_version,
+		Name:        app_name,
+		Version:     app_version,
 		Description: app_description,
-		Author: app_author,
-		Email: app_email,
+		Author:      app_author,
+		Email:       app_email,
 	}
 }
 
@@ -61,4 +61,3 @@ func (app *App) Information() {
 	fmt.Println(blue(app.Name) + " - " + blue(app.Version))
 	fmt.Println(bluel(app.Description) + "\n")
 }
-
