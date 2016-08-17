@@ -23,7 +23,7 @@ type Project struct {
 	Watcher Watcher `yaml:"app_watcher,omitempty"`
 }
 
-func (p *Project) GoRun(channel chan bool, wr *sync.WaitGroup) error {
+func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup) error {
 	name := strings.Split(p.Path, "/")
 	stop := make(chan bool,1)
 	var run string
@@ -51,6 +51,7 @@ func (p *Project) GoRun(channel chan bool, wr *sync.WaitGroup) error {
 	if err := build.Start(); err != nil {
 		Fail(err.Error())
 	}
+	close(runner)
 
 	in := bufio.NewScanner(stdout)
 	go func() {

@@ -157,11 +157,18 @@ func (p *Project) build() {
 func (p *Project) run(channel chan bool,  wr *sync.WaitGroup) {
 	if p.Run{
 		if p.Bin {
+			runner := make(chan bool,1)
 			LogSuccess(p.Name + ": Running..")
-			go p.GoRun(channel, wr)
-			LogSuccess(p.Name + ": Runned")
+			go p.GoRun(channel, runner, wr)
+			for{
+				select {
+				case <- runner:
+					LogSuccess(p.Name + ": Runned")
+					return
+				}
+			}
 		}else{
-			LogFail("Set 'app_run' to true")
+			LogFail("Set 'app_run' to true for launch run")
 		}
 	}
 	return
