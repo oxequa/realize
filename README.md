@@ -57,27 +57,28 @@ A Golang build system with file watchers and live reload. Run, build and watch f
 
     version: "1.0"
     projects:
-        - app_name: App One
-          app_path: one
-          app_main: main.go
-          app_run: true
-          app_bin: true
+        - app_name: App One     -> name
+          app_path: one         -> root path
+          app_main: main.go     -> main file
+          app_run: true         -> enable/disable go run (require app_bin)
+          app_bin: true         -> enable/disable go install
+          app_build: false      -> enable/disable go build
           app_watcher:
-            paths:
+            preview: true       -> prints the observed files on startup
+            paths:              -> paths to observe for live reload
             - /
-            ignore_paths:
+            ignore_paths:       -> paths to ignore
             - vendor
             - bin
-            exts:
+            exts:               -> file extensions to observe for live reload
             - .go
-        - app_name: App Two
+        - app_name: App Two     -> another project
           app_path: two
           app_main: main.go
           app_run: true
           app_build: true
           app_bin: true
           app_watcher:
-            preview: true
             paths:
             - /
             ignore_paths:
