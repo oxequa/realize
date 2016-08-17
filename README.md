@@ -55,18 +55,15 @@ A Golang file watchers with live reload. Run, build and watch file changes with 
 
 
 #### To do
-- [x] Command start - default config file
-- [x] Command add - new project on the config file 
-- [x] Command remove - remove project from the config file
-- [x] Command watch - watch changes and rebuild 
-- [x] Command list - print projects list
+- [x] Cli start, remove, add, list, run
 - [x] Remove duplicate projects
-- [x] Support for multiples projects
+- [x] Support for multiple projects
 - [x] Watcher files preview
 - [x] Support for directories with duplicates names
 - [ ] Unit test
 - [ ] Go doc
 - [x] Support for server start/stop 
+- [x] Stream projects output
 - [x] Cli feedback
 
 
