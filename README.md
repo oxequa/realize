@@ -1,6 +1,16 @@
 ## Realize
 
+[![AUR](https://img.shields.io/aur/license/yaourt.svg?maxAge=2592000?style=flat-square)](https://raw.githubusercontent.com/tockins/realize/v1/LICENSE)
+
 Run, build and watch file changes with custom paths
+
+#### Features
+
+- Build, Install and Run
+- Live reload on file changes (re-build, re-install and re-run)
+- Watch custom paths
+- Watch specific file extensions
+- Multi project support
 
 #### Installation and usage
 
