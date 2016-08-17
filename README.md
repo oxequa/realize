@@ -7,7 +7,7 @@ Run, build and watch file changes with custom paths
 
 - Run this for get/install it:
     ```
-    $ go get github.com/ghodss/yaml
+    $ go get github.com/tockins/realize
     ```
 - From the root of your project/projects:
 
