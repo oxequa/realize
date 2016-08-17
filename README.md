@@ -18,7 +18,7 @@ A Golang file watchers with live reload. Run, build and watch file changes with 
 - Run this for get/install it:
 
     ```
-    $ go get github.com/tockins/realize/...
+    $ go get github.com/tockins/realize
     ```
 - From the root of your project/projects:
 
