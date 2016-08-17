@@ -11,7 +11,7 @@ A Golang file watchers with live reload. Run, build and watch file changes with 
 - Live reload on file changes (re-build, re-install and re-run)
 - Watch custom paths
 - Watch specific file extensions
-- Multi project support
+- Multiple projects support
 
 #### Installation and usage
 
