@@ -2,7 +2,7 @@
 
 [![AUR](https://img.shields.io/aur/license/yaourt.svg?maxAge=2592000?style=flat-square)](https://raw.githubusercontent.com/tockins/realize/v1/LICENSE)
 [![Build Status](http://img.shields.io/travis/labstack/echo.svg?style=flat-square)](https://travis-ci.org/tockins/realize)
-[![GitHub release](https://img.shields.io/github/release/qubyte/rubidium.svg?maxAge=2592000?style=flat-square)]()
+[![GitHub release](https://img.shields.io/github/release/qubyte/rubidium.svg?maxAge=2592000?style=flat-square)](https://github.com/tockins/realize)
 
 Run, build and watch file changes with custom paths
 
