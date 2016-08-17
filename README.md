@@ -86,6 +86,10 @@ A Golang build system with file watchers and live reload. Run, build and watch f
             - bin
             exts:
             - .go
+                        
+#### Preview
+![Preview](http://i.imgur.com/bTBkRjH.png)
+                        
 
 #### To do
 - [x] Cli start, remove, add, list, run
