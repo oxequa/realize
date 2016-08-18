@@ -8,12 +8,12 @@ import (
 )
 
 const (
-	appName        = "Realize"
-	appVersion     = "v1.0"
-	appEmail       = "pracchia@hastega.it"
-	appDescription = "Run, install or build your applications on file changes. Output preview and multi project support"
-	appAuthor      = "Alessio Pracchia"
-	appFile        = "realize.config.yaml"
+	AppName        = "Realize"
+	AppVersion     = "v1.0"
+	AppEmail       = "pracchia@hastega.it"
+	AppDescription = "Run, install or build your applications on file changes. Output preview and multi project support"
+	AppAuthor      = "Alessio Pracchia"
+	AppFile        = "realize.config.yaml"
 )
 
 var wg sync.WaitGroup
@@ -35,11 +35,11 @@ type App struct {
 // Init is an instance of app with default values
 func Init() *App {
 	return &App{
-		Name:        appName,
-		Version:     appVersion,
-		Description: appDescription,
-		Author:      appAuthor,
-		Email:       appEmail,
+		Name:        AppName,
+		Version:     AppVersion,
+		Description: AppDescription,
+		Author:      AppAuthor,
+		Email:       AppEmail,
 	}
 }
 
