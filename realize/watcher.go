@@ -115,7 +115,7 @@ func (p *Project) Watching() {
 				}
 				if _, err := os.Stat(event.Name); err == nil {
 					i := strings.Index(event.Name, filepath.Ext(event.Name))
-					log.Println(green(p.Name+":"), event.Name[:i])
+					log.Println(bluel(p.Name+": File changed ->"), bluel(event.Name[:i]))
 
 					// stop and run again
 					close(channel)
@@ -174,7 +174,7 @@ func (p *Project) run(channel chan bool, wr *sync.WaitGroup) {
 				}
 			}
 		} else {
-			LogFail("Set 'appRun' to true for launch run")
+			LogFail("Set 'app_run' to true for launch run")
 		}
 	}
 	return

@@ -15,7 +15,7 @@ import (
 type Project struct {
 	reload  time.Time
 	base    string
-	Name    string  `yaml:"appName,omitempty"`
+	Name    string  `yaml:"app_name,omitempty"`
 	Path    string  `yaml:"app_path,omitempty"`
 	Main    string  `yaml:"app_main,omitempty"`
 	Run     bool    `yaml:"app_run,omitempty"`
