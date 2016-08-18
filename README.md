@@ -99,7 +99,7 @@ A Golang build system with file watchers and live reload. Run, build and watch f
 - [x] Watcher files preview
 - [x] Support for directories with duplicates names
 - [ ] Unit test
-- [ ] Go doc
+- [x] Go doc
 - [x] Support for server start/stop 
 - [x] Stream projects output
 - [x] Cli feedback
