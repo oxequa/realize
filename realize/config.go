@@ -20,7 +20,7 @@ type Config struct {
 func New(params *cli.Context) *Config {
 	return &Config{
 		file:    AppFile,
-		Version: "1.0",
+		Version: AppVersion,
 		Projects: []Project{
 			{
 				Name:  params.String("name"),
