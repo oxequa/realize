@@ -11,6 +11,7 @@ import (
 	"time"
 )
 
+// The Watcher struct defines the livereload's logic
 type Watcher struct {
 	// different before and after on re-run?
 	Before  []string `yaml:"before,omitempty"`
@@ -21,8 +22,10 @@ type Watcher struct {
 	Preview bool     `yaml:"preview,omitempty"`
 }
 
+// Watch method adds the given paths on the Watcher
 func (h *Config) Watch() error {
-	if err := h.Read(); err == nil {
+	err := h.Read();
+	if err == nil {
 		// loop projects
 		wg.Add(len(h.Projects))
 		for k := range h.Projects {
@@ -31,11 +34,11 @@ func (h *Config) Watch() error {
 		}
 		wg.Wait()
 		return nil
-	} else {
-		return err
 	}
+	return err
 }
 
+// Watching method is the main core. It manages the livereload and the watching
 func (p *Project) Watching() {
 
 	var wr sync.WaitGroup
@@ -128,34 +131,35 @@ func (p *Project) Watching() {
 	}
 }
 
+// Install call an implementation of the "go install"
 func (p *Project) install() {
 	if p.Bin {
 		LogSuccess(p.Name + ": Installing..")
 		if err := p.GoInstall(); err != nil {
 			Fail(err.Error())
-			return
 		} else {
 			LogSuccess(p.Name + ": Installed")
-			return
 		}
+		return
 	}
 	return
 }
 
+// Build call an implementation of the "go build"
 func (p *Project) build() {
 	if p.Build {
 		LogSuccess(p.Name + ": Building..")
 		if err := p.GoBuild(); err != nil {
 			Fail(err.Error())
-			return
 		} else {
 			LogSuccess(p.Name + ": Builded")
-			return
 		}
+		return
 	}
 	return
 }
 
+// Build call an implementation of the bin execution
 func (p *Project) run(channel chan bool, wr *sync.WaitGroup) {
 	if p.Run {
 		if p.Bin {
@@ -170,12 +174,13 @@ func (p *Project) run(channel chan bool, wr *sync.WaitGroup) {
 				}
 			}
 		} else {
-			LogFail("Set 'app_run' to true for launch run")
+			LogFail("Set 'appRun' to true for launch run")
 		}
 	}
 	return
 }
 
+// Ignore validates a path
 func (p *Project) ignore(str string) bool {
 	for _, v := range p.Watcher.Ignore {
 		v = slash(v)
@@ -186,6 +191,7 @@ func (p *Project) ignore(str string) bool {
 	return false
 }
 
+// check if a string is inArray
 func inArray(str string, list []string) bool {
 	for _, v := range list {
 		if v == str {
@@ -195,6 +201,7 @@ func inArray(str string, list []string) bool {
 	return false
 }
 
+// add a slash at the beginning if not exist
 func slash(str string) string {
 	if string(str[0]) != "/" {
 		str = "/" + str

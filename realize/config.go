@@ -9,14 +9,14 @@ import (
 	"os"
 )
 
-// The Config model contain the general informations about a project
+// Config struct contains the general informations about a project
 type Config struct {
 	file     string
 	Version  string `yaml:"version,omitempty"`
 	Projects []Project
 }
 
-// The New method puts the cli params in the struct
+// New method puts the cli params in the struct
 func New(params *cli.Context) *Config {
 	return &Config{
 		file:    appFile,
