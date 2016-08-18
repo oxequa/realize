@@ -19,7 +19,7 @@ type Config struct {
 // New method puts the cli params in the struct
 func New(params *cli.Context) *Config {
 	return &Config{
-		file:    appFile,
+		file:    AppFile,
 		Version: "1.0",
 		Projects: []Project{
 			{
