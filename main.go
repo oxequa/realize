@@ -38,8 +38,7 @@ func main() {
 				Usage: "Build and watch file changes",
 				Action: func(p *cli.Context) error {
 					y := r.New(p)
-					y.Watch()
-					return nil
+					return handle(y.Watch())
 				},
 				Before: func(c *cli.Context) error {
 					header()
