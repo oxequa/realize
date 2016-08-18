@@ -9,16 +9,17 @@ import (
 	"os"
 )
 
+// The Config model contain the general informations about a project
 type Config struct {
 	file     string
 	Version  string `yaml:"version,omitempty"`
 	Projects []Project
 }
 
-// Default value
+// The New method puts the cli params in the struct
 func New(params *cli.Context) *Config {
 	return &Config{
-		file:    app_file,
+		file:    appFile,
 		Version: "1.0",
 		Projects: []Project{
 			{
@@ -29,26 +30,26 @@ func New(params *cli.Context) *Config {
 				Build: params.Bool("build"),
 				Bin:   params.Bool("bin"),
 				Watcher: Watcher{
-					Paths:  watcher_paths,
-					Ignore: watcher_ignores,
-					Exts:   watcher_exts,
+					Paths:  watcherPaths,
+					Ignore: watcherIgnores,
+					Exts:   watcherExts,
 				},
 			},
 		},
 	}
 }
 
-// check for duplicates
+// Duplicates check projects with same name or same combinations of main/path
 func Duplicates(value Project, arr []Project) bool {
 	for _, val := range arr {
-		if value.Main == val.Main || value.Name == val.Name {
+		if value.Main == val.Main && value.Path == val.Path || value.Name == val.Name {
 			return true
 		}
 	}
 	return false
 }
 
-// Remove duplicate projects
+// Clean duplicate projects
 func (h *Config) Clean() {
 	arr := h.Projects
 	for key, val := range arr {
@@ -59,9 +60,10 @@ func (h *Config) Clean() {
 	}
 }
 
-// Check, Read and remove duplicates from the config file
+// Read, Check and remove duplicates from the config file
 func (h *Config) Read() error {
-	if file, err := ioutil.ReadFile(h.file); err == nil {
+	file, err := ioutil.ReadFile(h.file);
+	if err == nil {
 		if len(h.Projects) > 0 {
 			err = yaml.Unmarshal(file, h)
 			if err == nil {
@@ -70,12 +72,11 @@ func (h *Config) Read() error {
 			return err
 		}
 		return errors.New("There are no projects")
-	} else {
-		return err
 	}
+	return err
 }
 
-// write and marshal
+// write and marshal yaml
 func (h *Config) Write() error {
 	y, err := yaml.Marshal(h)
 	if err != nil {
@@ -87,20 +88,21 @@ func (h *Config) Write() error {
 // Create config yaml file
 func (h *Config) Create(params *cli.Context) error {
 	if h.Read() != nil {
-		if err := h.Write(); err != nil {
+		err := h.Write();
+		if err != nil {
 			os.Remove(h.file)
-			return err
 		} else {
 			Success("The config file was successfully created")
-			return err
 		}
+		return err
 	}
 	return errors.New("The config file already exists, check for realize.config.yaml")
 }
 
 // Add another project
 func (h *Config) Add(params *cli.Context) error {
-	if err := h.Read(); err == nil {
+	err := h.Read();
+	if err == nil {
 		new := Project{
 			Name:  params.String("name"),
 			Main:  params.String("main"),
@@ -108,9 +110,9 @@ func (h *Config) Add(params *cli.Context) error {
 			Run:   params.Bool("run"),
 			Build: params.Bool("build"),
 			Watcher: Watcher{
-				Paths:  watcher_paths,
-				Exts:   watcher_exts,
-				Ignore: watcher_ignores,
+				Paths:  watcherPaths,
+				Exts:   watcherExts,
+				Ignore: watcherIgnores,
 			},
 		}
 		if Duplicates(new, h.Projects) {
@@ -121,15 +123,14 @@ func (h *Config) Add(params *cli.Context) error {
 		if err == nil {
 			Success("Your project was successfully added")
 		}
-		return err
-	} else {
-		return err
 	}
+	return err
 }
 
-// remove a project in list
+// Remove a project in list
 func (h *Config) Remove(params *cli.Context) error {
-	if err := h.Read(); err == nil {
+	err := h.Read();
+	if err == nil {
 		for key, val := range h.Projects {
 			if params.String("name") == val.Name {
 				h.Projects = append(h.Projects[:key], h.Projects[key+1:]...)
@@ -141,14 +142,14 @@ func (h *Config) Remove(params *cli.Context) error {
 			}
 		}
 		return errors.New("No project found")
-	} else {
-		return err
 	}
+	return err
 }
 
 // List of projects
 func (h *Config) List() error {
-	if err := h.Read(); err == nil {
+	err := h.Read();
+	if err == nil {
 		for _, val := range h.Projects {
 			fmt.Println(green("|"), green(val.Name))
 			fmt.Println(greenl("|"), "\t", green("Main File:"), red(val.Main))
@@ -165,7 +166,6 @@ func (h *Config) List() error {
 			fmt.Println(greenl("|"), "\t\t", green("Watch preview:"), red(val.Watcher.Preview))
 		}
 		return nil
-	} else {
-		return err
 	}
+	return err
 }
