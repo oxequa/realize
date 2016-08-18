@@ -11,10 +11,11 @@ import (
 	"time"
 )
 
+// The Project struct defines the informations about a project
 type Project struct {
 	reload  time.Time
 	base    string
-	Name    string  `yaml:"app_name,omitempty"`
+	Name    string  `yaml:"appName,omitempty"`
 	Path    string  `yaml:"app_path,omitempty"`
 	Main    string  `yaml:"app_main,omitempty"`
 	Run     bool    `yaml:"app_run,omitempty"`
@@ -23,6 +24,7 @@ type Project struct {
 	Watcher Watcher `yaml:"app_watcher,omitempty"`
 }
 
+// GoRun  is an implementation of the bin execution
 func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup) error {
 	name := strings.Split(p.Path, "/")
 	stop := make(chan bool, 1)
@@ -74,6 +76,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 	}
 }
 
+// GoBuild an implementation of the "go build"
 func (p *Project) GoBuild() error {
 	var out bytes.Buffer
 
@@ -92,6 +95,7 @@ func (p *Project) GoBuild() error {
 	return nil
 }
 
+// GoInstall an implementation of the "go install"
 func (p *Project) GoInstall() error {
 	var out bytes.Buffer
 	base, _ := os.Getwd()
