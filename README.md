@@ -3,6 +3,9 @@
 [![TeamCity CodeBetter](https://img.shields.io/teamcity/codebetter/bt428.svg?maxAge=2592000?style=flat-square)](https://travis-ci.org/tockins/realize)
 [![AUR](https://img.shields.io/aur/license/yaourt.svg?maxAge=2592000?style=flat-square)](https://raw.githubusercontent.com/tockins/realize/v1/LICENSE)
 
+
+![Logo](http://i.imgur.com/8nr2s1b.jpg)
+
 A Golang build system with file watchers and live reload. Run, build and watch file changes with custom paths
 
 ![Preview](http://i.imgur.com/5b25ET5.png)
