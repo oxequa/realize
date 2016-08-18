@@ -62,7 +62,7 @@ func (h *Config) Clean() {
 
 // Read, Check and remove duplicates from the config file
 func (h *Config) Read() error {
-	file, err := ioutil.ReadFile(h.file);
+	file, err := ioutil.ReadFile(h.file)
 	if err == nil {
 		if len(h.Projects) > 0 {
 			err = yaml.Unmarshal(file, h)
@@ -88,7 +88,7 @@ func (h *Config) Write() error {
 // Create config yaml file
 func (h *Config) Create(params *cli.Context) error {
 	if h.Read() != nil {
-		err := h.Write();
+		err := h.Write()
 		if err != nil {
 			os.Remove(h.file)
 		} else {
@@ -101,7 +101,7 @@ func (h *Config) Create(params *cli.Context) error {
 
 // Add another project
 func (h *Config) Add(params *cli.Context) error {
-	err := h.Read();
+	err := h.Read()
 	if err == nil {
 		new := Project{
 			Name:  params.String("name"),
@@ -129,7 +129,7 @@ func (h *Config) Add(params *cli.Context) error {
 
 // Remove a project in list
 func (h *Config) Remove(params *cli.Context) error {
-	err := h.Read();
+	err := h.Read()
 	if err == nil {
 		for key, val := range h.Projects {
 			if params.String("name") == val.Name {
@@ -148,7 +148,7 @@ func (h *Config) Remove(params *cli.Context) error {
 
 // List of projects
 func (h *Config) List() error {
-	err := h.Read();
+	err := h.Read()
 	if err == nil {
 		for _, val := range h.Projects {
 			fmt.Println(green("|"), green(val.Name))

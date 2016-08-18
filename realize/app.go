@@ -8,12 +8,12 @@ import (
 )
 
 const (
-	app_name        = "Realize"
-	app_version     = "v1.0"
-	app_email       = "pracchia@hastega.it"
-	app_description = "Run, install or build your applications on file changes. Output preview and multi project support"
-	app_author      = "Alessio Pracchia"
-	app_file        = "realize.config.yaml"
+	appName        = "Realize"
+	appVersion     = "v1.0"
+	appEmail       = "pracchia@hastega.it"
+	appDescription = "Run, install or build your applications on file changes. Output preview and multi project support"
+	appAuthor      = "Alessio Pracchia"
+	appFile        = "realize.config.yaml"
 )
 
 var wg sync.WaitGroup
@@ -23,40 +23,47 @@ var red = color.New(color.FgRed, color.Bold).SprintFunc()
 var blue = color.New(color.FgBlue, color.Bold).SprintFunc()
 var bluel = color.New(color.FgBlue).SprintFunc()
 
-var watcher_ignores = []string{"vendor", "bin"}
-var watcher_exts = []string{".go"}
-var watcher_paths = []string{"/"}
+var watcherIgnores = []string{"vendor", "bin"}
+var watcherExts = []string{".go"}
+var watcherPaths = []string{"/"}
 
+// App struct contains the informations about realize
 type App struct {
 	Name, Version, Description, Author, Email string
 }
 
+// Init is an instance of app with default values
 func Init() *App {
 	return &App{
-		Name:        app_name,
-		Version:     app_version,
-		Description: app_description,
-		Author:      app_author,
-		Email:       app_email,
+		Name:        appName,
+		Version:     appVersion,
+		Description: appDescription,
+		Author:      appAuthor,
+		Email:       appEmail,
 	}
 }
 
+// Fail is a red message, generally used for errors
 func Fail(msg string) {
 	fmt.Println(red(msg))
 }
 
+// Success is a green message, generally used for feedback
 func Success(msg string) {
 	fmt.Println(green(msg))
 }
 
+// LogSuccess is a green log message, generally used for feedback
 func LogSuccess(msg string) {
 	log.Println(green(msg))
 }
 
+// LogFail is a red log message, generally used for errors
 func LogFail(msg string) {
 	log.Println(red(msg))
 }
 
+// Information print realize name and description
 func (app *App) Information() {
 	fmt.Println(blue(app.Name) + " - " + blue(app.Version))
 	fmt.Println(bluel(app.Description) + "\n")

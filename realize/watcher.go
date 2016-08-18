@@ -24,7 +24,7 @@ type Watcher struct {
 
 // Watch method adds the given paths on the Watcher
 func (h *Config) Watch() error {
-	err := h.Read();
+	err := h.Read()
 	if err == nil {
 		// loop projects
 		wg.Add(len(h.Projects))
