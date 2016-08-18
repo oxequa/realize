@@ -70,7 +70,9 @@ func (p *Project) Watching() {
 		channel = make(chan bool)
 		wr.Add(1)
 		go p.build()
-		p.install()
+		go p.install(&wr)
+		wr.Wait()
+		wr.Add(1)
 		p.run(channel, &wr)
 	}
 	end := func() {
@@ -132,7 +134,7 @@ func (p *Project) Watching() {
 }
 
 // Install call an implementation of the "go install"
-func (p *Project) install() {
+func (p *Project) install(wr *sync.WaitGroup) {
 	if p.Bin {
 		LogSuccess(p.Name + ": Installing..")
 		if err := p.GoInstall(); err != nil {
@@ -140,8 +142,8 @@ func (p *Project) install() {
 		} else {
 			LogSuccess(p.Name + ": Installed")
 		}
-		return
 	}
+	wr.Done()
 	return
 }
 
