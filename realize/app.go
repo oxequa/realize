@@ -33,8 +33,8 @@ type App struct {
 }
 
 // Init is an instance of app with default values
-func Init() *App {
-	return &App{
+func Init() App {
+	return App{
 		Name:        AppName,
 		Version:     AppVersion,
 		Description: AppDescription,
