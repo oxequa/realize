@@ -18,6 +18,7 @@ A Golang build system with file watchers and live reload. Run, build and watch f
 - Watch custom paths
 - Watch specific file extensions
 - Multiple projects support
+- Output stream
 
 #### Installation and usage
 
