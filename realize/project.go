@@ -33,7 +33,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 	if len(name) == 1 {
 		name := strings.Split(p.base, "/")
 		run = name[len(name)-1]
-	} else {
+	}else {
 		run = name[len(name)-1]
 	}
 	build := exec.Command(os.Getenv("GOPATH") + slash("bin") + slash(run))
@@ -60,7 +60,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 		for in.Scan() {
 			select {
 			default:
-				log.Println(p.Name+":", in.Text())
+				log.Println(bluel(p.Name+":"), bluel(in.Text()))
 			}
 		}
 		close(stop)

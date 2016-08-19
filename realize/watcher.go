@@ -70,16 +70,12 @@ func (p *Project) Watching() {
 		channel = make(chan bool)
 		wr.Add(1)
 		go p.build()
-		go p.install(&wr)
-		wr.Wait()
-		wr.Add(1)
-		p.run(channel, &wr)
+		go p.install(channel,&wr)
 	}
 	end := func() {
 		watcher.Close()
 		wg.Done()
 	}
-
 	defer end()
 
 	p.Main = slash(p.Main)
@@ -103,11 +99,8 @@ func (p *Project) Watching() {
 		}
 	}
 	routines()
-
 	fmt.Println(red("\n Watching: '" + p.Name + "'\n"))
-
 	p.reload = time.Now().Truncate(time.Second)
-
 	for {
 		select {
 		case event := <-watcher.Events:
@@ -134,16 +127,28 @@ func (p *Project) Watching() {
 }
 
 // Install call an implementation of the "go install"
-func (p *Project) install(wr *sync.WaitGroup) {
+func (p *Project) install(channel chan bool,wr *sync.WaitGroup) {
 	if p.Bin {
 		LogSuccess(p.Name + ": Installing..")
 		if err := p.GoInstall(); err != nil {
 			Fail(err.Error())
+			wr.Done()
 		} else {
 			LogSuccess(p.Name + ": Installed")
+			if p.Run {
+				runner := make(chan bool, 1)
+				LogSuccess(p.Name + ": Running..")
+				go p.GoRun(channel, runner, wr)
+				for {
+					select {
+					case <-runner:
+						LogSuccess(p.Name + ": Runned")
+						return
+					}
+				}
+			}
 		}
 	}
-	wr.Done()
 	return
 }
 
@@ -157,27 +162,6 @@ func (p *Project) build() {
 			LogSuccess(p.Name + ": Builded")
 		}
 		return
-	}
-	return
-}
-
-// Build call an implementation of the bin execution
-func (p *Project) run(channel chan bool, wr *sync.WaitGroup) {
-	if p.Run {
-		if p.Bin {
-			runner := make(chan bool, 1)
-			LogSuccess(p.Name + ": Running..")
-			go p.GoRun(channel, runner, wr)
-			for {
-				select {
-				case <-runner:
-					LogSuccess(p.Name + ": Runned")
-					return
-				}
-			}
-		} else {
-			LogFail("Set 'app_run' to true for launch run")
-		}
 	}
 	return
 }

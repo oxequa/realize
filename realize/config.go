@@ -43,6 +43,7 @@ func New(params *cli.Context) *Config {
 func Duplicates(value Project, arr []Project) bool {
 	for _, val := range arr {
 		if value.Main == val.Main && value.Path == val.Path || value.Name == val.Name {
+			Fail("There is a duplicate of '"+val.Name+"'. Check your config file!")
 			return true
 		}
 	}
@@ -109,6 +110,7 @@ func (h *Config) Add(params *cli.Context) error {
 			Path:  params.String("base"),
 			Run:   params.Bool("run"),
 			Build: params.Bool("build"),
+			Bin:   params.Bool("bin"),
 			Watcher: Watcher{
 				Paths:  watcherPaths,
 				Exts:   watcherExts,
