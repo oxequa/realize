@@ -99,7 +99,7 @@ func (p *Project) Watching() {
 		}
 	}
 	routines()
-	fmt.Println(red("\n Watching: '" + p.Name + "'\n"))
+	fmt.Println(red("Watching: '" + p.Name + "'\n"))
 	p.reload = time.Now().Truncate(time.Second)
 	for {
 		select {
