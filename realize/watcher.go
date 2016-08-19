@@ -142,7 +142,7 @@ func (p *Project) install(channel chan bool,wr *sync.WaitGroup) {
 				for {
 					select {
 					case <-runner:
-						LogSuccess(p.Name + ": Runned")
+						LogSuccess(p.Name + ": Has been run")
 						return
 					}
 				}
