@@ -9,7 +9,7 @@
 
 A Golang build system with file watchers and live reload. Run, build and watch file changes with custom paths
 
-![Preview](http://i.imgur.com/5b25ET5.png)
+![Preview](http://i.imgur.com/JzniZl1.png)
 
 #### Features
 
