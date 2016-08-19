@@ -60,6 +60,8 @@ A Golang build system with file watchers and live reload. Run, build and watch f
 
 #### Config file example
 
+- For more examples check [Realize Examples](https://github.com/tockins/realize-examples)
+
     version: "1.0"
     projects:
         - app_name: App One     -> name
