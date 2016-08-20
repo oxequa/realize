@@ -84,7 +84,6 @@ A Golang build system with file watchers, output streams and live reload. Run, b
     projects:
         - app_name: App One     -> name
           app_path: one         -> root path
-          app_main: main.go     -> main file
           app_run: true         -> enable/disable go run (require app_bin)
           app_bin: true         -> enable/disable go install
           app_build: false      -> enable/disable go build
@@ -99,7 +98,6 @@ A Golang build system with file watchers, output streams and live reload. Run, b
             - .go
         - app_name: App Two     -> another project
           app_path: two
-          app_main: main.go
           app_run: true
           app_build: true
           app_bin: true
