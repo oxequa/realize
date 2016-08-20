@@ -81,13 +81,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 // GoBuild an implementation of the "go build"
 func (p *Project) GoBuild() error {
 	var out bytes.Buffer
-
-	// create bin dir
-	if _, err := os.Stat(p.base + "/bin"); err != nil {
-		if err = os.Mkdir(p.base+"/bin", 0777); err != nil {
-			return err
-		}
-	}
+	
 	build := exec.Command("go", "build")
 	build.Dir = p.base
 	build.Stdout = &out
