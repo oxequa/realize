@@ -62,7 +62,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 		for in.Scan() {
 			select {
 			default:
-				log.Println(bluel(p.Name+":"), bluel(in.Text()))
+				log.Println(bluel(p.Name+" Out:"), bluel(in.Text()))
 			}
 		}
 		close(stop)
