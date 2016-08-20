@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"log"
 )
 
 // The Watcher struct defines the livereload's logic
@@ -44,12 +45,12 @@ func (p *Project) Watching() {
 	var watcher *fsnotify.Watcher
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		Fail(p.Name + ": \t" + err.Error())
+		log.Println(Redl(p.Name),": \t", Red(err.Error()))
 	}
 	channel := make(chan bool, 1)
 	base, err := os.Getwd()
 	if err != nil {
-		Fail(p.Name + ": \t" + err.Error())
+		log.Println(Redl(p.Name),": \t", Red(err.Error()))
 	}
 
 	walk := func(path string, info os.FileInfo, err error) error {
@@ -86,14 +87,14 @@ func (p *Project) Watching() {
 		base = p.base + dir
 		if _, err := os.Stat(base); err == nil {
 			if err := filepath.Walk(base, walk); err != nil {
-				Fail(err.Error())
+				log.Println(Red(err.Error()))
 			}
 		} else {
-			Fail(p.Name + ": \t" + base + " path doesn't exist")
+			fmt.Println(Redl(p.Name), ":\t", Red(base + " path doesn't exist"))
 		}
 	}
 	routines()
-	fmt.Println(red("Watching: '" + p.Name + "'\n"))
+	fmt.Println(Red("Watching: '" + p.Name + "'\n"))
 	p.reload = time.Now().Truncate(time.Second)
 	for {
 		select {
@@ -105,7 +106,7 @@ func (p *Project) Watching() {
 				if _, err := os.Stat(event.Name); err == nil {
 					i := strings.Index(event.Name, filepath.Ext(event.Name))
 					if event.Name[:i] != "" {
-						LogWatch(p.Name+":", "File changed ->", event.Name[:i])
+						log.Println(Magenta(p.Name),":", Magenta("File changed"), "->", Blue(event.Name[:i]))
 
 						// stop and run again
 						close(channel)
@@ -117,7 +118,7 @@ func (p *Project) Watching() {
 				}
 			}
 		case err := <-watcher.Errors:
-			Fail(err.Error())
+			log.Println(Red(err.Error()))
 		}
 	}
 }
@@ -125,21 +126,22 @@ func (p *Project) Watching() {
 // Install call an implementation of the "go install"
 func (p *Project) install(channel chan bool,wr *sync.WaitGroup) {
 	if p.Bin {
-		LogSuccess(p.Name + ": Installing..")
+		log.Println(Greenl(p.Name), ":", Greenl("Installing.."))
 		start := time.Now()
 		if err := p.GoInstall(); err != nil {
-			Fail(p.Name + ": "+err.Error())
+			log.Println(Redl(p.Name),":",Red(err.Error()))
 			wr.Done()
 		} else {
-			LogSuccess(p.Name+":", "Installed after",  time.Since(start))
+			log.Println(Greenl(p.Name),":", Green("Installed")+ " after",  Magenta(time.Since(start)))
 			if p.Run {
 				runner := make(chan bool, 1)
-				LogSuccess(p.Name + ": Running..")
+				log.Println(Greenl(p.Name), ":", Greenl("Running.."))
+				start = time.Now()
 				go p.GoRun(channel, runner, wr)
 				for {
 					select {
 					case <-runner:
-						LogSuccess(p.Name + ": Has been run")
+						log.Println(Greenl(p.Name), ":", Green("Has been run") + " after", Magenta(time.Since(start)))
 						return
 					}
 				}
@@ -152,12 +154,12 @@ func (p *Project) install(channel chan bool,wr *sync.WaitGroup) {
 // Build call an implementation of the "go build"
 func (p *Project) build() {
 	if p.Build {
-		LogSuccess(p.Name + ": Building..")
+		log.Println(Greenl(p.Name), ":", Greenl("Building.."))
 		start := time.Now()
 		if err := p.GoBuild(); err != nil {
-			Fail(p.Name + ": "+err.Error())
+			log.Println(Redl(p.Name), ":", Red(err.Error()))
 		} else {
-			LogSuccess(p.Name+":", "Builded after",  time.Since(start))
+			log.Println(Greenl(p.Name),":", Green("Builded")+ " after",  Magenta(time.Since(start)))
 		}
 		return
 	}

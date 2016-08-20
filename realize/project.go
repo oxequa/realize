@@ -42,17 +42,17 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 		if err := build.Process.Kill(); err != nil {
 			log.Fatal("failed to stop: ", err)
 		}
-		LogFail(p.Name + ": Stopped")
+		log.Println(Redl(p.Name),":", Red("Stopped"))
 		wr.Done()
 	}()
 
 	stdout, err := build.StdoutPipe()
 	if err != nil {
-		Fail(err.Error())
+		log.Println(Red(err.Error()))
 		return err
 	}
 	if err := build.Start(); err != nil {
-		Fail(err.Error())
+		log.Println(Red(err.Error()))
 		return err
 	}
 	close(runner)
@@ -62,7 +62,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 		for in.Scan() {
 			select {
 			default:
-				log.Println(bluel(p.Name+" Out:"), bluel(in.Text()))
+				log.Println(Bluel(p.Name+" Out:"), Bluel(in.Text()))
 			}
 		}
 		close(stop)
@@ -81,7 +81,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 // GoBuild an implementation of the "go build"
 func (p *Project) GoBuild() error {
 	var out bytes.Buffer
-	
+
 	build := exec.Command("go", "build")
 	build.Dir = p.base
 	build.Stdout = &out

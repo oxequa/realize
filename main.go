@@ -4,6 +4,7 @@ import (
 	r "github.com/tockins/realize/realize"
 	"gopkg.in/urfave/cli.v2"
 	"os"
+	"log"
 )
 
 func main() {
@@ -12,7 +13,7 @@ func main() {
 
 	handle := func(err error) error {
 		if err != nil {
-			r.Fail(err.Error())
+			log.Println(r.Red(err.Error()))
 			return nil
 		}
 		return nil

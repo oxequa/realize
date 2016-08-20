@@ -42,7 +42,7 @@ func New(params *cli.Context) *Config {
 func Duplicates(value Project, arr []Project) bool {
 	for _, val := range arr {
 		if value.Path == val.Path || value.Name == val.Name {
-			Fail("There is a duplicate of '"+val.Name+"'. Check your config file!")
+			fmt.Println(Red("There is a duplicate of '"+val.Name+"'. Check your config file!"))
 			return true
 		}
 	}
@@ -92,7 +92,7 @@ func (h *Config) Create(params *cli.Context) error {
 		if err != nil {
 			os.Remove(h.file)
 		} else {
-			Success("The config file was successfully created")
+			fmt.Println(Green("The config file was successfully created"))
 		}
 		return err
 	}
@@ -121,7 +121,7 @@ func (h *Config) Add(params *cli.Context) error {
 		h.Projects = append(h.Projects, new)
 		err = h.Write()
 		if err == nil {
-			Success("Your project was successfully added")
+			fmt.Println(Green("Your project was successfully added"))
 		}
 	}
 	return err
@@ -136,7 +136,7 @@ func (h *Config) Remove(params *cli.Context) error {
 				h.Projects = append(h.Projects[:key], h.Projects[key+1:]...)
 				err = h.Write()
 				if err == nil {
-					Success("Your project was successfully removed")
+					fmt.Println(Green("Your project was successfully removed"))
 				}
 				return err
 			}
@@ -151,18 +151,18 @@ func (h *Config) List() error {
 	err := h.Read()
 	if err == nil {
 		for _, val := range h.Projects {
-			fmt.Println(green("|"), green(val.Name))
-			fmt.Println(greenl("|"), "\t", green("Base Path:"), red(val.Path))
-			fmt.Println(greenl("|"), "\t", green("Run:"), red(val.Run))
-			fmt.Println(greenl("|"), "\t", green("Build:"), red(val.Build))
-			fmt.Println(greenl("|"), "\t", green("Install:"), red(val.Bin))
-			fmt.Println(greenl("|"), "\t", green("Watcher:"))
-			fmt.Println(greenl("|"), "\t\t", green("After:"), red(val.Watcher.After))
-			fmt.Println(greenl("|"), "\t\t", green("Before:"), red(val.Watcher.Before))
-			fmt.Println(greenl("|"), "\t\t", green("Extensions:"), red(val.Watcher.Exts))
-			fmt.Println(greenl("|"), "\t\t", green("Paths:"), red(val.Watcher.Paths))
-			fmt.Println(greenl("|"), "\t\t", green("Paths ignored:"), red(val.Watcher.Ignore))
-			fmt.Println(greenl("|"), "\t\t", green("Watch preview:"), red(val.Watcher.Preview))
+			fmt.Println(Green("|"), Green(val.Name))
+			fmt.Println(Magenta("|"), "\t", Green("Base Path"), ":", Magenta(val.Path))
+			fmt.Println(Magenta("|"), "\t", Green("Run"), ":", Magenta(val.Run))
+			fmt.Println(Magenta("|"), "\t", Green("Build"),":", Magenta(val.Build))
+			fmt.Println(Magenta("|"), "\t", Green("Install"), ":", Magenta(val.Bin))
+			fmt.Println(Magenta("|"), "\t", Green("Watcher"),":")
+			fmt.Println(Magenta("|"), "\t\t", Green("After"), ":", Magenta(val.Watcher.After))
+			fmt.Println(Magenta("|"), "\t\t", Green("Before"), ":", Magenta(val.Watcher.Before))
+			fmt.Println(Magenta("|"), "\t\t", Green("Extensions"), ":", Magenta(val.Watcher.Exts))
+			fmt.Println(Magenta("|"), "\t\t", Green("Paths"), ":", Magenta(val.Watcher.Paths))
+			fmt.Println(Magenta("|"), "\t\t", Green("Paths ignored"), ":", Magenta(val.Watcher.Ignore))
+			fmt.Println(Magenta("|"), "\t\t", Green("Watch preview"), ":", Magenta(val.Watcher.Preview))
 		}
 		return nil
 	}
