@@ -52,7 +52,6 @@ func main() {
 				Usage:    "Create the initial config",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "Sample App", Usage: "Project name \t"},
-					&cli.StringFlag{Name: "main", Aliases: []string{"m"}, Value: "main.go", Usage: "Project main file \t"},
 					&cli.StringFlag{Name: "base", Aliases: []string{"b"}, Value: "/", Usage: "Project base path \t"},
 					&cli.BoolFlag{Name: "build", Value: false},
 					&cli.BoolFlag{Name: "run", Value: true},
@@ -74,7 +73,6 @@ func main() {
 				Usage:    "Add another project",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "Sample App", Usage: "Project name \t"},
-					&cli.StringFlag{Name: "main", Aliases: []string{"m"}, Value: "main.go", Usage: "Project main file \t"},
 					&cli.StringFlag{Name: "base", Aliases: []string{"b"}, Value: "/", Usage: "Project base path \t"},
 					&cli.BoolFlag{Name: "build", Value: false},
 					&cli.BoolFlag{Name: "run", Value: true},

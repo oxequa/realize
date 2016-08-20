@@ -78,16 +78,11 @@ func (p *Project) Watching() {
 	}
 	defer end()
 
-	p.Main = slash(p.Main)
 	p.base = base + p.Path
 
 	for _, dir := range p.Watcher.Paths {
 		// check main existence
 		dir = slash(dir)
-		if _, err := os.Stat(p.base + dir + p.Main); err != nil {
-			Fail(p.Name + ": \t" + p.base + dir + p.Main + " doesn't exist. Main is required")
-			return
-		}
 
 		base = p.base + dir
 		if _, err := os.Stat(base); err == nil {

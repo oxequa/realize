@@ -24,7 +24,6 @@ func New(params *cli.Context) *Config {
 		Projects: []Project{
 			{
 				Name:  params.String("name"),
-				Main:  params.String("main"),
 				Path:  params.String("base"),
 				Run:   params.Bool("run"),
 				Build: params.Bool("build"),
@@ -42,7 +41,7 @@ func New(params *cli.Context) *Config {
 // Duplicates check projects with same name or same combinations of main/path
 func Duplicates(value Project, arr []Project) bool {
 	for _, val := range arr {
-		if value.Main == val.Main && value.Path == val.Path || value.Name == val.Name {
+		if value.Path == val.Path || value.Name == val.Name {
 			Fail("There is a duplicate of '"+val.Name+"'. Check your config file!")
 			return true
 		}
@@ -106,7 +105,6 @@ func (h *Config) Add(params *cli.Context) error {
 	if err == nil {
 		new := Project{
 			Name:  params.String("name"),
-			Main:  params.String("main"),
 			Path:  params.String("base"),
 			Run:   params.Bool("run"),
 			Build: params.Bool("build"),
@@ -154,7 +152,6 @@ func (h *Config) List() error {
 	if err == nil {
 		for _, val := range h.Projects {
 			fmt.Println(green("|"), green(val.Name))
-			fmt.Println(greenl("|"), "\t", green("Main File:"), red(val.Main))
 			fmt.Println(greenl("|"), "\t", green("Base Path:"), red(val.Path))
 			fmt.Println(greenl("|"), "\t", green("Run:"), red(val.Run))
 			fmt.Println(greenl("|"), "\t", green("Build:"), red(val.Build))

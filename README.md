@@ -7,7 +7,7 @@
 
 ![Logo](http://i.imgur.com/8nr2s1b.jpg)
 
-A Golang build system with file watchers and live reload. Run, build and watch file changes with custom paths
+A Golang build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths
 
 ![Preview](http://i.imgur.com/XljkxAA.png)
 
@@ -38,7 +38,6 @@ A Golang build system with file watchers and live reload. Run, build and watch f
     
     ```
     --name="Project Name"  -> Name, if not specified sect "Sample App"    
-    --main="test.go"       -> Main file, if not specified sect "main.go"    
     --base="server"        -> Base Path, if not specified sect "/"    
     --build="true"         -> Go build, if not specified sect "false"    
     --bin="false"          -> Base Path, if not specified sect "true"    
@@ -46,7 +45,7 @@ A Golang build system with file watchers and live reload. Run, build and watch f
     ```
     
     ```
-    $ realize start --name="Web Server" --main="test.go" --base="server"
+    $ realize start --name="Web Server" --base="server"
     ```
     
 - Add another project whenever you want    
@@ -57,7 +56,7 @@ A Golang build system with file watchers and live reload. Run, build and watch f
     Or   
        
     ```
-    $ realize add --name="Project Name" --main="main.go" --build="true"
+    $ realize add --name="Project Name" --build="true"
     ```
 - Remove a project by his name
 

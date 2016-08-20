@@ -18,7 +18,6 @@ type Project struct {
 	base    string
 	Name    string  `yaml:"app_name,omitempty"`
 	Path    string  `yaml:"app_path,omitempty"`
-	Main    string  `yaml:"app_main,omitempty"`
 	Run     bool    `yaml:"app_run,omitempty"`
 	Bin     bool    `yaml:"app_bin,omitempty"`
 	Build   bool    `yaml:"app_build,omitempty"`
