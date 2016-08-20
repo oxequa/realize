@@ -37,11 +37,11 @@ A Golang build system with file watchers, output streams and live reload. Run, b
     You can even pass custom parameters for your project. This is a list of the supported fields:
     
     ```
-    --name="Project Name"  -> Name, if not specified sect "Sample App"    
-    --base="server"        -> Base Path, if not specified sect "/"    
-    --build="true"         -> Go build, if not specified sect "false"    
-    --bin="false"          -> Base Path, if not specified sect "true"    
-    --run="false"          -> Base Path, if not specified sect "true"    
+    --name="Project Name"  -> Name, if not specified takes "Sample App"    
+    --base="server"        -> Base Path, if not specified takes "/"    
+    --build="true"         -> Go build, if not specified takes "false"    
+    --bin="false"          -> Base Path, if not specified takes "true"    
+    --run="false"          -> Base Path, if not specified takes "true"    
     ```
     
     ```
