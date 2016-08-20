@@ -132,7 +132,7 @@ func (p *Project) install(channel chan bool,wr *sync.WaitGroup) {
 			Fail(p.Name + ": "+err.Error())
 			wr.Done()
 		} else {
-			LogSuccess(p.Name + ": Installed - "+time.Since(start))
+			LogSuccess(p.Name + ": Installed - "+ string(time.Since(start)))
 			if p.Run {
 				runner := make(chan bool, 1)
 				LogSuccess(p.Name + ": Running..")
@@ -158,7 +158,7 @@ func (p *Project) build() {
 		if err := p.GoBuild(); err != nil {
 			Fail(p.Name + ": "+err.Error())
 		} else {
-			LogSuccess(p.Name + ": Builded - "+time.Since(start))
+			LogSuccess(p.Name + ": Builded - "+ string(time.Since(start)))
 		}
 		return
 	}
