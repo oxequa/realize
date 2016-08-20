@@ -39,7 +39,7 @@ A Golang build system with file watchers and live reload. Run, build and watch f
     ```
     --name="Project Name"  -> Name, if not specified sect "Sample App"    
     --main="test.go"       -> Main file, if not specified sect "main.go"    
-    --base="server"        -> Base Path, if not specified sect "main.go"    
+    --base="server"        -> Base Path, if not specified sect "/"    
     --build="true"         -> Go build, if not specified sect "false"    
     --bin="false"          -> Base Path, if not specified sect "true"    
     --run="false"          -> Base Path, if not specified sect "true"    
