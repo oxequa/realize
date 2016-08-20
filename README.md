@@ -122,7 +122,7 @@ A Golang build system with file watchers, output streams and live reload. Run, b
 - [ ] Unit test
 - [ ] Go test support
 - [ ] Cli fast run
-- [x] Execution times for build/install
+- [x] Execution times for build/install 
 - [x] Go doc
 - [x] Support for server start/stop 
 - [x] Stream projects output
