@@ -32,17 +32,33 @@ A Golang build system with file watchers and live reload. Run, build and watch f
     ```
     $ realize start 
     ```
-    Will create a realize.config.yaml file with a sample project.
+    Will create a realize.config.yaml file with a default settings.
     
-    You can pass additional parameters for your first project, such as the project name, the main file name and the base path. 
+    You can even pass custom parameters for your project. This is a list of the supported fields:
     
     ```
-    $ realize start --name="Project Name" --main="main.go" --base="/"
+    --name="Project Name"  -> Name, if not specified sect "Sample App"    
+    --main="test.go"       -> Main file, if not specified sect "main.go"    
+    --base="server"        ->  Base Path, if not specified sect "main.go"    
+    --build="true"         ->  Go build, if not specified sect "false"    
+    --bin="false"        ->  Base Path, if not specified sect "true"    
+    --run="false"        ->  Base Path, if not specified sect "true"    
+    
     ```
+    
+    ```
+    $ realize start --name="Web Server" --main="test.go" --base="server"
+    ```
+    
 - Add another project whenever you want    
 
     ```
-    $ realize add --name="Project Name" --main="main.go" --base="/"
+    $ realize add
+    ``` 
+    Or   
+       
+    ```
+    $ realize add --name="Project Name" --main="main.go" --build="true"
     ```
 - Remove a project by his name
 
@@ -105,6 +121,7 @@ A Golang build system with file watchers and live reload. Run, build and watch f
 - [x] Watcher files preview
 - [x] Support for directories with duplicates names
 - [ ] Unit test
+- [ ] Go test support
 - [x] Go doc
 - [x] Support for server start/stop 
 - [x] Stream projects output
