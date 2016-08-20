@@ -13,12 +13,12 @@ A Golang build system with file watchers and live reload. Run, build and watch f
 
 #### Features
 
-- Build, Install and Run in the same time
+- Build, Install, Test and Run at the same time
 - Live reload on file changes (re-build, re-install and re-run)
 - Watch custom paths
 - Watch specific file extensions
 - Multiple projects support
-- Output stream
+- Output streams
 
 #### Installation and usage
 
@@ -41,9 +41,8 @@ A Golang build system with file watchers and live reload. Run, build and watch f
     --main="test.go"       -> Main file, if not specified sect "main.go"    
     --base="server"        -> Base Path, if not specified sect "main.go"    
     --build="true"         -> Go build, if not specified sect "false"    
-    --bin="false"          ->  Base Path, if not specified sect "true"    
-    --run="false"          ->  Base Path, if not specified sect "true"    
-    
+    --bin="false"          -> Base Path, if not specified sect "true"    
+    --run="false"          -> Base Path, if not specified sect "true"    
     ```
     
     ```
@@ -122,6 +121,7 @@ A Golang build system with file watchers and live reload. Run, build and watch f
 - [x] Support for directories with duplicates names
 - [ ] Unit test
 - [ ] Go test support
+- [ ] Cli fast run
 - [x] Go doc
 - [x] Support for server start/stop 
 - [x] Stream projects output
