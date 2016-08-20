@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"errors"
 )
 
 // The Project struct defines the informations about a project
@@ -36,7 +37,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 	}else {
 		run = name[len(name)-1]
 	}
-	build := exec.Command(os.Getenv("GOPATH") + slash("bin") + slash(run))
+	build := exec.Command(os.Getenv("GOBIN") + slash(run))
 	build.Dir = p.base
 	defer func() {
 		if err := build.Process.Kill(); err != nil {
@@ -49,9 +50,11 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 	stdout, err := build.StdoutPipe()
 	if err != nil {
 		Fail(err.Error())
+		return err
 	}
 	if err := build.Start(); err != nil {
 		Fail(err.Error())
+		return err
 	}
 	close(runner)
 
@@ -86,8 +89,8 @@ func (p *Project) GoBuild() error {
 			return err
 		}
 	}
-	build := exec.Command("go", "build", p.base+p.Main)
-	build.Dir = p.base + "/bin"
+	build := exec.Command("go", "build")
+	build.Dir = p.base
 	build.Stdout = &out
 	if err := build.Run(); err != nil {
 		return err
@@ -100,6 +103,16 @@ func (p *Project) GoInstall() error {
 	var out bytes.Buffer
 	base, _ := os.Getwd()
 	path := base + p.Path
+
+	// check gopath and set gobin
+	gopath := os.Getenv("GOPATH")
+	if gopath == ""{
+		return errors.New("$GOPATH not set")
+	}
+	err := os.Setenv("GOBIN",os.Getenv("GOPATH") + "bin")
+	if err != nil {
+		return err
+	}
 
 	build := exec.Command("go", "install")
 	build.Dir = path

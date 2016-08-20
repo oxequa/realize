@@ -110,14 +110,16 @@ func (p *Project) Watching() {
 				}
 				if _, err := os.Stat(event.Name); err == nil {
 					i := strings.Index(event.Name, filepath.Ext(event.Name))
-					log.Println(bluel(p.Name+": File changed ->"), bluel(event.Name[:i]))
+					if event.Name[:i] != "" {
+						log.Println(bluel(p.Name + ": File changed ->"), bluel(event.Name[:i]))
 
-					// stop and run again
-					close(channel)
-					wr.Wait()
-					routines()
+						// stop and run again
+						close(channel)
+						wr.Wait()
+						routines()
 
-					p.reload = time.Now().Truncate(time.Second)
+						p.reload = time.Now().Truncate(time.Second)
+					}
 				}
 			}
 		case err := <-watcher.Errors:
@@ -131,7 +133,7 @@ func (p *Project) install(channel chan bool,wr *sync.WaitGroup) {
 	if p.Bin {
 		LogSuccess(p.Name + ": Installing..")
 		if err := p.GoInstall(); err != nil {
-			Fail(err.Error())
+			Fail(p.Name + ": "+err.Error())
 			wr.Done()
 		} else {
 			LogSuccess(p.Name + ": Installed")
@@ -157,7 +159,7 @@ func (p *Project) build() {
 	if p.Build {
 		LogSuccess(p.Name + ": Building..")
 		if err := p.GoBuild(); err != nil {
-			Fail(err.Error())
+			Fail(p.Name + ": "+err.Error())
 		} else {
 			LogSuccess(p.Name + ": Builded")
 		}
