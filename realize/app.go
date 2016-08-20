@@ -44,23 +44,38 @@ func Init() *App {
 }
 
 // Fail is a red message, generally used for errors
-func Fail(msg string) {
-	fmt.Println(red(msg))
+func Fail(msg ...interface{}) {
+	color.Set(color.FgRed, color.Bold)
+	fmt.Println(msg...)
+	color.Unset()
 }
 
 // Success is a green message, generally used for feedback
-func Success(msg string) {
-	fmt.Println(green(msg))
+func Success(msg ...interface{}) {
+	color.Set(color.FgGreen, color.Bold)
+	fmt.Println(msg...)
+	color.Unset()
 }
 
 // LogSuccess is a green log message, generally used for feedback
-func LogSuccess(msg string) {
-	log.Println(green(msg))
+func LogSuccess(msg ...interface{}) {
+	color.Set(color.FgGreen, color.Bold)
+	log.Println(msg...)
+	color.Unset()
 }
 
 // LogFail is a red log message, generally used for errors
-func LogFail(msg string) {
-	log.Println(red(msg))
+func LogFail(msg ...interface{}) {
+	color.Set(color.FgRed, color.Bold)
+	log.Println(msg...)
+	color.Unset()
+}
+
+// LogWatch is a blue log message used only for watcher outputs
+func LogWatch(msg ...interface{}) {
+	color.Set(color.FgBlue, color.Bold)
+	log.Println(msg...)
+	color.Unset()
 }
 
 // Information print realize name and description
