@@ -3,7 +3,6 @@ package realize
 import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -106,7 +105,7 @@ func (p *Project) Watching() {
 				if _, err := os.Stat(event.Name); err == nil {
 					i := strings.Index(event.Name, filepath.Ext(event.Name))
 					if event.Name[:i] != "" {
-						log.Println(bluel(p.Name + ": File changed ->"), bluel(event.Name[:i]))
+						LogWatch(p.Name+":", "File changed ->", event.Name[:i])
 
 						// stop and run again
 						close(channel)
@@ -127,12 +126,12 @@ func (p *Project) Watching() {
 func (p *Project) install(channel chan bool,wr *sync.WaitGroup) {
 	if p.Bin {
 		LogSuccess(p.Name + ": Installing..")
-		//start := time.Now()
+		start := time.Now()
 		if err := p.GoInstall(); err != nil {
 			Fail(p.Name + ": "+err.Error())
 			wr.Done()
 		} else {
-			LogSuccess(p.Name + ": Installed ")
+			LogSuccess(p.Name+":", "Installed - Took",  time.Since(start))
 			if p.Run {
 				runner := make(chan bool, 1)
 				LogSuccess(p.Name + ": Running..")
@@ -154,11 +153,11 @@ func (p *Project) install(channel chan bool,wr *sync.WaitGroup) {
 func (p *Project) build() {
 	if p.Build {
 		LogSuccess(p.Name + ": Building..")
-		//start := time.Now()
+		start := time.Now()
 		if err := p.GoBuild(); err != nil {
 			Fail(p.Name + ": "+err.Error())
 		} else {
-			LogSuccess(p.Name + ": Builded ")
+			LogSuccess(p.Name+":", "Builded - Took",  time.Since(start))
 		}
 		return
 	}
