@@ -54,8 +54,15 @@ func main() {
 			{
 				Name:  "run",
 				Usage: "Build and watch file changes",
+				Flags: []cli.Flag{
+					&cli.BoolFlag{Name: "fast", Usage: "Run the project of your working directory"},
+				},
 				Action: func(p *cli.Context) error {
 					y := r.New(p)
+					if p.Bool("fast") {
+						y.Projects[0].Path = wd()
+						return handle(y.Fast())
+					}
 					return handle(y.Watch())
 				},
 				Before: func(c *cli.Context) error {
@@ -70,7 +77,7 @@ func main() {
 				Usage:    "Add another project",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Usage: "Project name \t"},
-					&cli.StringFlag{Name: "base", Aliases: []string{"b"}, Value: wd(), Usage: "Project base path \t"},
+					&cli.StringFlag{Name: "path", Aliases: []string{"b"}, Value: wd(), Usage: "Project base path \t"},
 					&cli.BoolFlag{Name: "build", Value: false, Usage: "Enable go build"},
 					&cli.BoolFlag{Name: "run", Usage: "Disable go run"},
 					&cli.BoolFlag{Name: "bin", Usage: "Disable go install"},
