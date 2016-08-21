@@ -23,6 +23,7 @@ A Golang build system with file watchers, output streams and live reload. Run, b
 - Output streams
 - Execution times
 - Highly customizable
+- Fast run 
 
 #### Installation and usage
 
