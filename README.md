@@ -148,6 +148,6 @@ A Golang build system with file watchers, output streams and live reload. Run, b
 - Chat with us [Gitter](https://gitter.im/tockins/realize)
 
 - [Alessio Pracchia](https://www.linkedin.com/in/alessio-pracchia-38a70673)
-- [Daniele Conventi]()
+- [Daniele Conventi](https://www.linkedin.com/in/daniele-conventi-b419b0a4)
 
 
