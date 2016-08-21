@@ -36,7 +36,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 	}else {
 		run = name[len(name)-1]
 	}
-	build := exec.Command(os.Getenv("GOBIN") + slash(run))
+	build := exec.Command(slash(os.Getenv("GOBIN")) + slash(run))
 	build.Dir = p.base
 	defer func() {
 		if err := build.Process.Kill(); err != nil {
