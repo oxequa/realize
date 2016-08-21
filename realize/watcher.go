@@ -97,8 +97,8 @@ func (p *Project) Watching() {
 			fmt.Println(pname(p.Name, 1), ":\t", Red(base+" path doesn't exist"))
 		}
 	}
-	routines()
 	fmt.Println(Red("Watching: " + pname(p.Name, 1) + "\n"))
+	routines()
 	p.reload = time.Now().Truncate(time.Second)
 	for {
 		select {
