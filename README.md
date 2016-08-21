@@ -11,7 +11,7 @@
 
 A Golang build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths
 
-![Preview](http://i.imgur.com/9xaklUh.png)
+![Preview](http://i.imgur.com/GooHBej.png)
 
 #### Features
 
