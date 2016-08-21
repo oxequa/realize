@@ -32,7 +32,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 	if len(name) == 1 {
 		name := strings.Split(p.base, "/")
 		run = name[len(name)-1]
-	}else {
+	} else {
 		run = name[len(name)-1]
 	}
 	build := exec.Command(slash(os.Getenv("GOBIN")) + slash(run))
@@ -41,7 +41,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 		if err := build.Process.Kill(); err != nil {
 			log.Fatal("failed to stop: ", err)
 		}
-		log.Println(pname(p.Name,2),":", RedS("Stopped"))
+		log.Println(pname(p.Name, 2), ":", RedS("Stopped"))
 		wr.Done()
 	}()
 
@@ -61,7 +61,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 		for in.Scan() {
 			select {
 			default:
-				log.Println(pname(p.Name,3),":",BlueS(in.Text()))
+				log.Println(pname(p.Name, 3), ":", BlueS(in.Text()))
 			}
 		}
 		close(stop)
@@ -96,7 +96,7 @@ func (p *Project) GoInstall() error {
 	base, _ := os.Getwd()
 	path := base + p.Path
 
-	err := os.Setenv("GOBIN",slash(os.Getenv("GOPATH")) + slash("bin"))
+	err := os.Setenv("GOBIN", slash(os.Getenv("GOPATH"))+slash("bin"))
 	if err != nil {
 		return err
 	}

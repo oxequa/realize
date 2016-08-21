@@ -18,18 +18,18 @@ type Config struct {
 }
 
 // nameParam check the project name presence. If empty takes the working directory name
-func nameParam(params *cli.Context) string{
+func nameParam(params *cli.Context) string {
 	var name string
 	if params.String("name") == "" {
 		name = params.String("base")
-	}else{
+	} else {
 		name = params.String("name")
 	}
 	return name
 }
 
-func boolParam(b bool) bool{
-	if b{
+func boolParam(b bool) bool {
+	if b {
 		return false
 	}
 	return true
@@ -61,7 +61,7 @@ func New(params *cli.Context) *Config {
 func Duplicates(value Project, arr []Project) error {
 	for _, val := range arr {
 		if value.Path == val.Path || value.Name == val.Name {
-			return errors.New("There is a duplicate of '"+val.Name+"'. Check your config file!")
+			return errors.New("There is a duplicate of '" + val.Name + "'. Check your config file!")
 		}
 	}
 	return nil
@@ -134,7 +134,7 @@ func (h *Config) Add(params *cli.Context) error {
 		return err
 	}
 	err = h.Create()
-	if err == nil{
+	if err == nil {
 		fmt.Println(Green("The config file was successfully created"))
 	}
 	return err
@@ -167,9 +167,9 @@ func (h *Config) List() error {
 			fmt.Println(Blue("|"), Blue(strings.ToUpper(val.Name)))
 			fmt.Println(MagentaS("|"), "\t", Yellow("Base Path"), ":", MagentaS(val.Path))
 			fmt.Println(MagentaS("|"), "\t", Yellow("Run"), ":", MagentaS(val.Run))
-			fmt.Println(MagentaS("|"), "\t", Yellow("Build"),":", MagentaS(val.Build))
+			fmt.Println(MagentaS("|"), "\t", Yellow("Build"), ":", MagentaS(val.Build))
 			fmt.Println(MagentaS("|"), "\t", Yellow("Install"), ":", MagentaS(val.Bin))
-			fmt.Println(MagentaS("|"), "\t", Yellow("Watcher"),":")
+			fmt.Println(MagentaS("|"), "\t", Yellow("Watcher"), ":")
 			fmt.Println(MagentaS("|"), "\t\t", Yellow("After"), ":", MagentaS(val.Watcher.After))
 			fmt.Println(MagentaS("|"), "\t\t", Yellow("Before"), ":", MagentaS(val.Watcher.Before))
 			fmt.Println(MagentaS("|"), "\t\t", Yellow("Extensions"), ":", MagentaS(val.Watcher.Exts))
