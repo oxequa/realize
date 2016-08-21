@@ -7,6 +7,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
+	"strings"
 )
 
 // Config struct contains the general informations about a project
@@ -163,7 +164,7 @@ func (h *Config) List() error {
 	err := h.Read()
 	if err == nil {
 		for _, val := range h.Projects {
-			fmt.Println(Green("|"), Green(val.Name))
+			fmt.Println(Blue("|"), Blue(strings.ToUpper(val.Name)))
 			fmt.Println(Magenta("|"), "\t", Green("Base Path"), ":", Magenta(val.Path))
 			fmt.Println(Magenta("|"), "\t", Green("Run"), ":", Magenta(val.Run))
 			fmt.Println(Magenta("|"), "\t", Green("Build"),":", Magenta(val.Build))
