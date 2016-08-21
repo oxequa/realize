@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// Default values and info
 const (
 	AppName        = "Realize"
 	AppVersion     = "v1.0"
@@ -18,14 +19,23 @@ const (
 )
 
 var wg sync.WaitGroup
+// Green color bold
 var Green = color.New(color.FgGreen, color.Bold).SprintFunc()
+// Red color bold
 var Red = color.New(color.FgRed, color.Bold).SprintFunc()
+// RedS color used for errors
 var RedS = color.New(color.FgRed).SprintFunc()
-var BlueS = color.New(color.FgBlue).SprintFunc()
+// Blue color bold used for project output
 var Blue = color.New(color.FgBlue, color.Bold).SprintFunc()
+// BlueS color
+var BlueS = color.New(color.FgBlue).SprintFunc()
+// Yellow color bold
 var Yellow = color.New(color.FgYellow, color.Bold).SprintFunc()
+// YellowS color
 var YellowS = color.New(color.FgYellow).SprintFunc()
+// MagentaS color
 var MagentaS = color.New(color.FgMagenta).SprintFunc()
+// Magenta color bold
 var Magenta = color.New(color.FgMagenta, color.Bold).SprintFunc()
 
 var watcherIgnores = []string{"vendor", "bin"}
