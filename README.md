@@ -45,6 +45,7 @@ A Golang build system with file watchers, output streams and live reload. Run, b
     --build                -> Go build, if not specified takes "false"    
     --bin                  -> Go intall, if not specified takes "true"    
     --run                  -> Go run, if not specified takes "true"  
+    --fmt                  -> Go fmt, if not specified takes "true"  
     ```
     
     Add a project whenever you want.
@@ -116,13 +117,17 @@ A Golang build system with file watchers, output streams and live reload. Run, b
             - .go 
     ```                    
 
-#### Milestone 1.0
+#### Next releases
+
+#####Milestone 1.0
+
 - [x] Cli start, remove, add, list, run
 - [x] Remove duplicate projects
 - [x] Support for multiple projects
 - [x] Watcher files preview
 - [x] Support for directories with duplicates names
 - [ ] Go test support
+- [x] Go fmt support
 - [ ] Cli fast run
 - [x] Execution times for build/install 
 - [x] Go doc
@@ -130,8 +135,16 @@ A Golang build system with file watchers, output streams and live reload. Run, b
 - [x] Stream projects output
 - [x] Cli feedback
 
-### Milestone 1.1
+##### Milestone 1.1
 - [ ] Test under windows
 - [ ] Unit test
+
+
+#### Contacts
+
+- Chat with us [Gitter](https://gitter.im/tockins/realize)
+
+- [Alessio Pracchia](https://www.linkedin.com/in/alessio-pracchia-38a70673)
+- [Daniele Conventi]()
 
 
