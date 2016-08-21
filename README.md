@@ -83,6 +83,15 @@ A Golang build system with file watchers, output streams and live reload. Run, b
     ```
     $ realize run 
     ```
+    
+    Fast run launches a project from his working directory without a config file 
+    
+    ```
+    $ realize run --fast
+    ```
+    
+    ![Preview](http://i.imgur.com/QNXu979.png)
+    
 
 #### Config file example
 
