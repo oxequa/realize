@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"log"
 )
 
 // Config struct contains the general informations about a project
@@ -20,7 +21,14 @@ type Config struct {
 // NameParam check the project name presence. If empty takes the working directory name
 func nameParam(params *cli.Context) string {
 	var name string
-	if params.String("name") == "" {
+	if params.String("name") == "" && params.String("path") == "/"{
+		dir, err := os.Getwd()
+		if err != nil {
+			log.Fatal(Red(err))
+		}
+		wd := strings.Split(dir, "/")
+		return wd[len(wd)-1]
+	} else if params.String("path") != "/" {
 		name = params.String("path")
 	} else {
 		name = params.String("name")

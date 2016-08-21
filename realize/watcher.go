@@ -55,7 +55,6 @@ func (h *Config) Fast(params *cli.Context) error {
 		}
 	}
 	wg.Add(1)
-	fast.Name = fast.Path
 	fast.Path = ""
 	go fast.Watching()
 	wg.Wait()

@@ -33,8 +33,7 @@ func main() {
 	wd := func() string {
 		dir, err := os.Getwd()
 		if err != nil {
-			fmt.Println(r.Red(err))
-			return "/"
+			log.Fatal(r.Red(err))
 		}
 		wd := strings.Split(dir, "/")
 		return wd[len(wd)-1]
@@ -75,7 +74,7 @@ func main() {
 				},
 				Action: func(p *cli.Context) error {
 					y := r.New(p)
-					y.Projects[0].Path = wd()
+					y.Projects[0].Path = "/"
 					return handle(y.Fast(p))
 				},
 				Before: func(c *cli.Context) error {
@@ -89,8 +88,8 @@ func main() {
 				Aliases:  []string{"a"},
 				Usage:    "Add another project",
 				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Usage: "Project name \t"},
-					&cli.StringFlag{Name: "path", Aliases: []string{"b"}, Value: wd(), Usage: "Project base path \t"},
+					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: wd(),Usage: "Project name \t"},
+					&cli.StringFlag{Name: "path", Aliases: []string{"b"}, Value: "/", Usage: "Project base path \t"},
 					&cli.BoolFlag{Name: "build", Value: false, Usage: "Enable go build"},
 					&cli.BoolFlag{Name: "run", Usage: "Disable go run"},
 					&cli.BoolFlag{Name: "bin", Usage: "Disable go install"},
