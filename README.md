@@ -88,8 +88,19 @@ A Golang build system with file watchers, output streams and live reload. Run, b
     Fast run launches a project from his working directory without a config file 
     
     ```
-    $ realize run --fast
+    $ realize fast
     ```
+    
+    You can use many additional parameters with this command
+    
+    ```
+    --build                -> Go build, if not specified takes "false"    
+    --bin                  -> Go intall, if not specified takes "true"    
+    --run                  -> Go run, if not specified takes "true"  
+    --fmt                  -> Go fmt, if not specified takes "true" 
+    --config               -> If there is a config file with a project for the current directory take that configuration  
+    ```    
+    
     
     ![Preview](http://i.imgur.com/QNXu979.png)
     
