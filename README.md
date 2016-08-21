@@ -40,9 +40,9 @@ A Golang build system with file watchers, output streams and live reload. Run, b
     ```
     --name="Project Name"  -> Name, if not specified takes the working directory name
     --base="server"        -> Base Path, if not specified takes the working directory name    
-    --build="true"         -> Go build, if not specified takes "false"    
-    --bin="false"          -> Base Path, if not specified takes "true"    
-    --run="false"          -> Base Path, if not specified takes "true"    
+    --build                -> Go build, if not specified takes "false"    
+    --bin                  -> Go intall, if not specified takes "true"    
+    --run                  -> Go run, if not specified takes "true"  
     ```
     
     ```
@@ -57,7 +57,7 @@ A Golang build system with file watchers, output streams and live reload. Run, b
     Or   
        
     ```
-    $ realize add --name="Project Name" --build="true"
+    $ realize add --name="Project Name" --build
     ```
 - Remove a project by his name
 
