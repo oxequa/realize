@@ -9,7 +9,7 @@
 
 A Golang build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths
 
-![Preview](http://i.imgur.com/XljkxAA.png)
+![Preview](http://i.imgur.com/9xaklUh.png)
 
 #### Features
 
@@ -28,14 +28,16 @@ A Golang build system with file watchers, output streams and live reload. Run, b
     ```
     $ go get github.com/tockins/realize
     ```
-- From the root of your project/projects:
+    
+- From the root of a project/projects:
 
     ```
-    $ realize start 
+    $ realize add 
     ```
-    Will create a realize.config.yaml file with a default settings.
     
-    You can even pass custom parameters for your project. This is a list of the supported fields:
+    If not exists already, It will create a realize.config.yaml file.
+    
+    You can even pass custom parameters for add the project. This is a list of the supported fields:
     
     ```
     --name="Project Name"  -> Name, if not specified takes the working directory name
@@ -44,11 +46,8 @@ A Golang build system with file watchers, output streams and live reload. Run, b
     --bin                  -> Go intall, if not specified takes "true"    
     --run                  -> Go run, if not specified takes "true"  
     ```
-    ```
-    $ realize start --name="Web Server" --base="server"
-    ```
     
-- Add another project whenever you want    
+    Add a project whenever you want.
 
     ```
     $ realize add
@@ -57,7 +56,13 @@ A Golang build system with file watchers, output streams and live reload. Run, b
     $ realize add --base="mypath"
     ```   
     ```
-    $ realize add --name="Project Name" --build
+    $ realize add --name="My Project" --build
+    ```    
+    ```
+    $ realize add --name="My Project" --base="/projects/package" --build
+    ```    
+    ```
+    $ realize add --name="My Project" --base="projects/package" --build --run
     ```
 - Remove a project by his name
 
@@ -120,6 +125,7 @@ A Golang build system with file watchers, output streams and live reload. Run, b
 - [ ] Unit test
 - [ ] Go test support
 - [ ] Cli fast run
+- [ ] Windows testing
 - [x] Execution times for build/install 
 - [x] Go doc
 - [x] Support for server start/stop 
