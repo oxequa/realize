@@ -96,12 +96,7 @@ func (p *Project) GoInstall() error {
 	var out bytes.Buffer
 	base, _ := os.Getwd()
 	path := base + p.Path
-
-	// check gopath and set gobin
-	gopath := os.Getenv("GOPATH")
-	if gopath == ""{
-		return errors.New("$GOPATH not set")
-	}
+	
 	err := os.Setenv("GOBIN",slash(os.Getenv("GOPATH")) + slash("bin"))
 	if err != nil {
 		return err
