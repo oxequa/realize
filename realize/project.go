@@ -112,6 +112,7 @@ func (p *Project) GoInstall() error {
 	return nil
 }
 
+// GoFmt is an implementation of the gofmt
 func (p *Project) GoFmt() (io.Writer, error) {
 	var out bytes.Buffer
 	build := exec.Command("gofmt", "-s", "-w", "-e", ".")
