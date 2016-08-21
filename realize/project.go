@@ -112,14 +112,14 @@ func (p *Project) GoInstall() error {
 	return nil
 }
 
-func (p *Project) GoFmt() (error, io.Writer) {
+func (p *Project) GoFmt() (io.Writer, error) {
 	var out bytes.Buffer
 	build := exec.Command("gofmt", "-s", "-w", "-e", ".")
 	build.Dir = p.base
 	build.Stdout = &out
 	build.Stderr = &out
 	if err := build.Run(); err != nil {
-		return err, build.Stderr
+		return build.Stderr, err
 	}
 	return nil, nil
 }
