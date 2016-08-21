@@ -100,10 +100,6 @@ A Golang build system with file watchers, output streams and live reload. Run, b
     --fmt                  -> Go fmt, if not specified takes "true" 
     --config               -> If there is a config file with a project for the current directory take that configuration  
     ```    
-    
-    
-    ![Preview](http://i.imgur.com/QNXu979.png)
-    
 
 #### Config file example
 
@@ -153,7 +149,7 @@ A Golang build system with file watchers, output streams and live reload. Run, b
 - [x] Support for directories with duplicates names
 - [ ] Go test support
 - [x] Go fmt support
-- [ ] Cli fast run
+- [x] Cli fast run
 - [x] Execution times for build/install 
 - [x] Go doc
 - [x] Support for server start/stop 
