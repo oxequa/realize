@@ -3,6 +3,7 @@ package realize
 import (
 	"bufio"
 	"bytes"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -20,6 +21,7 @@ type Project struct {
 	Run     bool    `yaml:"app_run,omitempty"`
 	Bin     bool    `yaml:"app_bin,omitempty"`
 	Build   bool    `yaml:"app_build,omitempty"`
+	Fmt     bool    `yaml:"app_fmt,omitempty"`
 	Watcher Watcher `yaml:"app_watcher,omitempty"`
 }
 
@@ -39,7 +41,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 	build.Dir = p.base
 	defer func() {
 		if err := build.Process.Kill(); err != nil {
-			log.Fatal("failed to stop: ", err)
+			log.Fatal(Red("failed to stop: "), Red(err))
 		}
 		log.Println(pname(p.Name, 2), ":", RedS("Stopped"))
 		wr.Done()
@@ -77,7 +79,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 	}
 }
 
-// GoBuild an implementation of the "go build"
+// GoBuild is an implementation of the "go build"
 func (p *Project) GoBuild() error {
 	var out bytes.Buffer
 
@@ -90,7 +92,7 @@ func (p *Project) GoBuild() error {
 	return nil
 }
 
-// GoInstall an implementation of the "go install"
+// GoInstall is an implementation of the "go install"
 func (p *Project) GoInstall() error {
 	var out bytes.Buffer
 	base, _ := os.Getwd()
@@ -108,4 +110,16 @@ func (p *Project) GoInstall() error {
 		return err
 	}
 	return nil
+}
+
+func (p *Project) GoFmt() (error, io.Writer) {
+	var out bytes.Buffer
+	build := exec.Command("gofmt", "-s", "-w", "-e", ".")
+	build.Dir = p.base
+	build.Stdout = &out
+	build.Stderr = &out
+	if err := build.Run(); err != nil {
+		return err, build.Stderr
+	}
+	return nil, nil
 }

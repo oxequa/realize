@@ -69,9 +69,12 @@ func (p *Project) Watching() {
 	}
 	routines := func() {
 		channel = make(chan bool)
-		wr.Add(1)
-		go p.build()
-		go p.install(channel, &wr)
+		err = p.fmt()
+		if err == nil {
+			wr.Add(1)
+			go p.build()
+			go p.install(channel, &wr)
+		}
 	}
 	end := func() {
 		watcher.Close()
@@ -165,6 +168,18 @@ func (p *Project) build() {
 		return
 	}
 	return
+}
+
+// Build call an implementation of the "gofmt"
+func (p *Project) fmt() error {
+	if p.Fmt {
+		if err, msg := p.GoFmt(); err != nil {
+			log.Println(pname(p.Name, 1), Red("There are some errors:"))
+			fmt.Println(msg)
+			return err
+		}
+	}
+	return nil
 }
 
 // Ignore validates a path
