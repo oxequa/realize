@@ -39,6 +39,7 @@ type App struct {
 	Name, Version, Description, Author, Email string
 }
 
+// Custom log timestamp
 func init() {
 	log.SetFlags(0)
 	log.SetOutput(new(logWriter))
@@ -61,6 +62,7 @@ func (app *App) Information() {
 	fmt.Println(BlueS(app.Description) + "\n")
 }
 
+// Cewrites the log timestamp
 func (writer logWriter) Write(bytes []byte) (int, error) {
 	return fmt.Print(YellowS("[") + time.Now().UTC().Format("15:04:05") + YellowS("]") + string(bytes))
 }
