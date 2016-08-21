@@ -39,6 +39,26 @@ func (h *Config) Watch() error {
 	return err
 }
 
+// Fast method run a project from his working directory without makes a config file
+func (h *Config) Fast() error {
+	fast := h.Projects[0]
+	// Takes the values from config if wd path match with another path
+	if err := h.Read(); err == nil {
+		for _, val := range h.Projects {
+			fmt.Println(val)
+			if fast.Path == val.Path {
+				fast = val
+			}
+		}
+	}
+	wg.Add(1)
+	fast.Name = fast.Path
+	fast.Path = ""
+	go fast.Watching()
+	wg.Wait()
+	return nil
+}
+
 // Watching method is the main core. It manages the livereload and the watching
 func (p *Project) Watching() {
 

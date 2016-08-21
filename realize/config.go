@@ -21,7 +21,7 @@ type Config struct {
 func nameParam(params *cli.Context) string {
 	var name string
 	if params.String("name") == "" {
-		name = params.String("base")
+		name = params.String("path")
 	} else {
 		name = params.String("name")
 	}
@@ -43,7 +43,7 @@ func New(params *cli.Context) *Config {
 		Projects: []Project{
 			{
 				Name:  nameParam(params),
-				Path:  params.String("base"),
+				Path:  params.String("path"),
 				Build: params.Bool("build"),
 				Bin:   boolParam(params.Bool("bin")),
 				Run:   boolParam(params.Bool("run")),
@@ -114,7 +114,7 @@ func (h *Config) Add(params *cli.Context) error {
 	if err == nil {
 		new := Project{
 			Name:  nameParam(params),
-			Path:  params.String("base"),
+			Path:  params.String("path"),
 			Build: params.Bool("build"),
 			Bin:   boolParam(params.Bool("bin")),
 			Run:   boolParam(params.Bool("run")),
