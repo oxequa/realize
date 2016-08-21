@@ -16,7 +16,8 @@ type Config struct {
 	Projects []Project
 }
 
-func projectName(params *cli.Context) string{
+// nameParam check the project name presence. If empty takes the working directory name
+func nameParam(params *cli.Context) string{
 	var name string
 	if params.String("name") == "" {
 		name = params.String("base")
@@ -26,6 +27,13 @@ func projectName(params *cli.Context) string{
 	return name
 }
 
+func boolParam(b bool) bool{
+	if b{
+		return false
+	}
+	return true
+}
+
 // New method puts the cli params in the struct
 func New(params *cli.Context) *Config {
 	return &Config{
@@ -33,11 +41,11 @@ func New(params *cli.Context) *Config {
 		Version: AppVersion,
 		Projects: []Project{
 			{
-				Name:  projectName(params),
+				Name:  nameParam(params),
 				Path:  params.String("base"),
-				Run:   params.Bool("run"),
 				Build: params.Bool("build"),
-				Bin:   params.Bool("bin"),
+				Bin:   boolParam(params.Bool("bin")),
+				Run:   boolParam(params.Bool("run")),
 				Watcher: Watcher{
 					Paths:  watcherPaths,
 					Ignore: watcherIgnores,
@@ -113,11 +121,11 @@ func (h *Config) Add(params *cli.Context) error {
 	err := h.Read()
 	if err == nil {
 		new := Project{
-			Name:  projectName(params),
+			Name:  nameParam(params),
 			Path:  params.String("base"),
-			Run:   params.Bool("run"),
 			Build: params.Bool("build"),
-			Bin:   params.Bool("bin"),
+			Bin:   boolParam(params.Bool("bin")),
+			Run:   boolParam(params.Bool("run")),
 			Watcher: Watcher{
 				Paths:  watcherPaths,
 				Exts:   watcherExts,
