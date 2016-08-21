@@ -165,17 +165,17 @@ func (h *Config) List() error {
 	if err == nil {
 		for _, val := range h.Projects {
 			fmt.Println(Blue("|"), Blue(strings.ToUpper(val.Name)))
-			fmt.Println(Magenta("|"), "\t", Green("Base Path"), ":", Magenta(val.Path))
-			fmt.Println(Magenta("|"), "\t", Green("Run"), ":", Magenta(val.Run))
-			fmt.Println(Magenta("|"), "\t", Green("Build"),":", Magenta(val.Build))
-			fmt.Println(Magenta("|"), "\t", Green("Install"), ":", Magenta(val.Bin))
-			fmt.Println(Magenta("|"), "\t", Green("Watcher"),":")
-			fmt.Println(Magenta("|"), "\t\t", Green("After"), ":", Magenta(val.Watcher.After))
-			fmt.Println(Magenta("|"), "\t\t", Green("Before"), ":", Magenta(val.Watcher.Before))
-			fmt.Println(Magenta("|"), "\t\t", Green("Extensions"), ":", Magenta(val.Watcher.Exts))
-			fmt.Println(Magenta("|"), "\t\t", Green("Paths"), ":", Magenta(val.Watcher.Paths))
-			fmt.Println(Magenta("|"), "\t\t", Green("Paths ignored"), ":", Magenta(val.Watcher.Ignore))
-			fmt.Println(Magenta("|"), "\t\t", Green("Watch preview"), ":", Magenta(val.Watcher.Preview))
+			fmt.Println(MagentaS("|"), "\t", Green("Base Path"), ":", MagentaS(val.Path))
+			fmt.Println(MagentaS("|"), "\t", Green("Run"), ":", MagentaS(val.Run))
+			fmt.Println(MagentaS("|"), "\t", Green("Build"),":", MagentaS(val.Build))
+			fmt.Println(MagentaS("|"), "\t", Green("Install"), ":", MagentaS(val.Bin))
+			fmt.Println(MagentaS("|"), "\t", Green("Watcher"),":")
+			fmt.Println(MagentaS("|"), "\t\t", Green("After"), ":", MagentaS(val.Watcher.After))
+			fmt.Println(MagentaS("|"), "\t\t", Green("Before"), ":", MagentaS(val.Watcher.Before))
+			fmt.Println(MagentaS("|"), "\t\t", Green("Extensions"), ":", MagentaS(val.Watcher.Exts))
+			fmt.Println(MagentaS("|"), "\t\t", Green("Paths"), ":", MagentaS(val.Watcher.Paths))
+			fmt.Println(MagentaS("|"), "\t\t", Green("Paths ignored"), ":", MagentaS(val.Watcher.Ignore))
+			fmt.Println(MagentaS("|"), "\t\t", Green("Watch preview"), ":", MagentaS(val.Watcher.Preview))
 		}
 		return nil
 	}

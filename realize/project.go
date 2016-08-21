@@ -42,7 +42,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 		if err := build.Process.Kill(); err != nil {
 			log.Fatal("failed to stop: ", err)
 		}
-		log.Println(Redl(p.Name),":", Red("Stopped"))
+		log.Println(pname(p.Name,2),":", RedS("Stopped"))
 		wr.Done()
 	}()
 
@@ -62,7 +62,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 		for in.Scan() {
 			select {
 			default:
-				log.Println(Bluel(p.Name+" Out:"), Bluel(in.Text()))
+				log.Println(pname(p.Name,3),":",BlueS(in.Text()))
 			}
 		}
 		close(stop)

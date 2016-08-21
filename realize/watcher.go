@@ -45,19 +45,19 @@ func (p *Project) Watching() {
 	var watcher *fsnotify.Watcher
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		log.Println(Redl(p.Name),": \t", Red(err.Error()))
+		log.Println(strings.ToUpper(pname(p.Name, 1)),": \t", Red(err.Error()))
 	}
 	channel := make(chan bool, 1)
 	base, err := os.Getwd()
 	if err != nil {
-		log.Println(Redl(p.Name),": \t", Red(err.Error()))
+		log.Println(pname(p.Name, 1),": \t", Red(err.Error()))
 	}
 
 	walk := func(path string, info os.FileInfo, err error) error {
 		if !p.ignore(path) {
 			if (info.IsDir() && len(filepath.Ext(path)) == 0 && !strings.Contains(path, "/.")) || (inArray(filepath.Ext(path), p.Watcher.Exts)) {
 				if p.Watcher.Preview {
-					fmt.Println(p.Name + ": \t" + path)
+					fmt.Println(pname(p.Name, 1) + ": \t" + path)
 				}
 				if err = watcher.Add(path); err != nil {
 					return filepath.SkipDir
@@ -90,11 +90,11 @@ func (p *Project) Watching() {
 				log.Println(Red(err.Error()))
 			}
 		} else {
-			fmt.Println(Redl(p.Name), ":\t", Red(base + " path doesn't exist"))
+			fmt.Println(pname(p.Name, 1), ":\t", Red(base + " path doesn't exist"))
 		}
 	}
 	routines()
-	fmt.Println(Red("Watching: '" + p.Name + "'\n"))
+	fmt.Println(Red("Watching: " + pname(p.Name, 1) + "\n"))
 	p.reload = time.Now().Truncate(time.Second)
 	for {
 		select {
@@ -106,7 +106,7 @@ func (p *Project) Watching() {
 				if _, err := os.Stat(event.Name); err == nil {
 					i := strings.Index(event.Name, filepath.Ext(event.Name))
 					if event.Name[:i] != "" {
-						log.Println(Magenta(p.Name),":", Magenta("File changed"), "->", Blue(event.Name[:i]))
+						log.Println(pname(p.Name, 4),":", Magenta(event.Name[:i]))
 
 						// stop and run again
 						close(channel)
@@ -126,22 +126,22 @@ func (p *Project) Watching() {
 // Install call an implementation of the "go install"
 func (p *Project) install(channel chan bool,wr *sync.WaitGroup) {
 	if p.Bin {
-		log.Println(Greenl(p.Name), ":", Greenl("Installing.."))
+		log.Println(pname(p.Name, 1), ":","Installing..")
 		start := time.Now()
 		if err := p.GoInstall(); err != nil {
-			log.Println(Redl(p.Name),":",Red(err.Error()))
+			log.Println(pname(p.Name, 1),":",Red(err.Error()))
 			wr.Done()
 		} else {
-			log.Println(Greenl(p.Name),":", Green("Installed")+ " after",  Magenta(time.Since(start)))
+			log.Println(pname(p.Name, 5),":", Green("Installed")+ " after",  MagentaS(time.Since(start)))
 			if p.Run {
 				runner := make(chan bool, 1)
-				log.Println(Greenl(p.Name), ":", Greenl("Running.."))
+				log.Println(pname(p.Name, 1), ":","Running..")
 				start = time.Now()
 				go p.GoRun(channel, runner, wr)
 				for {
 					select {
 					case <-runner:
-						log.Println(Greenl(p.Name), ":", Green("Has been run") + " after", Magenta(time.Since(start).Nanoseconds()))
+						log.Println(pname(p.Name, 5), ":", Green("Has been run") + " after", MagentaS(time.Since(start)))
 						return
 					}
 				}
@@ -154,12 +154,12 @@ func (p *Project) install(channel chan bool,wr *sync.WaitGroup) {
 // Build call an implementation of the "go build"
 func (p *Project) build() {
 	if p.Build {
-		log.Println(Greenl(p.Name), ":", Greenl("Building.."))
+		log.Println(pname(p.Name, 1), ":", "Building..")
 		start := time.Now()
 		if err := p.GoBuild(); err != nil {
-			log.Println(Redl(p.Name), ":", Red(err.Error()))
+			log.Println(pname(p.Name, 1), ":", Red(err.Error()))
 		} else {
-			log.Println(Greenl(p.Name),":", Green("Builded")+ " after",  Magenta(time.Since(start)))
+			log.Println(pname(p.Name, 5),":", Green("Builded")+ " after",  MagentaS(time.Since(start)))
 		}
 		return
 	}
@@ -200,4 +200,26 @@ func slash(str string) string {
 		}
 	}
 	return str
+}
+
+// defines the colors scheme for the project name
+func pname(name string, color int) string{
+	switch color {
+	case 1:
+		name = Yellow("[")+strings.ToUpper(name)+Yellow("]")
+		break
+	case 2:
+		name = Yellow("[")+Red(strings.ToUpper(name))+Yellow("]")
+		break
+	case 3:
+		name = Yellow("[")+Blue(strings.ToUpper(name))+Yellow("]")
+		break
+	case 4:
+		name = Yellow("[")+Magenta(strings.ToUpper(name))+Yellow("]")
+		break
+	case 5:
+		name = Yellow("[")+Green(strings.ToUpper(name))+Yellow("]")
+		break
+	}
+	return name
 }
