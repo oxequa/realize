@@ -3,6 +3,7 @@ package realize
 import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
+	"gopkg.in/urfave/cli.v2"
 	"log"
 	"math/big"
 	"os"
@@ -40,14 +41,16 @@ func (h *Config) Watch() error {
 }
 
 // Fast method run a project from his working directory without makes a config file
-func (h *Config) Fast() error {
+func (h *Config) Fast(params *cli.Context) error {
 	fast := h.Projects[0]
-	// Takes the values from config if wd path match with another path
-	if err := h.Read(); err == nil {
-		for _, val := range h.Projects {
-			fmt.Println(val)
-			if fast.Path == val.Path {
-				fast = val
+	// Takes the values from config if wd path match someone else
+	if params.Bool("config") {
+		if err := h.Read(); err == nil {
+			for _, val := range h.Projects {
+				fmt.Println(val)
+				if fast.Path == val.Path {
+					fast = val
+				}
 			}
 		}
 	}
