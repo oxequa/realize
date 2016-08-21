@@ -21,7 +21,7 @@ type Config struct {
 // NameParam check the project name presence. If empty takes the working directory name
 func nameParam(params *cli.Context) string {
 	var name string
-	if params.String("name") == "" && params.String("path") == "/"{
+	if params.String("name") == "" && params.String("path") == ""{
 		dir, err := os.Getwd()
 		if err != nil {
 			log.Fatal(Red(err))

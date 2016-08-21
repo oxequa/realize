@@ -47,7 +47,6 @@ func (h *Config) Fast(params *cli.Context) error {
 	if params.Bool("config") {
 		if err := h.Read(); err == nil {
 			for _, val := range h.Projects {
-				fmt.Println(val)
 				if fast.Path == val.Path {
 					fast = val
 				}
@@ -55,7 +54,7 @@ func (h *Config) Fast(params *cli.Context) error {
 		}
 	}
 	wg.Add(1)
-	fast.Path = ""
+	fast.Path = slash(fast.Path)
 	go fast.Watching()
 	wg.Wait()
 	return nil
