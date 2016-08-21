@@ -165,17 +165,17 @@ func (h *Config) List() error {
 	if err == nil {
 		for _, val := range h.Projects {
 			fmt.Println(Blue("|"), Blue(strings.ToUpper(val.Name)))
-			fmt.Println(MagentaS("|"), "\t", Green("Base Path"), ":", MagentaS(val.Path))
-			fmt.Println(MagentaS("|"), "\t", Green("Run"), ":", MagentaS(val.Run))
-			fmt.Println(MagentaS("|"), "\t", Green("Build"),":", MagentaS(val.Build))
-			fmt.Println(MagentaS("|"), "\t", Green("Install"), ":", MagentaS(val.Bin))
-			fmt.Println(MagentaS("|"), "\t", Green("Watcher"),":")
-			fmt.Println(MagentaS("|"), "\t\t", Green("After"), ":", MagentaS(val.Watcher.After))
-			fmt.Println(MagentaS("|"), "\t\t", Green("Before"), ":", MagentaS(val.Watcher.Before))
-			fmt.Println(MagentaS("|"), "\t\t", Green("Extensions"), ":", MagentaS(val.Watcher.Exts))
-			fmt.Println(MagentaS("|"), "\t\t", Green("Paths"), ":", MagentaS(val.Watcher.Paths))
-			fmt.Println(MagentaS("|"), "\t\t", Green("Paths ignored"), ":", MagentaS(val.Watcher.Ignore))
-			fmt.Println(MagentaS("|"), "\t\t", Green("Watch preview"), ":", MagentaS(val.Watcher.Preview))
+			fmt.Println(MagentaS("|"), "\t", Yellow("Base Path"), ":", MagentaS(val.Path))
+			fmt.Println(MagentaS("|"), "\t", Yellow("Run"), ":", MagentaS(val.Run))
+			fmt.Println(MagentaS("|"), "\t", Yellow("Build"),":", MagentaS(val.Build))
+			fmt.Println(MagentaS("|"), "\t", Yellow("Install"), ":", MagentaS(val.Bin))
+			fmt.Println(MagentaS("|"), "\t", Yellow("Watcher"),":")
+			fmt.Println(MagentaS("|"), "\t\t", Yellow("After"), ":", MagentaS(val.Watcher.After))
+			fmt.Println(MagentaS("|"), "\t\t", Yellow("Before"), ":", MagentaS(val.Watcher.Before))
+			fmt.Println(MagentaS("|"), "\t\t", Yellow("Extensions"), ":", MagentaS(val.Watcher.Exts))
+			fmt.Println(MagentaS("|"), "\t\t", Yellow("Paths"), ":", MagentaS(val.Watcher.Paths))
+			fmt.Println(MagentaS("|"), "\t\t", Yellow("Paths ignored"), ":", MagentaS(val.Watcher.Ignore))
+			fmt.Println(MagentaS("|"), "\t\t", Yellow("Watch preview"), ":", MagentaS(val.Watcher.Preview))
 		}
 		return nil
 	}
