@@ -10,7 +10,6 @@ import (
 	"sync"
 	"time"
 	"errors"
-	"fmt"
 )
 
 // The Project struct defines the informations about a project
