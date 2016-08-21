@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 	"errors"
+	"fmt"
 )
 
 // The Project struct defines the informations about a project
@@ -102,7 +103,7 @@ func (p *Project) GoInstall() error {
 	if gopath == ""{
 		return errors.New("$GOPATH not set")
 	}
-	err := os.Setenv("GOBIN",os.Getenv("GOPATH") + "bin")
+	err := os.Setenv("GOBIN",slash(os.Getenv("GOPATH")) + slash("bin"))
 	if err != nil {
 		return err
 	}
