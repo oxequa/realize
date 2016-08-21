@@ -74,6 +74,7 @@ func main() {
 					&cli.BoolFlag{Name: "build", Value: false, Usage: "Enable go build"},
 					&cli.BoolFlag{Name: "run", Usage: "Disable go run"},
 					&cli.BoolFlag{Name: "bin", Usage: "Disable go install"},
+					&cli.BoolFlag{Name: "fmt", Usage: "Disable gofmt"},
 				},
 				Action: func(p *cli.Context) error {
 					y := r.New(p)
