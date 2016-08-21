@@ -66,8 +66,8 @@ func main() {
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "", Usage: "Project name \t"},
 					&cli.StringFlag{Name: "base", Aliases: []string{"b"}, Value: wd(), Usage: "Project base path \t"},
 					&cli.BoolFlag{Name: "build", Value: false},
-					&cli.BoolFlag{Name: "run", Value: true},
-					&cli.BoolFlag{Name: "bin", Value: true},
+					&cli.BoolFlag{Name: "run"},
+					&cli.BoolFlag{Name: "bin"},
 				},
 				Action: func(p *cli.Context) error {
 					y := r.New(p)
