@@ -16,6 +16,16 @@ type Config struct {
 	Projects []Project
 }
 
+func projectName(params *cli.Context) string{
+	var name string
+	if params.String("name") == "" {
+		name = params.String("base")
+	}else{
+		name = params.String("name")
+	}
+	return name
+}
+
 // New method puts the cli params in the struct
 func New(params *cli.Context) *Config {
 	return &Config{
@@ -23,7 +33,7 @@ func New(params *cli.Context) *Config {
 		Version: AppVersion,
 		Projects: []Project{
 			{
-				Name:  params.String("name"),
+				Name:  projectName(params),
 				Path:  params.String("base"),
 				Run:   params.Bool("run"),
 				Build: params.Bool("build"),
@@ -39,21 +49,20 @@ func New(params *cli.Context) *Config {
 }
 
 // Duplicates check projects with same name or same combinations of main/path
-func Duplicates(value Project, arr []Project) bool {
+func Duplicates(value Project, arr []Project) error {
 	for _, val := range arr {
 		if value.Path == val.Path || value.Name == val.Name {
-			fmt.Println(Red("There is a duplicate of '"+val.Name+"'. Check your config file!"))
-			return true
+			return errors.New("There is a duplicate of '"+val.Name+"'. Check your config file!")
 		}
 	}
-	return false
+	return nil
 }
 
 // Clean duplicate projects
 func (h *Config) Clean() {
 	arr := h.Projects
 	for key, val := range arr {
-		if Duplicates(val, arr[key+1:]) {
+		if err := Duplicates(val, arr[key+1:]); err != nil {
 			h.Projects = append(arr[:key], arr[key+1:]...)
 			break
 		}
@@ -104,7 +113,7 @@ func (h *Config) Add(params *cli.Context) error {
 	err := h.Read()
 	if err == nil {
 		new := Project{
-			Name:  params.String("name"),
+			Name:  projectName(params),
 			Path:  params.String("base"),
 			Run:   params.Bool("run"),
 			Build: params.Bool("build"),
@@ -115,8 +124,8 @@ func (h *Config) Add(params *cli.Context) error {
 				Ignore: watcherIgnores,
 			},
 		}
-		if Duplicates(new, h.Projects) {
-			return errors.New("There is already one project with same path or name")
+		if err := Duplicates(new, h.Projects); err != nil {
+			return err
 		}
 		h.Projects = append(h.Projects, new)
 		err = h.Write()

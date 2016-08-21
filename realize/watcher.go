@@ -141,7 +141,7 @@ func (p *Project) install(channel chan bool,wr *sync.WaitGroup) {
 				for {
 					select {
 					case <-runner:
-						log.Println(Greenl(p.Name), ":", Green("Has been run") + " after", Magenta(time.Since(start)))
+						log.Println(Greenl(p.Name), ":", Green("Has been run") + " after", Magenta(time.Since(start).Nanoseconds()))
 						return
 					}
 				}
