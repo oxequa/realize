@@ -9,7 +9,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"errors"
 )
 
 // The Project struct defines the informations about a project
@@ -96,7 +95,7 @@ func (p *Project) GoInstall() error {
 	var out bytes.Buffer
 	base, _ := os.Getwd()
 	path := base + p.Path
-	
+
 	err := os.Setenv("GOBIN",slash(os.Getenv("GOPATH")) + slash("bin"))
 	if err != nil {
 		return err
