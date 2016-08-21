@@ -193,7 +193,9 @@ func slash(str string) string {
 		str = "/" + str
 	}
 	if string(str[len(str)-1]) == "/" {
-		if string(str) == "/" {
+		if len(str) == 0 {
+			return str
+		} else if string(str) == "/" {
 			str = ""
 		} else {
 			str = str[0 : len(str)-2]
