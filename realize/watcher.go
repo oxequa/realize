@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 	"log"
+	"math/big"
 )
 
 // The Watcher struct defines the livereload's logic
@@ -132,7 +133,7 @@ func (p *Project) install(channel chan bool,wr *sync.WaitGroup) {
 			log.Println(pname(p.Name, 1),":",Red(err.Error()))
 			wr.Done()
 		} else {
-			log.Println(pname(p.Name, 5),":", Green("Installed")+ " after",  MagentaS(time.Since(start)))
+			log.Println(pname(p.Name, 5),":", Green("Installed")+ " after",  MagentaS(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), "s"))
 			if p.Run {
 				runner := make(chan bool, 1)
 				log.Println(pname(p.Name, 1), ":","Running..")
@@ -141,7 +142,7 @@ func (p *Project) install(channel chan bool,wr *sync.WaitGroup) {
 				for {
 					select {
 					case <-runner:
-						log.Println(pname(p.Name, 5), ":", Green("Has been run") + " after", MagentaS(time.Since(start)))
+						log.Println(pname(p.Name, 5), ":", Green("Has been run") + " after", MagentaS(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), "s"))
 						return
 					}
 				}
@@ -159,7 +160,7 @@ func (p *Project) build() {
 		if err := p.GoBuild(); err != nil {
 			log.Println(pname(p.Name, 1), ":", Red(err.Error()))
 		} else {
-			log.Println(pname(p.Name, 5),":", Green("Builded")+ " after",  MagentaS(time.Since(start)))
+			log.Println(pname(p.Name, 5),":", Green("Builded")+ " after",  MagentaS(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), "s"))
 		}
 		return
 	}
