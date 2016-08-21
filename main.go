@@ -1,10 +1,11 @@
 package main
 
 import (
+	"fmt"
 	r "github.com/tockins/realize/realize"
 	"gopkg.in/urfave/cli.v2"
+	"log"
 	"os"
-	"fmt"
 	"strings"
 )
 
@@ -20,13 +21,18 @@ func main() {
 		return nil
 	}
 
-	header := func() {
+	header := func() error {
 		app.Information()
+		gopath := os.Getenv("GOPATH")
+		if gopath == "" {
+			log.Fatal(r.Red("$GOPATH isn't set up properly"))
+		}
+		return nil
 	}
 
-	wd := func() string{
-		dir, err :=os.Getwd()
-		if err != nil{
+	wd := func() string {
+		dir, err := os.Getwd()
+		if err != nil {
 			fmt.Println(r.Red(err))
 			return "/"
 		}
@@ -38,7 +44,7 @@ func main() {
 		Name:    app.Name,
 		Version: app.Version,
 		Authors: []*cli.Author{
-			&cli.Author{
+			{
 				Name:  app.Author,
 				Email: app.Email,
 			},
@@ -65,9 +71,9 @@ func main() {
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Usage: "Project name \t"},
 					&cli.StringFlag{Name: "base", Aliases: []string{"b"}, Value: wd(), Usage: "Project base path \t"},
-					&cli.BoolFlag{Name: "build", Value: false, Usage:"Enable go build"},
-					&cli.BoolFlag{Name: "run", Usage:"Disable go run"},
-					&cli.BoolFlag{Name: "bin",  Usage:"Disable go install"},
+					&cli.BoolFlag{Name: "build", Value: false, Usage: "Enable go build"},
+					&cli.BoolFlag{Name: "run", Usage: "Disable go run"},
+					&cli.BoolFlag{Name: "bin", Usage: "Disable go install"},
 				},
 				Action: func(p *cli.Context) error {
 					y := r.New(p)
