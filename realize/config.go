@@ -47,6 +47,7 @@ func New(params *cli.Context) *Config {
 				Build: params.Bool("build"),
 				Bin:   boolParam(params.Bool("bin")),
 				Run:   boolParam(params.Bool("run")),
+				Fmt:   boolParam(params.Bool("fmt")),
 				Watcher: Watcher{
 					Paths:  watcherPaths,
 					Ignore: watcherIgnores,
@@ -117,6 +118,7 @@ func (h *Config) Add(params *cli.Context) error {
 			Build: params.Bool("build"),
 			Bin:   boolParam(params.Bool("bin")),
 			Run:   boolParam(params.Bool("run")),
+			Fmt:   boolParam(params.Bool("fmt")),
 			Watcher: Watcher{
 				Paths:  watcherPaths,
 				Exts:   watcherExts,
