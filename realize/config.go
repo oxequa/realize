@@ -28,6 +28,7 @@ func nameParam(params *cli.Context) string {
 	return name
 }
 
+// boolParam is used to check the presence of a bool flag
 func boolParam(b bool) bool {
 	if b {
 		return false
