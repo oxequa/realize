@@ -226,7 +226,7 @@ func inArray(str string, list []string) bool {
 
 // add a slash at the beginning if not exist
 func slash(str string) string {
-	if string(str[0]) != "/" {
+	if len(str) == 0 || string(str[0]) != "/" {
 		str = "/" + str
 	}
 	if string(str[len(str)-1]) == "/" {
@@ -235,7 +235,7 @@ func slash(str string) string {
 		} else if string(str) == "/" {
 			str = ""
 		} else {
-			str = str[0 : len(str)-2]
+			str = str[0 : len(str)-1]
 		}
 	}
 	return str
