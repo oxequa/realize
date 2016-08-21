@@ -37,7 +37,7 @@ A Golang build system with file watchers, output streams and live reload. Run, b
     
     If not exists already, It will create a realize.config.yaml file.
     
-    You can even pass custom parameters for add the project. This is a list of the supported fields:
+    You can even pass custom parameters for add a project. This is a list of the supported fields:
     
     ```
     --name="Project Name"  -> Name, if not specified takes the working directory name
@@ -116,20 +116,22 @@ A Golang build system with file watchers, output streams and live reload. Run, b
             - .go 
     ```                    
 
-#### To do
+#### Milestone 1.0
 - [x] Cli start, remove, add, list, run
 - [x] Remove duplicate projects
 - [x] Support for multiple projects
 - [x] Watcher files preview
 - [x] Support for directories with duplicates names
-- [ ] Unit test
 - [ ] Go test support
 - [ ] Cli fast run
-- [ ] Windows testing
 - [x] Execution times for build/install 
 - [x] Go doc
 - [x] Support for server start/stop 
 - [x] Stream projects output
 - [x] Cli feedback
+
+### Milestone 1.1
+- [ ] Test under windows
+- [ ] Unit test
 
 
