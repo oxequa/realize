@@ -54,16 +54,29 @@ func main() {
 			{
 				Name:  "run",
 				Usage: "Build and watch file changes",
+				Action: func(p *cli.Context) error {
+					y := r.New(p)
+					return handle(y.Watch())
+				},
+				Before: func(c *cli.Context) error {
+					header()
+					return nil
+				},
+			},
+			{
+				Name:  "fast",
+				Usage: "Build and watch file changes for a single project without any config file",
 				Flags: []cli.Flag{
-					&cli.BoolFlag{Name: "fast", Usage: "Run the project of your working directory"},
+					&cli.BoolFlag{Name: "build", Value: false, Usage: "Enable go build"},
+					&cli.BoolFlag{Name: "run", Usage: "Disable go run"},
+					&cli.BoolFlag{Name: "bin", Usage: "Disable go install"},
+					&cli.BoolFlag{Name: "fmt", Usage: "Disable gofmt"},
+					&cli.BoolFlag{Name: "config", Usage: "If there is a config file with a project for the current directory take that configuration"},
 				},
 				Action: func(p *cli.Context) error {
 					y := r.New(p)
-					if p.Bool("fast") {
-						y.Projects[0].Path = wd()
-						return handle(y.Fast())
-					}
-					return handle(y.Watch())
+					y.Projects[0].Path = wd()
+					return handle(y.Fast(p))
 				},
 				Before: func(c *cli.Context) error {
 					header()
