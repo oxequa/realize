@@ -6,9 +6,9 @@ import (
 	"gopkg.in/urfave/cli.v2"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"log"
 	"os"
 	"strings"
-	"log"
 )
 
 // Config struct contains the general informations about a project
@@ -21,7 +21,7 @@ type Config struct {
 // NameParam check the project name presence. If empty takes the working directory name
 func nameParam(params *cli.Context) string {
 	var name string
-	if params.String("name") == "" && params.String("path") == ""{
+	if params.String("name") == "" && params.String("path") == "" {
 		dir, err := os.Getwd()
 		if err != nil {
 			log.Fatal(Red(err))
@@ -29,7 +29,8 @@ func nameParam(params *cli.Context) string {
 		wd := strings.Split(dir, "/")
 		return wd[len(wd)-1]
 	} else if params.String("path") != "/" {
-		name = params.String("path")
+		name = slash(params.String("path"))
+		name = name[1:]
 	} else {
 		name = params.String("name")
 	}
@@ -52,7 +53,7 @@ func New(params *cli.Context) *Config {
 		Projects: []Project{
 			{
 				Name:  nameParam(params),
-				Path:  params.String("path"),
+				Path:  slash(params.String("path")),
 				Build: params.Bool("build"),
 				Bin:   boolParam(params.Bool("bin")),
 				Run:   boolParam(params.Bool("run")),
@@ -123,7 +124,7 @@ func (h *Config) Add(params *cli.Context) error {
 	if err == nil {
 		new := Project{
 			Name:  nameParam(params),
-			Path:  params.String("path"),
+			Path:  slash(params.String("path")),
 			Build: params.Bool("build"),
 			Bin:   boolParam(params.Bool("bin")),
 			Run:   boolParam(params.Bool("run")),
