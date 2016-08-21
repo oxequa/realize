@@ -15,7 +15,7 @@ A Golang build system with file watchers, output streams and live reload. Run, b
 
 #### Features
 
-- Build, Install, Test and Run at the same time
+- Build, Install, Test, Fmt and Run at the same time
 - Live reload on file changes (re-build, re-install and re-run)
 - Watch custom paths
 - Watch specific file extensions
