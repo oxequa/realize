@@ -44,7 +44,6 @@ A Golang build system with file watchers, output streams and live reload. Run, b
     --bin                  -> Go intall, if not specified takes "true"    
     --run                  -> Go run, if not specified takes "true"  
     ```
-    
     ```
     $ realize start --name="Web Server" --base="server"
     ```
@@ -54,8 +53,9 @@ A Golang build system with file watchers, output streams and live reload. Run, b
     ```
     $ realize add
     ``` 
-    Or   
-       
+    ```
+    $ realize add --base="mypath"
+    ```   
     ```
     $ realize add --name="Project Name" --build
     ```
