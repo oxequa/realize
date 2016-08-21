@@ -58,27 +58,6 @@ func main() {
 				},
 			},
 			{
-				Name:     "start",
-				Category: "config",
-				Aliases:  []string{"s"},
-				Usage:    "Create the initial config",
-				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "", Usage: "Project name \t"},
-					&cli.StringFlag{Name: "base", Aliases: []string{"b"}, Value: wd(), Usage: "Project base path \t"},
-					&cli.BoolFlag{Name: "build", Value: false},
-					&cli.BoolFlag{Name: "run"},
-					&cli.BoolFlag{Name: "bin"},
-				},
-				Action: func(p *cli.Context) error {
-					y := r.New(p)
-					return handle(y.Create(p))
-				},
-				Before: func(c *cli.Context) error {
-					header()
-					return nil
-				},
-			},
-			{
 				Name:     "add",
 				Category: "config",
 				Aliases:  []string{"a"},
@@ -86,9 +65,9 @@ func main() {
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Usage: "Project name \t"},
 					&cli.StringFlag{Name: "base", Aliases: []string{"b"}, Value: wd(), Usage: "Project base path \t"},
-					&cli.BoolFlag{Name: "build", Value: false},
-					&cli.BoolFlag{Name: "run"},
-					&cli.BoolFlag{Name: "bin"},
+					&cli.BoolFlag{Name: "build", Value: false, Usage:"Enable go build"},
+					&cli.BoolFlag{Name: "run", Usage:"Disable go run"},
+					&cli.BoolFlag{Name: "bin",  Usage:"Disable go install"},
 				},
 				Action: func(p *cli.Context) error {
 					y := r.New(p)

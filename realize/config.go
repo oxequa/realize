@@ -79,41 +79,31 @@ func (h *Config) Clean() {
 
 // Read, Check and remove duplicates from the config file
 func (h *Config) Read() error {
-	file, err := ioutil.ReadFile(h.file)
+	_, err := os.Stat(h.file)
 	if err == nil {
-		if len(h.Projects) > 0 {
-			err = yaml.Unmarshal(file, h)
-			if err == nil {
-				h.Clean()
+		file, err := ioutil.ReadFile(h.file)
+		if err == nil {
+			if len(h.Projects) > 0 {
+				err = yaml.Unmarshal(file, h)
+				if err == nil {
+					h.Clean()
+				}
+				return err
 			}
-			return err
+			return errors.New("There are no projects")
 		}
-		return errors.New("There are no projects")
+		return h.Create()
 	}
 	return err
 }
 
-// write and marshal yaml
-func (h *Config) Write() error {
+// Create and unmarshal yaml config file
+func (h *Config) Create() error {
 	y, err := yaml.Marshal(h)
 	if err != nil {
 		return err
 	}
 	return ioutil.WriteFile(h.file, y, 0755)
-}
-
-// Create config yaml file
-func (h *Config) Create(params *cli.Context) error {
-	if h.Read() != nil {
-		err := h.Write()
-		if err != nil {
-			os.Remove(h.file)
-		} else {
-			fmt.Println(Green("The config file was successfully created"))
-		}
-		return err
-	}
-	return errors.New("The config file already exists, check for realize.config.yaml")
 }
 
 // Add another project
@@ -136,10 +126,15 @@ func (h *Config) Add(params *cli.Context) error {
 			return err
 		}
 		h.Projects = append(h.Projects, new)
-		err = h.Write()
+		err = h.Create()
 		if err == nil {
 			fmt.Println(Green("Your project was successfully added"))
 		}
+		return err
+	}
+	err = h.Create()
+	if err == nil{
+		fmt.Println(Green("The config file was successfully created"))
 	}
 	return err
 }
@@ -151,7 +146,7 @@ func (h *Config) Remove(params *cli.Context) error {
 		for key, val := range h.Projects {
 			if params.String("name") == val.Name {
 				h.Projects = append(h.Projects[:key], h.Projects[key+1:]...)
-				err = h.Write()
+				err = h.Create()
 				if err == nil {
 					fmt.Println(Green("Your project was successfully removed"))
 				}
