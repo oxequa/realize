@@ -17,7 +17,7 @@ type Config struct {
 	Projects []Project
 }
 
-// nameParam check the project name presence. If empty takes the working directory name
+// NameParam check the project name presence. If empty takes the working directory name
 func nameParam(params *cli.Context) string {
 	var name string
 	if params.String("name") == "" {
@@ -28,7 +28,7 @@ func nameParam(params *cli.Context) string {
 	return name
 }
 
-// boolParam is used to check the presence of a bool flag
+// BoolParam is used to check the presence of a bool flag
 func boolParam(b bool) bool {
 	if b {
 		return false
