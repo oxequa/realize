@@ -22,6 +22,7 @@ A Golang build system with file watchers, output streams and live reload. Run, b
 - Multiple projects support
 - Output streams
 - Execution times
+- Highly customizable
 
 #### Installation and usage
 
@@ -43,7 +44,7 @@ A Golang build system with file watchers, output streams and live reload. Run, b
     
     ```
     --name="Project Name"  -> Name, if not specified takes the working directory name
-    --base="server"        -> Base Path, if not specified takes the working directory name    
+    --path="server"        -> Base Path, if not specified takes the working directory name    
     --build                -> Go build, if not specified takes "false"    
     --bin                  -> Go intall, if not specified takes "true"    
     --run                  -> Go run, if not specified takes "true"  
@@ -56,16 +57,16 @@ A Golang build system with file watchers, output streams and live reload. Run, b
     $ realize add
     ``` 
     ```
-    $ realize add --base="mypath"
+    $ realize add --path="mypath"
     ```   
     ```
     $ realize add --name="My Project" --build
     ```    
     ```
-    $ realize add --name="My Project" --base="/projects/package" --build
+    $ realize add --name="My Project" --path="/projects/package" --build
     ```    
     ```
-    $ realize add --name="My Project" --base="projects/package" --build --run
+    $ realize add --name="My Project" --path="projects/package" --build --run
     ```
 - Remove a project by his name
 
