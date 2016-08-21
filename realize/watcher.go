@@ -193,7 +193,7 @@ func (p *Project) build() {
 // Build call an implementation of the "gofmt"
 func (p *Project) fmt() error {
 	if p.Fmt {
-		if err, msg := p.GoFmt(); err != nil {
+		if msg, err := p.GoFmt(); err != nil {
 			log.Println(pname(p.Name, 1), Red("There are some errors:"))
 			fmt.Println(msg)
 			return err
