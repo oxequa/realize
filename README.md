@@ -93,6 +93,7 @@ A Golang build system with file watchers, output streams and live reload. Run, b
           app_run: true         -> enable/disable go run (require app_bin)
           app_bin: true         -> enable/disable go install
           app_build: false      -> enable/disable go build
+          app_fmt: true         -> enable/disable go fmt
           app_watcher:
             preview: true       -> prints the observed files on startup
             paths:              -> paths to observe for live reload
