@@ -45,7 +45,6 @@ func (h *Config) Fast(params *cli.Context) error {
 	fast := h.Projects[0]
 	// Takes the values from config if wd path match someone else
 	if params.Bool("config") {
-		fmt.Println(params.Bool("config"))
 		if err := h.Read(); err == nil {
 			for _, val := range h.Projects {
 				if fast.Path == val.Path {

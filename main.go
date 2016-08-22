@@ -70,7 +70,7 @@ func main() {
 					&cli.BoolFlag{Name: "run", Usage: "Disable go run"},
 					&cli.BoolFlag{Name: "bin", Usage: "Disable go install"},
 					&cli.BoolFlag{Name: "fmt", Usage: "Disable gofmt"},
-					&cli.BoolFlag{Name: "config", Usage: "If there is a config file with a project for the current directory take that configuration"},
+					&cli.BoolFlag{Name: "config", Value: false, Usage: "If there is a config file with a project for the current directory take that configuration"},
 				},
 				Action: func(p *cli.Context) error {
 					y := r.New(p)
@@ -88,7 +88,7 @@ func main() {
 				Aliases:  []string{"a"},
 				Usage:    "Add another project",
 				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: wd(),Usage: "Project name \t"},
+					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: wd(), Usage: "Project name \t"},
 					&cli.StringFlag{Name: "path", Aliases: []string{"b"}, Value: "/", Usage: "Project base path \t"},
 					&cli.BoolFlag{Name: "build", Value: false, Usage: "Enable go build"},
 					&cli.BoolFlag{Name: "run", Usage: "Disable go run"},
