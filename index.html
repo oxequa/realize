@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Realize by tockins</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Realize</h1>
+      <h2 class="project-tagline">A Golang build system with file watchers, live reload and output streams.</h2>
+      <a href="https://github.com/tockins/realize" class="btn">View on GitHub</a>
+      <a href="https://github.com/tockins/realize/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/tockins/realize/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <p><a href="https://godoc.org/github.com/tockins/realize/realize"><img src="https://img.shields.io/badge/documentation-godoc-blue.svg" alt="GoDoc"></a>
+<a href="https://travis-ci.org/tockins/realize"><img src="https://img.shields.io/teamcity/codebetter/bt428.svg?maxAge=2592000?style=flat-square" alt="TeamCity CodeBetter"></a>
+<a href="https://raw.githubusercontent.com/tockins/realize/v1/LICENSE"><img src="https://img.shields.io/aur/license/yaourt.svg?maxAge=2592000?style=flat-square" alt="AUR"></a>
+<a href="https://github.com/tockins/realize-examples"><img src="https://img.shields.io/badge/realize-examples-yellow.svg" alt=""></a>
+<a href="https://gitter.im/tockins/realize?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://badges.gitter.im/tockins/realize.svg" alt="Join the chat at https://gitter.im/tockins/realize"></a></p>
+
+<p>A Golang build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths</p>
+
+<h4>
+<a id="features" class="anchor" href="#features" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Features</h4>
+
+<ul>
+<li>Build, Install, Test, Fmt and Run at the same time</li>
+<li>Live reload on file changes (re-build, re-install and re-run)</li>
+<li>Watch custom paths</li>
+<li>Watch specific file extensions</li>
+<li>Multiple projects support</li>
+<li>Output streams</li>
+<li>Execution times</li>
+<li>Highly customizable</li>
+<li>Fast run </li>
+</ul>
+
+<h4>
+<a id="installation-and-usage" class="anchor" href="#installation-and-usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installation and usage</h4>
+
+<ul>
+<li>
+<p>Run this for get/install it:</p>
+
+<pre><code>$ go get github.com/tockins/realize
+</code></pre>
+</li>
+<li>
+<p>From the root of a project/projects:</p>
+
+<pre><code>$ realize add 
+</code></pre>
+
+<p>If not exists already, It will create a realize.config.yaml file.</p>
+
+<p>You can even pass custom parameters for add a project. This is a list of the supported fields:</p>
+
+<pre><code>--name="Project Name"  -&gt; Name, if not specified takes the working directory name
+--path="server"        -&gt; Base Path, if not specified takes the working directory name    
+--build                -&gt; Go build, if not specified takes "false"    
+--bin                  -&gt; Go intall, if not specified takes "true"    
+--run                  -&gt; Go run, if not specified takes "true"  
+--fmt                  -&gt; Go fmt, if not specified takes "true"  
+</code></pre>
+
+<p>Add a project whenever you want.</p>
+
+<pre><code>$ realize add
+</code></pre>
+
+<pre><code>$ realize add --path="mypath"
+</code></pre>
+
+<pre><code>$ realize add --name="My Project" --build
+</code></pre>
+
+<pre><code>$ realize add --name="My Project" --path="/projects/package" --build
+</code></pre>
+
+<pre><code>$ realize add --name="My Project" --path="projects/package" --build --run
+</code></pre>
+</li>
+<li>
+<p>Remove a project by his name</p>
+
+<pre><code>$ realize remove --name="Project Name"
+</code></pre>
+</li>
+<li>
+<p>Lists all projects</p>
+
+<pre><code>$ realize list
+</code></pre>
+</li>
+<li>
+<p>Build, Run and watch file changes. Realize will re-build and re-run your projects on each changes</p>
+
+<pre><code>$ realize run 
+</code></pre>
+
+<p>Fast run launches a project from his working directory without a config file </p>
+
+<pre><code>$ realize fast
+</code></pre>
+
+<p>You can use many additional parameters with this command</p>
+
+<pre><code>--build                -&gt; Go build, if not specified takes "false"    
+--bin                  -&gt; Go intall, if not specified takes "true"    
+--run                  -&gt; Go run, if not specified takes "true"  
+--fmt                  -&gt; Go fmt, if not specified takes "true" 
+--config               -&gt; If there is a config file with a project for the current directory take that configuration  
+</code></pre>
+</li>
+</ul>
+
+<h4>
+<a id="config-file-example" class="anchor" href="#config-file-example" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Config file example</h4>
+
+<ul>
+<li>
+<p>For more examples check <a href="https://github.com/tockins/realize-examples">Realize Examples</a></p>
+
+<pre><code>version: "1.0"
+projects:
+    - app_name: App One     -&gt; name
+      app_path: one         -&gt; root path
+      app_run: true         -&gt; enable/disable go run (require app_bin)
+      app_bin: true         -&gt; enable/disable go install
+      app_build: false      -&gt; enable/disable go build
+      app_fmt: true         -&gt; enable/disable go fmt
+      app_watcher:
+        preview: true       -&gt; prints the observed files on startup
+        paths:              -&gt; paths to observe for live reload
+        - /
+        ignore_paths:       -&gt; paths to ignore
+        - vendor
+        - bin
+        exts:               -&gt; file extensions to observe for live reload
+        - .go
+    - app_name: App Two     -&gt; another project
+      app_path: two
+      app_run: true
+      app_build: true
+      app_bin: true
+      app_watcher:
+        paths:
+        - /
+        ignore_paths:
+        - vendor
+        - bin
+        exts:
+        - .go 
+</code></pre>
+</li>
+</ul>
+
+<h4>
+<a id="next-releases" class="anchor" href="#next-releases" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Next releases</h4>
+
+<h5>
+<a id="milestone-10" class="anchor" href="#milestone-10" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Milestone 1.0</h5>
+
+<ul>
+<li>[x] Cli start, remove, add, list, run</li>
+<li>[x] Remove duplicate projects</li>
+<li>[x] Support for multiple projects</li>
+<li>[x] Watcher files preview</li>
+<li>[x] Support for directories with duplicates names</li>
+<li>[ ] Go test support</li>
+<li>[x] Go fmt support</li>
+<li>[x] Cli fast run</li>
+<li>[x] Execution times for build/install </li>
+<li>[x] Go doc</li>
+<li>[x] Support for server start/stop </li>
+<li>[x] Stream projects output</li>
+<li>[x] Cli feedback</li>
+</ul>
+
+<h5>
+<a id="milestone-11" class="anchor" href="#milestone-11" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Milestone 1.1</h5>
+
+<ul>
+<li>[ ] Test under windows</li>
+<li>[ ] Unit test</li>
+</ul>
+
+<h4>
+<a id="contacts" class="anchor" href="#contacts" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Contacts</h4>
+
+<ul>
+<li><p>Chat with us <a href="https://gitter.im/tockins/realize">Gitter</a></p></li>
+<li><p><a href="https://www.linkedin.com/in/alessio-pracchia-38a70673">Alessio Pracchia</a></p></li>
+<li><a href="https://www.linkedin.com/in/daniele-conventi-b419b0a4">Daniele Conventi</a></li>
+</ul>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/tockins/realize">Realize</a> is maintained by <a href="https://github.com/tockins">tockins</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
