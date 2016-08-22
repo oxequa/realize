@@ -3,7 +3,6 @@ package realize
 import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
-	"golang.org/x/tools/go/gcimporter15/testdata"
 	"gopkg.in/urfave/cli.v2"
 	"log"
 	"math/big"
