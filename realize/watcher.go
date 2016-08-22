@@ -3,6 +3,7 @@ package realize
 import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
+	"golang.org/x/tools/go/gcimporter15/testdata"
 	"gopkg.in/urfave/cli.v2"
 	"log"
 	"math/big"
@@ -77,7 +78,7 @@ func (p *Project) Watching() {
 
 	walk := func(path string, info os.FileInfo, err error) error {
 		if !p.ignore(path) {
-			if (info.IsDir() && len(filepath.Ext(path)) == 0 && !strings.Contains(path, "/.")) || (inArray(filepath.Ext(path), p.Watcher.Exts)) {
+			if (info.IsDir() && len(filepath.Ext(path)) == 0 && !strings.HasPrefix(path, ".")) || (inArray(filepath.Ext(path), p.Watcher.Exts)) {
 				if p.Watcher.Preview {
 					fmt.Println(pname(p.Name, 1) + ": \t" + path)
 				}
@@ -106,7 +107,6 @@ func (p *Project) Watching() {
 	p.base = base + p.Path
 	for _, dir := range p.Watcher.Paths {
 		dir = slash(dir)
-
 		base = p.base + dir
 		if _, err := os.Stat(base); err == nil {
 			if err := filepath.Walk(base, walk); err != nil {
