@@ -27,32 +27,33 @@ A Golang build system with file watchers, output streams and live reload. Run, b
 
 #### Installation and usage
 
-- Run this for get/install it:
+- Run this to get/install:
 
     ```
     $ go get github.com/tockins/realize
     ```
     
-- From the root of a project/projects:
+- From project/projects root execute:
 
     ```
     $ realize add 
     ```
+   
+    It will create a realize.config.yaml file if it doesn't exist already and adds the working directory as the project.
     
-    If not exists already, It will create a realize.config.yaml file.
+    Otherwise if a config file already exists it adds another project to the existing config file.
     
-    You can even pass custom parameters for add a project. This is a list of the supported fields:
+    The add command supports the following custom parameters: 
     
     ```
     --name="Project Name"  -> Name, if not specified takes the working directory name
     --path="server"        -> Base Path, if not specified takes the working directory name    
-    --build                -> Go build, if not specified takes "false"    
-    --bin                  -> Go intall, if not specified takes "true"    
-    --run                  -> Go run, if not specified takes "true"  
-    --fmt                  -> Go fmt, if not specified takes "true"  
+    --build                -> Enables the build   
+    --nobin                -> Disables the installation
+    --norun                -> Disables the run
+    --nofmt                -> Disables the fmt (go fmt) 
     ```
-    
-    Add a project whenever you want.
+    Examples:
 
     ```
     $ realize add
@@ -67,9 +68,9 @@ A Golang build system with file watchers, output streams and live reload. Run, b
     $ realize add --name="My Project" --path="/projects/package" --build
     ```    
     ```
-    $ realize add --name="My Project" --path="projects/package" --build --run
+    $ realize add --name="My Project" --path="projects/package" --build --norun
     ```
-- Remove a project by his name
+- Remove a project by its name
 
     ```
     $ realize remove --name="Project Name"
@@ -79,26 +80,26 @@ A Golang build system with file watchers, output streams and live reload. Run, b
     ```
     $ realize list
     ```
-- Build, Run and watch file changes. Realize will re-build and re-run your projects on each changes
+- Build, Run and watch file changes. Realize will re-build and re-run your projects on each change.
 
     ```
     $ realize run 
     ```
     
-    Fast run launches a project from his working directory without a config file 
+    Fast run launches a project from its working directory without a config file 
     
     ```
     $ realize fast
     ```
     
-    You can use many additional parameters with this command
+     The fast command supports the following custom parameters: 
     
     ```
-    --build                -> Go build, if not specified takes "false"    
-    --bin                  -> Go intall, if not specified takes "true"    
-    --run                  -> Go run, if not specified takes "true"  
-    --fmt                  -> Go fmt, if not specified takes "true" 
-    --config               -> If there is a config file with a project for the current directory take that configuration  
+    --build                -> Enables the build   
+    --nobin                -> Disables the installation
+    --norun                -> Disables the run
+    --nofmt                -> Disables the fmt (go fmt) 
+    --config               -> Take the defined settings if exist a config file  
     ```    
 
 #### Config file example
