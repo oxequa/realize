@@ -45,6 +45,7 @@ func (h *Config) Fast(params *cli.Context) error {
 	fast := h.Projects[0]
 	// Takes the values from config if wd path match someone else
 	if params.Bool("config") {
+		fmt.Println(params.Bool("config"))
 		if err := h.Read(); err == nil {
 			for _, val := range h.Projects {
 				if fast.Path == val.Path {
@@ -104,7 +105,6 @@ func (p *Project) Watching() {
 	defer end()
 
 	p.base = base + p.Path
-
 	for _, dir := range p.Watcher.Paths {
 		// check main existence
 		dir = slash(dir)
@@ -230,10 +230,8 @@ func slash(str string) string {
 		str = "/" + str
 	}
 	if string(str[len(str)-1]) == "/" {
-		if len(str) == 0 {
+		if string(str) == "/" {
 			return str
-		} else if string(str) == "/" {
-			str = ""
 		} else {
 			str = str[0 : len(str)-1]
 		}

@@ -31,12 +31,13 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 	stop := make(chan bool, 1)
 	var run string
 
-	if len(name) == 1 {
-		name := strings.Split(p.base, "/")
+	if name[len(name)-1] == "" {
+		name := strings.Split(slash(p.base), "/")
 		run = name[len(name)-1]
 	} else {
 		run = name[len(name)-1]
 	}
+
 	build := exec.Command(slash(os.Getenv("GOBIN")) + slash(run))
 	build.Dir = p.base
 	defer func() {
