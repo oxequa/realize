@@ -55,9 +55,9 @@ func New(params *cli.Context) *Config {
 				Name:  nameParam(params),
 				Path:  slash(params.String("path")),
 				Build: params.Bool("build"),
-				Bin:   boolParam(params.Bool("bin")),
-				Run:   boolParam(params.Bool("run")),
-				Fmt:   boolParam(params.Bool("fmt")),
+				Bin:   boolParam(params.Bool("nobin")),
+				Run:   boolParam(params.Bool("norun")),
+				Fmt:   boolParam(params.Bool("nofmt")),
 				Watcher: Watcher{
 					Paths:  watcherPaths,
 					Ignore: watcherIgnores,
@@ -115,7 +115,7 @@ func (h *Config) Create() error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(h.file, y, 0755)
+	return ioutil.WriteFile(h.file, y, 0655)
 }
 
 // Add another project
@@ -126,9 +126,9 @@ func (h *Config) Add(params *cli.Context) error {
 			Name:  nameParam(params),
 			Path:  slash(params.String("path")),
 			Build: params.Bool("build"),
-			Bin:   boolParam(params.Bool("bin")),
-			Run:   boolParam(params.Bool("run")),
-			Fmt:   boolParam(params.Bool("fmt")),
+			Bin:   boolParam(params.Bool("nobin")),
+			Run:   boolParam(params.Bool("norun")),
+			Fmt:   boolParam(params.Bool("nofmt")),
 			Watcher: Watcher{
 				Paths:  watcherPaths,
 				Exts:   watcherExts,
