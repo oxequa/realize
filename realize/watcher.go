@@ -205,7 +205,6 @@ func (p *Project) fmt() error {
 // Ignore validates a path
 func (p *Project) ignore(str string) bool {
 	for _, v := range p.Watcher.Ignore {
-		v = slash(v)
 		if strings.Contains(str, p.base+v) {
 			return true
 		}
