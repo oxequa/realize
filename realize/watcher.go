@@ -95,7 +95,7 @@ func (p *Project) Watching() {
 			wr.Add(1)
 			go p.build()
 			go p.install(channel, &wr)
-			wg.Wait()
+			wr.Wait()
 		}
 	}
 	end := func() {
