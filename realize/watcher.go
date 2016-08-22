@@ -105,7 +105,6 @@ func (p *Project) Watching() {
 
 	p.base = base + p.Path
 	for _, dir := range p.Watcher.Paths {
-		// check main existence
 		dir = slash(dir)
 
 		base = p.base + dir
