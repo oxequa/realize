@@ -40,7 +40,7 @@ func boolParam(b bool) bool {
 	return true
 }
 
-// workingDir returns the last element of the working dir path
+// WorkingDir returns the last element of the working dir path
 func WorkingDir() string {
 	dir, err := os.Getwd()
 	if err != nil {
