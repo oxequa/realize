@@ -128,9 +128,17 @@ func (p *Project) watching() {
 					continue
 				}
 				if _, err := os.Stat(event.Name); err == nil {
+					var ext string
+					if index := strings.Index(filepath.Ext(event.Name), "_"); index == -1 {
+						ext = filepath.Ext(event.Name)
+					} else {
+						ext = filepath.Ext(event.Name)
+						ext = ext[0:index]
+					}
+
 					i := strings.Index(event.Name, filepath.Ext(event.Name))
 					if event.Name[:i] != "" {
-						log.Println(pname(p.Name, 4), ":", Magenta(event.Name[:i]))
+						log.Println(pname(p.Name, 4), ":", Magenta(event.Name[:i]+ext))
 
 						// stop and run again
 						if p.Run {
