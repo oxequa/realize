@@ -10,7 +10,7 @@ import (
 
 func main() {
 
-	app := r.Init()
+	app := r.Info()
 
 	handle := func(err error) error {
 		if err != nil {
@@ -21,7 +21,8 @@ func main() {
 	}
 
 	header := func() error {
-		app.Information()
+		fmt.Println(r.Blue(app.Name) + " - " + r.Blue(app.Version))
+		fmt.Println(r.BlueS(app.Description) + "\n")
 		gopath := os.Getenv("GOPATH")
 		if gopath == "" {
 			log.Fatal(r.Red("$GOPATH isn't set up properly"))
@@ -34,8 +35,12 @@ func main() {
 		Version: app.Version,
 		Authors: []*cli.Author{
 			{
-				Name:  app.Author,
-				Email: app.Email,
+				Name:  "Alessio Pracchia",
+				Email: "pracchia@hastega.it",
+			},
+			{
+				Name:  "Daniele Conventi",
+				Email: "conventi@hastega.it",
 			},
 		},
 		Usage: app.Description,

@@ -13,9 +13,7 @@ import (
 const (
 	AppName        = "Realize"
 	AppVersion     = "v1.0"
-	AppEmail       = "pracchia@hastega.it"
-	AppDescription = "Run, install or build your applications on file changes. Output preview and multi project support"
-	AppAuthor      = "Alessio Pracchia"
+	AppDescription = "A Golang build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths\n"
 	AppFile        = "realize.config.yaml"
 )
 
@@ -74,21 +72,12 @@ func init() {
 	}
 }
 
-// Init is an instance of app with default values
-func Init() *App {
+func Info() *App {
 	return &App{
 		Name:        AppName,
 		Version:     AppVersion,
 		Description: AppDescription,
-		Author:      AppAuthor,
-		Email:       AppEmail,
 	}
-}
-
-// Information print realize name and description
-func (app *App) Information() {
-	fmt.Println(Blue(app.Name) + " - " + Blue(app.Version))
-	fmt.Println(BlueS(app.Description) + "\n")
 }
 
 // Cewrites the log timestamp
