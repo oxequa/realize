@@ -3,7 +3,6 @@ package realize
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"io"
 	"log"
 	"os"

@@ -103,7 +103,7 @@ func (p *Project) watching() {
 	}
 	defer end()
 
-	if p.Path == "." {
+	if p.Path == "." || p.Path == "/" {
 		p.base = wd
 		p.Path = WorkingDir()
 	} else {
