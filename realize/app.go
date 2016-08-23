@@ -93,5 +93,5 @@ func (app *App) Information() {
 
 // Cewrites the log timestamp
 func (writer logWriter) Write(bytes []byte) (int, error) {
-	return fmt.Print(YellowS("[") + time.Now().UTC().Format("15:04:05") + YellowS("]") + string(bytes))
+	return fmt.Print(YellowS("[") + time.Now().Format("15:04:05") + YellowS("]") + string(bytes))
 }
