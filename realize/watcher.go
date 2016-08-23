@@ -64,7 +64,7 @@ func (p *Project) watching() {
 
 	var wr sync.WaitGroup
 	var watcher *fsnotify.Watcher
-	var counter int64
+	var files, folders int64
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Println(strings.ToUpper(pname(p.Name, 1)), ":", Red(err.Error()))
@@ -85,7 +85,9 @@ func (p *Project) watching() {
 					return filepath.SkipDir
 				}
 				if inArray(filepath.Ext(path), p.Watcher.Exts) {
-					counter++
+					files++
+				} else {
+					folders++
 				}
 			}
 		}
@@ -114,7 +116,7 @@ func (p *Project) watching() {
 		}
 	}
 
-	fmt.Println(Red("Watching: "), pname(p.Name, 1), Magenta(counter), "files \n")
+	fmt.Println(Red("Watching: "), pname(p.Name, 1), Magenta(files), "files", Magenta(folders), "folders \n")
 
 	go routines(p, channel, &wr)
 	p.reload = time.Now().Truncate(time.Second)
