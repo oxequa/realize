@@ -31,8 +31,8 @@ func (h *Config) Watch() error {
 		// loop projects
 		wg.Add(len(h.Projects))
 		for k := range h.Projects {
-			h.Projects[k].Path = slash(h.Projects[k].Path)
-			go h.Projects[k].Watching()
+			h.Projects[k].Path = h.Projects[k].Path
+			go h.Projects[k].watching()
 		}
 		wg.Wait()
 		return nil
@@ -43,7 +43,7 @@ func (h *Config) Watch() error {
 // Fast method run a project from his working directory without makes a config file
 func (h *Config) Fast(params *cli.Context) error {
 	fast := h.Projects[0]
-	// Takes the values from config if wd path match someone else
+	// Takes the values from config if wd path match with someone else
 	if params.Bool("config") {
 		if err := h.Read(); err == nil {
 			for _, val := range h.Projects {
@@ -54,26 +54,35 @@ func (h *Config) Fast(params *cli.Context) error {
 		}
 	}
 	wg.Add(1)
-	fast.Path = slash(fast.Path)
-	go fast.Watching()
+	go fast.watching()
 	wg.Wait()
 	return nil
 }
 
+func routines(p *Project, channel chan bool, wr *sync.WaitGroup) {
+	channel = make(chan bool)
+	err := p.fmt()
+	if err == nil {
+		wr.Add(1)
+		go p.build()
+		go p.install(channel, wr)
+	}
+}
+
 // Watching method is the main core. It manages the livereload and the watching
-func (p *Project) Watching() {
+func (p *Project) watching() {
 
 	var wr sync.WaitGroup
 	var watcher *fsnotify.Watcher
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		log.Println(strings.ToUpper(pname(p.Name, 1)), ": \t", Red(err.Error()))
+		log.Println(strings.ToUpper(pname(p.Name, 1)), ":", Red(err.Error()))
 	}
 	channel := make(chan bool, 1)
-	base, err := os.Getwd()
 	if err != nil {
-		log.Println(pname(p.Name, 1), ": \t", Red(err.Error()))
+		log.Println(pname(p.Name, 1), ":", Red(err.Error()))
 	}
+	wd, _ := os.Getwd()
 
 	walk := func(path string, info os.FileInfo, err error) error {
 		if !p.ignore(path) {
@@ -88,25 +97,20 @@ func (p *Project) Watching() {
 		}
 		return nil
 	}
-	routines := func() {
-		channel = make(chan bool)
-		err = p.fmt()
-		if err == nil {
-			wr.Add(1)
-			go p.build()
-			go p.install(channel, &wr)
-		}
-	}
 	end := func() {
 		watcher.Close()
 		wg.Done()
 	}
 	defer end()
 
-	p.base = base + p.Path
+	if p.Path == "." {
+		p.base = wd
+		p.Path = WorkingDir()
+	} else {
+		p.base = filepath.Join(wd, p.Path)
+	}
 	for _, dir := range p.Watcher.Paths {
-		dir = slash(dir)
-		base = p.base + dir
+		base := filepath.Join(p.base, dir)
 		if _, err := os.Stat(base); err == nil {
 			if err := filepath.Walk(base, walk); err != nil {
 				log.Println(Red(err.Error()))
@@ -115,8 +119,9 @@ func (p *Project) Watching() {
 			fmt.Println(pname(p.Name, 1), ":\t", Red(base+" path doesn't exist"))
 		}
 	}
+
 	fmt.Println(Red("Watching: " + pname(p.Name, 1) + "\n"))
-	routines()
+	go routines(p, channel, &wr)
 	p.reload = time.Now().Truncate(time.Second)
 	for {
 		select {
@@ -133,8 +138,7 @@ func (p *Project) Watching() {
 						// stop and run again
 						close(channel)
 						wr.Wait()
-						routines()
-
+						go routines(p, channel, &wr)
 						p.reload = time.Now().Truncate(time.Second)
 					}
 				}
@@ -203,8 +207,7 @@ func (p *Project) fmt() error {
 // Ignore validates a path
 func (p *Project) ignore(str string) bool {
 	for _, v := range p.Watcher.Ignore {
-		v = slash(v)
-		if strings.Contains(str, p.base+v) {
+		if strings.Contains(str, filepath.Join(p.base, v)) {
 			return true
 		}
 	}
@@ -219,21 +222,6 @@ func inArray(str string, list []string) bool {
 		}
 	}
 	return false
-}
-
-// add a slash at the beginning if not exist
-func slash(str string) string {
-	if len(str) == 0 || string(str[0]) != "/" {
-		str = "/" + str
-	}
-	if string(str[len(str)-1]) == "/" {
-		if string(str) == "/" {
-			return str
-		} else {
-			str = str[0 : len(str)-1]
-		}
-	}
-	return str
 }
 
 // defines the colors scheme for the project name

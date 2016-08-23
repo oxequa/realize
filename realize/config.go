@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -22,15 +23,9 @@ type Config struct {
 func nameParam(params *cli.Context) string {
 	var name string
 	if params.String("name") == "" && params.String("path") == "" {
-		dir, err := os.Getwd()
-		if err != nil {
-			log.Fatal(Red(err))
-		}
-		wd := strings.Split(dir, "/")
-		return wd[len(wd)-1]
+		return WorkingDir()
 	} else if params.String("path") != "/" {
-		name = slash(params.String("path"))
-		name = name[1:]
+		name = filepath.Base(params.String("path"))
 	} else {
 		name = params.String("name")
 	}
@@ -45,6 +40,15 @@ func boolParam(b bool) bool {
 	return true
 }
 
+// workingDir returns the last element of the working dir path
+func WorkingDir() string {
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatal(Red(err))
+	}
+	return filepath.Base(dir)
+}
+
 // New method puts the cli params in the struct
 func New(params *cli.Context) *Config {
 	return &Config{
@@ -53,7 +57,7 @@ func New(params *cli.Context) *Config {
 		Projects: []Project{
 			{
 				Name:  nameParam(params),
-				Path:  slash(params.String("path")),
+				Path:  filepath.Clean(params.String("path")),
 				Build: params.Bool("build"),
 				Bin:   boolParam(params.Bool("nobin")),
 				Run:   boolParam(params.Bool("norun")),
@@ -124,7 +128,7 @@ func (h *Config) Add(params *cli.Context) error {
 	if err == nil {
 		new := Project{
 			Name:  nameParam(params),
-			Path:  slash(params.String("path")),
+			Path:  filepath.Clean(params.String("path")),
 			Build: params.Bool("build"),
 			Bin:   boolParam(params.Bool("nobin")),
 			Run:   boolParam(params.Bool("norun")),

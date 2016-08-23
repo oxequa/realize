@@ -6,7 +6,6 @@ import (
 	"gopkg.in/urfave/cli.v2"
 	"log"
 	"os"
-	"strings"
 )
 
 func main() {
@@ -28,15 +27,6 @@ func main() {
 			log.Fatal(r.Red("$GOPATH isn't set up properly"))
 		}
 		return nil
-	}
-
-	wd := func() string {
-		dir, err := os.Getwd()
-		if err != nil {
-			log.Fatal(r.Red(err))
-		}
-		wd := strings.Split(dir, "/")
-		return wd[len(wd)-1]
 	}
 
 	cli := &cli.App{
@@ -74,7 +64,6 @@ func main() {
 				},
 				Action: func(p *cli.Context) error {
 					y := r.New(p)
-					y.Projects[0].Path = "/"
 					return handle(y.Fast(p))
 				},
 				Before: func(c *cli.Context) error {
@@ -88,7 +77,7 @@ func main() {
 				Aliases:  []string{"a"},
 				Usage:    "Add another project",
 				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: wd(), Usage: "Project name"},
+					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: r.WorkingDir(), Usage: "Project name"},
 					&cli.StringFlag{Name: "path", Aliases: []string{"b"}, Value: "/", Usage: "Project base path"},
 					&cli.BoolFlag{Name: "build", Value: false, Usage: "Enable go build"},
 					&cli.BoolFlag{Name: "norun", Usage: "Disables the run"},

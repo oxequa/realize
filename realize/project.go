@@ -3,11 +3,12 @@ package realize
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"io"
 	"log"
 	"os"
 	"os/exec"
-	"strings"
+	"path/filepath"
 	"sync"
 	"time"
 )
@@ -27,18 +28,9 @@ type Project struct {
 
 // GoRun  is an implementation of the bin execution
 func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup) error {
-	name := strings.Split(p.Path, "/")
+
 	stop := make(chan bool, 1)
-	var run string
-
-	if name[len(name)-1] == "" {
-		name := strings.Split(slash(p.base), "/")
-		run = name[len(name)-1]
-	} else {
-		run = name[len(name)-1]
-	}
-
-	build := exec.Command(slash(os.Getenv("GOBIN")) + slash(run))
+	build := exec.Command(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.Path)))
 	build.Dir = p.base
 	defer func() {
 		if err := build.Process.Kill(); err != nil {
@@ -96,16 +88,13 @@ func (p *Project) GoBuild() error {
 // GoInstall is an implementation of the "go install"
 func (p *Project) GoInstall() error {
 	var out bytes.Buffer
-	base, _ := os.Getwd()
-	path := base + p.Path
-
-	err := os.Setenv("GOBIN", slash(os.Getenv("GOPATH"))+slash("bin"))
+	err := os.Setenv("GOBIN", filepath.Join(os.Getenv("GOPATH"), "bin"))
 	if err != nil {
 		return err
 	}
 
 	build := exec.Command("go", "install")
-	build.Dir = path
+	build.Dir = p.base
 	build.Stdout = &out
 	if err := build.Run(); err != nil {
 		return err
