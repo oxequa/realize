@@ -149,6 +149,7 @@ func (p *Project) watching() {
 						if p.Run {
 							close(channel)
 							wr.Wait()
+							channel = make(chan bool)
 						}
 						err := p.fmt(event.Name[:i]+ext)
 						if err == nil {
@@ -233,16 +234,10 @@ func (p *Project) ignore(str string) bool {
 
 // Routines launches the following methods: run, build, fmt, install
 func routines(p *Project, channel chan bool, wr *sync.WaitGroup) {
-	channel = make(chan bool)
-	//err := p.fmt()
-	//if err == nil {
 		wr.Add(1)
 		go p.build()
 		go p.install(channel, wr)
 		wr.Wait()
-	//} else {
-	//	fmt.Println(Red(err))
-	//}
 }
 
 // check if a string is inArray
