@@ -46,9 +46,9 @@ A Golang build system with file watchers, output streams and live reload. Run, b
     The add command supports the following custom parameters:
 
     ```
-    --name="Project Name"  -> Name, if not specified takes the working directory name
-    --path="server"        -> Base Path, if not specified takes the working directory name    
-    --build                -> Enables the build   
+    --name="Project Name"   -> Name, if not specified takes the working directory name
+    --path="server"         -> Base Path, if not specified takes the working directory name    
+    --build                 -> Enables the build   
     --no-bin                -> Disables the installation
     --no-run                -> Disables the run
     --no-fmt                -> Disables the fmt (go fmt)
@@ -95,11 +95,11 @@ A Golang build system with file watchers, output streams and live reload. Run, b
      The fast command supports the following custom parameters:
 
     ```
-    --build                -> Enables the build   
+    --build                 -> Enables the build   
     --no-bin                -> Disables the installation
     --no-run                -> Disables the run
     --no-fmt                -> Disables the fmt (go fmt)
-    --config               -> Take the defined settings if exist a config file  
+    --config                -> Take the defined settings if exist a config file  
     ```    
 
 #### Config file example
