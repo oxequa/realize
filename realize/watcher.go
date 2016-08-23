@@ -84,7 +84,9 @@ func (p *Project) watching() {
 				if err = watcher.Add(path); err != nil {
 					return filepath.SkipDir
 				}
-				counter++
+				if inArray(filepath.Ext(path), p.Watcher.Exts) {
+					counter++
+				}
 			}
 		}
 		return nil
@@ -112,7 +114,7 @@ func (p *Project) watching() {
 		}
 	}
 
-	fmt.Println(Red("Watching: "), pname(p.Name, 1), Magenta(counter), "files")
+	fmt.Println(Red("Watching: "), pname(p.Name, 1), Magenta(counter), "files \n")
 
 	go routines(p, channel, &wr)
 	p.reload = time.Now().Truncate(time.Second)
@@ -126,7 +128,7 @@ func (p *Project) watching() {
 				if _, err := os.Stat(event.Name); err == nil {
 					i := strings.Index(event.Name, filepath.Ext(event.Name))
 					if event.Name[:i] != "" {
-						log.Println(pname(p.Name, 4), ":", Magenta(event.Name[:i]))
+						log.Println(pname(p.Name, 4), ":", Magenta(event.Name))
 
 						// stop and run again
 						if p.Run {
