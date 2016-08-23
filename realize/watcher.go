@@ -212,6 +212,7 @@ func routines(p *Project, channel chan bool, wr *sync.WaitGroup) {
 		wr.Add(1)
 		go p.build()
 		go p.install(channel, wr)
+		wr.Wait()
 	} else {
 		fmt.Println(Red(err))
 	}
