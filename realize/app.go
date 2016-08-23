@@ -46,8 +46,13 @@ var MagentaS = color.New(color.FgMagenta).SprintFunc()
 // Magenta color bold
 var Magenta = color.New(color.FgMagenta, color.Bold).SprintFunc()
 
+// WatcherIgnores is an array of default ignored paths
 var watcherIgnores = []string{"vendor", "bin"}
+
+// WatcherExts is an array of default exts
 var watcherExts = []string{".go"}
+
+// WatcherPaths is an array of default watched paths
 var watcherPaths = []string{"/"}
 
 type logWriter struct{}
@@ -72,6 +77,7 @@ func init() {
 	}
 }
 
+// Info returns the general informations about Realize
 func Info() *App {
 	return &App{
 		Name:        AppName,
