@@ -62,9 +62,9 @@ func main() {
 				Usage: "Build and watch file changes for a single project without any config file",
 				Flags: []cli.Flag{
 					&cli.BoolFlag{Name: "build", Value: false, Usage: "Enables the build"},
-					&cli.BoolFlag{Name: "norun", Usage: "Disables the run"},
-					&cli.BoolFlag{Name: "nobin", Usage: "Disables the installation"},
-					&cli.BoolFlag{Name: "nofmt", Usage: "Disables the fmt (go fmt)"},
+					&cli.BoolFlag{Name: "no-run", Usage: "Disables the run"},
+					&cli.BoolFlag{Name: "no-bin", Usage: "Disables the installation"},
+					&cli.BoolFlag{Name: "no-fmt", Usage: "Disables the fmt (go fmt)"},
 					&cli.BoolFlag{Name: "config", Value: false, Usage: "Take the defined settings if exist a config file."},
 				},
 				Action: func(p *cli.Context) error {
@@ -85,9 +85,9 @@ func main() {
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: r.WorkingDir(), Usage: "Project name"},
 					&cli.StringFlag{Name: "path", Aliases: []string{"b"}, Value: "/", Usage: "Project base path"},
 					&cli.BoolFlag{Name: "build", Value: false, Usage: "Enable go build"},
-					&cli.BoolFlag{Name: "norun", Usage: "Disables the run"},
-					&cli.BoolFlag{Name: "nobin", Usage: "Disables the installation"},
-					&cli.BoolFlag{Name: "nofmt", Usage: "Disables the fmt (go fmt)"},
+					&cli.BoolFlag{Name: "no-run", Usage: "Disables the run"},
+					&cli.BoolFlag{Name: "no-bin", Usage: "Disables the installation"},
+					&cli.BoolFlag{Name: "no-fmt", Usage: "Disables the fmt (go fmt)"},
 				},
 				Action: func(p *cli.Context) error {
 					y := r.New(p)

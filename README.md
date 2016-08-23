@@ -49,9 +49,9 @@ A Golang build system with file watchers, output streams and live reload. Run, b
     --name="Project Name"  -> Name, if not specified takes the working directory name
     --path="server"        -> Base Path, if not specified takes the working directory name    
     --build                -> Enables the build   
-    --nobin                -> Disables the installation
-    --norun                -> Disables the run
-    --nofmt                -> Disables the fmt (go fmt)
+    --no-bin                -> Disables the installation
+    --no-run                -> Disables the run
+    --no-fmt                -> Disables the fmt (go fmt)
     ```
     Examples:
 
@@ -68,7 +68,7 @@ A Golang build system with file watchers, output streams and live reload. Run, b
     $ realize add --name="My Project" --path="/projects/package" --build
     ```    
     ```
-    $ realize add --name="My Project" --path="projects/package" --build --norun
+    $ realize add --name="My Project" --path="projects/package" --build --no-run
     ```
 - Remove a project by its name
 
@@ -96,9 +96,9 @@ A Golang build system with file watchers, output streams and live reload. Run, b
 
     ```
     --build                -> Enables the build   
-    --nobin                -> Disables the installation
-    --norun                -> Disables the run
-    --nofmt                -> Disables the fmt (go fmt)
+    --no-bin                -> Disables the installation
+    --no-run                -> Disables the run
+    --no-fmt                -> Disables the fmt (go fmt)
     --config               -> Take the defined settings if exist a config file  
     ```    
 
