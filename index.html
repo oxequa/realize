@@ -67,9 +67,9 @@
 <pre><code>--name="Project Name"  -&gt; Name, if not specified takes the working directory name
 --path="server"        -&gt; Base Path, if not specified takes the working directory name    
 --build                -&gt; Enables the build   
---nobin                -&gt; Disables the installation
---norun                -&gt; Disables the run
---nofmt                -&gt; Disables the fmt (go fmt) 
+--no-bin                -&gt; Disables the installation
+--no-run                -&gt; Disables the run
+--no-fmt                -&gt; Disables the fmt (go fmt) 
 </code></pre>
 
 <p>Examples:</p>
@@ -86,7 +86,7 @@
 <pre><code>$ realize add --name="My Project" --path="/projects/package" --build
 </code></pre>
 
-<pre><code>$ realize add --name="My Project" --path="projects/package" --build --norun
+<pre><code>$ realize add --name="My Project" --path="projects/package" --build --no-run
 </code></pre>
 </li>
 <li>
@@ -115,9 +115,9 @@
 <p>The fast command supports the following custom parameters: </p>
 
 <pre><code>--build                -&gt; Enables the build   
---nobin                -&gt; Disables the installation
---norun                -&gt; Disables the run
---nofmt                -&gt; Disables the fmt (go fmt) 
+--no-bin                -&gt; Disables the installation
+--no-run                -&gt; Disables the run
+--no-fmt                -&gt; Disables the fmt (go fmt) 
 --config               -&gt; Take the defined settings if exist a config file  
 </code></pre>
 </li>
@@ -192,6 +192,8 @@ projects:
 <ul>
 <li>[ ] Test under windows</li>
 <li>[ ] Unit test</li>
+<li>[ ] Custom path support on commands</li>
+<li>[ ] Output files support</li>
 </ul>
 
 <h4>
