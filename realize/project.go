@@ -40,6 +40,11 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 	}()
 
 	stdout, err := build.StdoutPipe()
+	stderr, err := build.StderrPipe()
+
+	// Read stdout and stderr in same var
+	outputs := io.MultiReader(stdout, stderr)
+
 	if err != nil {
 		log.Println(Red(err.Error()))
 		return err
@@ -50,7 +55,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 	}
 	close(runner)
 
-	in := bufio.NewScanner(stdout)
+	in := bufio.NewScanner(outputs)
 	go func() {
 		for in.Scan() {
 			select {
