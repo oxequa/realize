@@ -13,7 +13,7 @@ import (
 const (
 	AppName        = "Realize"
 	AppVersion     = "v1.0"
-	AppDescription = "A Golang build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths\n"
+	AppDescription = "A Golang build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths"
 	AppFile        = "realize.config.yaml"
 )
 
