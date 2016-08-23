@@ -76,9 +76,9 @@ func (p *Project) watching() {
 
 	walk := func(path string, info os.FileInfo, err error) error {
 		if !p.ignore(path) {
-			if (info.IsDir() && len(filepath.Ext(path)) == 0 && !strings.HasPrefix(path, ".")) || (inArray(filepath.Ext(path), p.Watcher.Exts)) {
+			if (info.IsDir() && len(filepath.Ext(path)) == 0 && !strings.HasPrefix(path, ".")) && !strings.Contains(path, "/.") || (inArray(filepath.Ext(path), p.Watcher.Exts)) {
 				if p.Watcher.Preview {
-					fmt.Println(pname(p.Name, 1) + ": \t" + path)
+					fmt.Println(pname(p.Name, 1), ":", path)
 				}
 				if err = watcher.Add(path); err != nil {
 					return filepath.SkipDir
