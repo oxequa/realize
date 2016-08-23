@@ -31,7 +31,6 @@ func (h *Config) Watch() error {
 		// loop projects
 		wg.Add(len(h.Projects))
 		for k := range h.Projects {
-			h.Projects[k].Path = h.Projects[k].Path
 			go h.Projects[k].watching()
 		}
 		wg.Wait()
@@ -122,7 +121,8 @@ func (p *Project) watching() {
 		}
 	}
 
-	fmt.Println(Red("Watching: "), pname(p.Name, 1), Magenta(files), "files", Magenta(folders), "folders \n")
+	fmt.Println(Red("Watching: "), pname(p.Name, 1), Magenta(files), "files", Magenta(folders), "folders")
+	fmt.Println()
 
 	go routines(p, channel, &wr)
 	p.reload = time.Now().Truncate(time.Second)
@@ -151,7 +151,7 @@ func (p *Project) watching() {
 							wr.Wait()
 							channel = make(chan bool)
 						}
-						err := p.fmt(event.Name[:i]+ext)
+						err := p.fmt(event.Name[:i] + ext)
 						if err == nil {
 						} else {
 							fmt.Println(Red(err))
@@ -234,10 +234,10 @@ func (p *Project) ignore(str string) bool {
 
 // Routines launches the following methods: run, build, fmt, install
 func routines(p *Project, channel chan bool, wr *sync.WaitGroup) {
-		wr.Add(1)
-		go p.build()
-		go p.install(channel, wr)
-		wr.Wait()
+	wr.Add(1)
+	go p.build()
+	go p.install(channel, wr)
+	wr.Wait()
 }
 
 // check if a string is inArray
