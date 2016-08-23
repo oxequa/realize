@@ -5,7 +5,7 @@
 [![AUR](https://img.shields.io/aur/license/yaourt.svg?maxAge=2592000?style=flat-square)](https://raw.githubusercontent.com/tockins/realize/v1/LICENSE)
 [![](https://img.shields.io/badge/realize-examples-yellow.svg)](https://github.com/tockins/realize-examples)
 [![Join the chat at https://gitter.im/tockins/realize](https://badges.gitter.im/tockins/realize.svg)](https://gitter.im/tockins/realize?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
+[![Coverage Status](https://coveralls.io/repos/github/tockins/realize/badge.svg?branch=v1)](https://coveralls.io/github/tockins/realize?branch=v1)
 
 ![Logo](http://i.imgur.com/8nr2s1b.jpg)
 
