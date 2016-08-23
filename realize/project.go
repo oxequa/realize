@@ -107,9 +107,9 @@ func (p *Project) GoInstall() error {
 }
 
 // GoFmt is an implementation of the gofmt
-func (p *Project) GoFmt() (io.Writer, error) {
+func (p *Project) GoFmt(path string) (io.Writer, error) {
 	var out bytes.Buffer
-	build := exec.Command("gofmt", "-s", "-w", "-e", ".")
+	build := exec.Command("gofmt", "-s", "-w", "-e", path)
 	build.Dir = p.base
 	build.Stdout = &out
 	build.Stderr = &out

@@ -78,6 +78,7 @@ func (p *Project) watching() {
 	walk := func(path string, info os.FileInfo, err error) error {
 		if !p.ignore(path) {
 			if (info.IsDir() && len(filepath.Ext(path)) == 0 && !strings.HasPrefix(path, ".")) && !strings.Contains(path, "/.") || (inArray(filepath.Ext(path), p.Watcher.Exts)) {
+
 				if p.Watcher.Preview {
 					fmt.Println(pname(p.Name, 1), ":", path)
 				}
@@ -86,6 +87,11 @@ func (p *Project) watching() {
 				}
 				if inArray(filepath.Ext(path), p.Watcher.Exts) {
 					files++
+					err := p.fmt(path)
+					if err == nil {
+					} else {
+						fmt.Println(Red(err))
+					}
 				} else {
 					folders++
 				}
@@ -139,11 +145,15 @@ func (p *Project) watching() {
 					i := strings.Index(event.Name, filepath.Ext(event.Name))
 					if event.Name[:i] != "" {
 						log.Println(pname(p.Name, 4), ":", Magenta(event.Name[:i]+ext))
-
 						// stop and run again
 						if p.Run {
 							close(channel)
 							wr.Wait()
+						}
+						err := p.fmt(event.Name[:i]+ext)
+						if err == nil {
+						} else {
+							fmt.Println(Red(err))
 						}
 						go routines(p, channel, &wr)
 						p.reload = time.Now().Truncate(time.Second)
@@ -200,10 +210,10 @@ func (p *Project) build() {
 }
 
 // Build call an implementation of the "gofmt"
-func (p *Project) fmt() error {
+func (p *Project) fmt(path string) error {
 	if p.Fmt {
-		if msg, err := p.GoFmt(); err != nil {
-			log.Println(pname(p.Name, 1), Red("There are some errors:"))
+		if msg, err := p.GoFmt(path); err != nil {
+			log.Println(pname(p.Name, 1), Red("There are some errors in "), Red(path), Red(":"))
 			fmt.Println(msg)
 			return err
 		}
@@ -224,15 +234,15 @@ func (p *Project) ignore(str string) bool {
 // Routines launches the following methods: run, build, fmt, install
 func routines(p *Project, channel chan bool, wr *sync.WaitGroup) {
 	channel = make(chan bool)
-	err := p.fmt()
-	if err == nil {
+	//err := p.fmt()
+	//if err == nil {
 		wr.Add(1)
 		go p.build()
 		go p.install(channel, wr)
 		wr.Wait()
-	} else {
-		fmt.Println(Red(err))
-	}
+	//} else {
+	//	fmt.Println(Red(err))
+	//}
 }
 
 // check if a string is inArray
