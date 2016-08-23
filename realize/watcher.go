@@ -130,7 +130,7 @@ func (p *Project) watching() {
 				if _, err := os.Stat(event.Name); err == nil {
 					i := strings.Index(event.Name, filepath.Ext(event.Name))
 					if event.Name[:i] != "" {
-						log.Println(pname(p.Name, 4), ":", Magenta(event.Name))
+						log.Println(pname(p.Name, 4), ":", Magenta(event.Name[:i]))
 
 						// stop and run again
 						if p.Run {
