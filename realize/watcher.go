@@ -59,16 +59,6 @@ func (h *Config) Fast(params *cli.Context) error {
 	return nil
 }
 
-func routines(p *Project, channel chan bool, wr *sync.WaitGroup) {
-	channel = make(chan bool)
-	err := p.fmt()
-	if err == nil {
-		wr.Add(1)
-		go p.build()
-		go p.install(channel, wr)
-	}
-}
-
 // Watching method is the main core. It manages the livereload and the watching
 func (p *Project) watching() {
 
@@ -212,6 +202,19 @@ func (p *Project) ignore(str string) bool {
 		}
 	}
 	return false
+}
+
+// Routines launches the following methods: run, build, fmt, install
+func routines(p *Project, channel chan bool, wr *sync.WaitGroup) {
+	channel = make(chan bool)
+	err := p.fmt()
+	if err == nil {
+		wr.Add(1)
+		go p.build()
+		go p.install(channel, wr)
+	} else {
+		fmt.Println(Red(err))
+	}
 }
 
 // check if a string is inArray
