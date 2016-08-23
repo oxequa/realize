@@ -47,30 +47,32 @@
 
 <ul>
 <li>
-<p>Run this for get/install it:</p>
+<p>Run this to get/install:</p>
 
 <pre><code>$ go get github.com/tockins/realize
 </code></pre>
 </li>
 <li>
-<p>From the root of a project/projects:</p>
+<p>From project/projects root execute:</p>
 
 <pre><code>$ realize add 
 </code></pre>
 
-<p>If not exists already, It will create a realize.config.yaml file.</p>
+<p>It will create a realize.config.yaml file if it doesn't exist already and adds the working directory as the project.</p>
 
-<p>You can even pass custom parameters for add a project. This is a list of the supported fields:</p>
+<p>Otherwise if a config file already exists it adds another project to the existing config file.</p>
+
+<p>The add command supports the following custom parameters: </p>
 
 <pre><code>--name="Project Name"  -&gt; Name, if not specified takes the working directory name
 --path="server"        -&gt; Base Path, if not specified takes the working directory name    
---build                -&gt; Go build, if not specified takes "false"    
---bin                  -&gt; Go intall, if not specified takes "true"    
---run                  -&gt; Go run, if not specified takes "true"  
---fmt                  -&gt; Go fmt, if not specified takes "true"  
+--build                -&gt; Enables the build   
+--nobin                -&gt; Disables the installation
+--norun                -&gt; Disables the run
+--nofmt                -&gt; Disables the fmt (go fmt) 
 </code></pre>
 
-<p>Add a project whenever you want.</p>
+<p>Examples:</p>
 
 <pre><code>$ realize add
 </code></pre>
@@ -84,11 +86,11 @@
 <pre><code>$ realize add --name="My Project" --path="/projects/package" --build
 </code></pre>
 
-<pre><code>$ realize add --name="My Project" --path="projects/package" --build --run
+<pre><code>$ realize add --name="My Project" --path="projects/package" --build --norun
 </code></pre>
 </li>
 <li>
-<p>Remove a project by his name</p>
+<p>Remove a project by its name</p>
 
 <pre><code>$ realize remove --name="Project Name"
 </code></pre>
@@ -100,23 +102,23 @@
 </code></pre>
 </li>
 <li>
-<p>Build, Run and watch file changes. Realize will re-build and re-run your projects on each changes</p>
+<p>Build, Run and watch file changes. Realize will re-build and re-run your projects on each change.</p>
 
 <pre><code>$ realize run 
 </code></pre>
 
-<p>Fast run launches a project from his working directory without a config file </p>
+<p>Fast run launches a project from its working directory without a config file </p>
 
 <pre><code>$ realize fast
 </code></pre>
 
-<p>You can use many additional parameters with this command</p>
+<p>The fast command supports the following custom parameters: </p>
 
-<pre><code>--build                -&gt; Go build, if not specified takes "false"    
---bin                  -&gt; Go intall, if not specified takes "true"    
---run                  -&gt; Go run, if not specified takes "true"  
---fmt                  -&gt; Go fmt, if not specified takes "true" 
---config               -&gt; If there is a config file with a project for the current directory take that configuration  
+<pre><code>--build                -&gt; Enables the build   
+--nobin                -&gt; Disables the installation
+--norun                -&gt; Disables the run
+--nofmt                -&gt; Disables the fmt (go fmt) 
+--config               -&gt; Take the defined settings if exist a config file  
 </code></pre>
 </li>
 </ul>
