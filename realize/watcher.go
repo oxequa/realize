@@ -126,8 +126,10 @@ func (p *Project) watching() {
 						log.Println(pname(p.Name, 4), ":", Magenta(event.Name[:i]))
 
 						// stop and run again
-						close(channel)
-						wr.Wait()
+						if p.Run {
+							close(channel)
+							wr.Wait()
+						}
 						go routines(p, channel, &wr)
 						p.reload = time.Now().Truncate(time.Second)
 					}
