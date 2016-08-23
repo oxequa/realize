@@ -23,7 +23,7 @@ A Golang build system with file watchers, output streams and live reload. Run, b
 - Output streams
 - Execution times
 - Highly customizable
-- Fast run 
+- Fast run
 
 #### Installation and usage
 
@@ -32,32 +32,32 @@ A Golang build system with file watchers, output streams and live reload. Run, b
     ```
     $ go get github.com/tockins/realize
     ```
-    
+
 - From project/projects root execute:
 
     ```
-    $ realize add 
+    $ realize add
     ```
-   
+
     It will create a realize.config.yaml file if it doesn't exist already and adds the working directory as the project.
-    
+
     Otherwise if a config file already exists it adds another project to the existing config file.
-    
-    The add command supports the following custom parameters: 
-    
+
+    The add command supports the following custom parameters:
+
     ```
     --name="Project Name"  -> Name, if not specified takes the working directory name
     --path="server"        -> Base Path, if not specified takes the working directory name    
     --build                -> Enables the build   
     --nobin                -> Disables the installation
     --norun                -> Disables the run
-    --nofmt                -> Disables the fmt (go fmt) 
+    --nofmt                -> Disables the fmt (go fmt)
     ```
     Examples:
 
     ```
     $ realize add
-    ``` 
+    ```
     ```
     $ realize add --path="mypath"
     ```   
@@ -83,29 +83,29 @@ A Golang build system with file watchers, output streams and live reload. Run, b
 - Build, Run and watch file changes. Realize will re-build and re-run your projects on each change.
 
     ```
-    $ realize run 
+    $ realize run
     ```
-    
-    Fast run launches a project from its working directory without a config file 
-    
+
+    Fast run launches a project from its working directory without a config file
+
     ```
     $ realize fast
     ```
-    
-     The fast command supports the following custom parameters: 
-    
+
+     The fast command supports the following custom parameters:
+
     ```
     --build                -> Enables the build   
     --nobin                -> Disables the installation
     --norun                -> Disables the run
-    --nofmt                -> Disables the fmt (go fmt) 
+    --nofmt                -> Disables the fmt (go fmt)
     --config               -> Take the defined settings if exist a config file  
     ```    
 
 #### Config file example
 
 - For more examples check [Realize Examples](https://github.com/tockins/realize-examples)
-     
+
      ```
     version: "1.0"
     projects:
@@ -136,7 +136,7 @@ A Golang build system with file watchers, output streams and live reload. Run, b
             - vendor
             - bin
             exts:
-            - .go 
+            - .go
     ```                    
 
 #### Next releases
@@ -151,15 +151,17 @@ A Golang build system with file watchers, output streams and live reload. Run, b
 - [ ] Go test support
 - [x] Go fmt support
 - [x] Cli fast run
-- [x] Execution times for build/install 
+- [x] Execution times for build/install
 - [x] Go doc
-- [x] Support for server start/stop 
+- [x] Support for server start/stop
 - [x] Stream projects output
 - [x] Cli feedback
 
 ##### Milestone 1.1
 - [ ] Test under windows
 - [ ] Unit test
+- [ ] Custom path support on commands
+- [ ] Output files support
 
 
 #### Contacts
@@ -168,5 +170,3 @@ A Golang build system with file watchers, output streams and live reload. Run, b
 
 - [Alessio Pracchia](https://www.linkedin.com/in/alessio-pracchia-38a70673)
 - [Daniele Conventi](https://www.linkedin.com/in/daniele-conventi-b419b0a4)
-
-
