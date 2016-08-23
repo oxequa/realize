@@ -5,6 +5,7 @@ import (
 	"github.com/fatih/color"
 	"log"
 	"sync"
+	"syscall"
 	"time"
 )
 
@@ -62,6 +63,15 @@ type App struct {
 func init() {
 	log.SetFlags(0)
 	log.SetOutput(new(logWriter))
+
+	// increases the files limit
+	var rLimit syscall.Rlimit
+	rLimit.Max = 10000
+	rLimit.Cur = 10000
+	err := syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit)
+	if err != nil {
+		fmt.Println(Red("Error Setting Rlimit "), err)
+	}
 }
 
 // Init is an instance of app with default values
