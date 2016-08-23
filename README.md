@@ -9,7 +9,7 @@
 
 ![Logo](http://i.imgur.com/8nr2s1b.jpg)
 
-A Golang build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths
+A Go build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths
 
 ![Preview](http://i.imgur.com/GooHBej.png)
 
