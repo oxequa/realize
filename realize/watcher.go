@@ -105,7 +105,6 @@ func (p *Project) watching() {
 						// stop and run again
 						if p.Run {
 							close(channel)
-							wr.Wait()
 							channel = make(chan bool)
 						}
 
