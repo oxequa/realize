@@ -77,16 +77,17 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 }
 
 // GoBuild is an implementation of the "go build"
-func (p *Project) GoBuild() error {
+func (p *Project) GoBuild() (error, string) {
 	var out bytes.Buffer
-
+	var stderr bytes.Buffer
 	build := exec.Command("go", "build")
 	build.Dir = p.base
 	build.Stdout = &out
+	build.Stderr = &stderr
 	if err := build.Run(); err != nil {
-		return err
+		return err, stderr.String()
 	}
-	return nil
+	return nil, ""
 }
 
 // GoInstall is an implementation of the "go install"
@@ -97,7 +98,6 @@ func (p *Project) GoInstall() (error, string) {
 	if err != nil {
 		return nil, ""
 	}
-
 	build := exec.Command("go", "install")
 	build.Dir = p.base
 	build.Stdout = &out
