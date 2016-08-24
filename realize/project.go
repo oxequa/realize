@@ -90,20 +90,22 @@ func (p *Project) GoBuild() error {
 }
 
 // GoInstall is an implementation of the "go install"
-func (p *Project) GoInstall() error {
+func (p *Project) GoInstall() (error, string) {
 	var out bytes.Buffer
+	var stderr bytes.Buffer
 	err := os.Setenv("GOBIN", filepath.Join(os.Getenv("GOPATH"), "bin"))
 	if err != nil {
-		return err
+		return nil, ""
 	}
 
 	build := exec.Command("go", "install")
 	build.Dir = p.base
 	build.Stdout = &out
+	build.Stderr = &stderr
 	if err := build.Run(); err != nil {
-		return err
+		return err, stderr.String()
 	}
-	return nil
+	return nil, ""
 }
 
 // GoFmt is an implementation of the gofmt
