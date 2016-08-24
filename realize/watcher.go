@@ -224,7 +224,7 @@ func (p *Project) walks(watcher *fsnotify.Watcher) {
 			fmt.Println(pname(p.Name, 1), ":\t", Red(base+" path doesn't exist"))
 		}
 	}
-	fmt.Println(Red("Watching: "), pname(p.Name, 1), Magenta(files), "files", Magenta(folders), "folders")
+	fmt.Println(Red("Watching: "), pname(p.Name, 1), Magenta(files), "file/s", Magenta(folders), "folder/s")
 	fmt.Println()
 }
 
