@@ -125,7 +125,7 @@ func (p *Project) watching() {
 	}
 }
 
-// Install call an implementation of the "go install"
+// Install calls an implementation of the "go install"
 func (p *Project) install(channel chan bool, wr *sync.WaitGroup) {
 	if p.Bin {
 		log.Println(pname(p.Name, 1), ":", "Installing..")
@@ -153,7 +153,7 @@ func (p *Project) install(channel chan bool, wr *sync.WaitGroup) {
 	return
 }
 
-// Build call an implementation of the "go build"
+// Build calls an implementation of the "go build"
 func (p *Project) build() {
 	if p.Build {
 		log.Println(pname(p.Name, 1), ":", "Building..")
@@ -168,7 +168,7 @@ func (p *Project) build() {
 	return
 }
 
-// Build call an implementation of the "gofmt"
+// Build calls an implementation of the "gofmt"
 func (p *Project) fmt(path string) error {
 	if p.Fmt {
 		if msg, err := p.GoFmt(path); err != nil {
