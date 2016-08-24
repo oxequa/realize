@@ -171,9 +171,9 @@ func (p *Project) build() {
 // Build calls an implementation of the "gofmt"
 func (p *Project) fmt(path string) error {
 	if p.Fmt {
-		if msg, err := p.GoFmt(path); err != nil {
-			log.Println(pname(p.Name, 1), Red("There are some errors in "), Red(path), Red(":"))
-			fmt.Println(msg)
+		if _, err := p.GoFmt(path); err != nil {
+			log.Println(pname(p.Name, 1), Red("There are some GoFmt errors in "), ":", Magenta(path))
+			//fmt.Println(msg)
 		}
 	}
 	return nil
