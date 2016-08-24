@@ -63,7 +63,7 @@ func (p *Project) watching() {
 
 	var wr sync.WaitGroup
 	var watcher *fsnotify.Watcher
-	var files, folders int64
+
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Println(strings.ToUpper(pname(p.Name, 1)), ":", Red(err.Error()))
@@ -72,60 +72,17 @@ func (p *Project) watching() {
 	if err != nil {
 		log.Println(pname(p.Name, 1), ":", Red(err.Error()))
 	}
-	wd, _ := os.Getwd()
-
-	walk := func(path string, info os.FileInfo, err error) error {
-		if !p.ignore(path) {
-			if (info.IsDir() && len(filepath.Ext(path)) == 0 && !strings.HasPrefix(path, ".")) && !strings.Contains(path, "/.") || (inArray(filepath.Ext(path), p.Watcher.Exts)) {
-
-				if p.Watcher.Preview {
-					fmt.Println(pname(p.Name, 1), ":", path)
-				}
-				if err = watcher.Add(path); err != nil {
-					return filepath.SkipDir
-				}
-				if inArray(filepath.Ext(path), p.Watcher.Exts) {
-					files++
-					err := p.fmt(path)
-					if err == nil {
-					} else {
-						fmt.Println(Red(err))
-					}
-				} else {
-					folders++
-				}
-			}
-		}
-		return nil
-	}
 	end := func() {
 		watcher.Close()
 		wg.Done()
 	}
 	defer end()
 
-	if p.Path == "." || p.Path == "/" {
-		p.base = wd
-		p.Path = WorkingDir()
-	} else {
-		p.base = filepath.Join(wd, p.Path)
-	}
-	for _, dir := range p.Watcher.Paths {
-		base := filepath.Join(p.base, dir)
-		if _, err := os.Stat(base); err == nil {
-			if err := filepath.Walk(base, walk); err != nil {
-				log.Println(Red(err.Error()))
-			}
-		} else {
-			fmt.Println(pname(p.Name, 1), ":\t", Red(base+" path doesn't exist"))
-		}
-	}
-
-	fmt.Println(Red("Watching: "), pname(p.Name, 1), Magenta(files), "files", Magenta(folders), "folders")
-	fmt.Println()
-
+	p.walks(watcher)
 	go routines(p, channel, &wr)
 	p.reload = time.Now().Truncate(time.Second)
+
+	// waiting for an event
 	for {
 		select {
 		case event := <-watcher.Events:
@@ -151,13 +108,14 @@ func (p *Project) watching() {
 							wr.Wait()
 							channel = make(chan bool)
 						}
+
 						err := p.fmt(event.Name[:i] + ext)
-						if err == nil {
+						if err != nil {
+							log.Fatal(Red(err))
 						} else {
-							fmt.Println(Red(err))
-						}
 						go routines(p, channel, &wr)
 						p.reload = time.Now().Truncate(time.Second)
+						}
 					}
 				}
 			}
@@ -216,10 +174,58 @@ func (p *Project) fmt(path string) error {
 		if msg, err := p.GoFmt(path); err != nil {
 			log.Println(pname(p.Name, 1), Red("There are some errors in "), Red(path), Red(":"))
 			fmt.Println(msg)
-			return err
 		}
 	}
 	return nil
+}
+
+// Walks the file tree of a project
+func (p *Project) walks(watcher *fsnotify.Watcher) {
+	var files, folders int64
+	wd, _ := os.Getwd()
+
+	walk := func(path string, info os.FileInfo, err error) error {
+		if (info.IsDir() && len(filepath.Ext(path)) == 0 && !strings.HasPrefix(path, ".")) && !strings.Contains(path, "/.") || (inArray(filepath.Ext(path), p.Watcher.Exts)) {
+
+			if p.Watcher.Preview {
+				fmt.Println(pname(p.Name, 1), ":", path)
+			}
+			if err = watcher.Add(path); err != nil {
+				return filepath.SkipDir
+			}
+			if inArray(filepath.Ext(path), p.Watcher.Exts) {
+				files++
+			} else {
+				folders++
+			}
+		}
+		return nil
+	}
+
+	if p.Path == "." || p.Path == "/" {
+		p.base = wd
+		p.Path = WorkingDir()
+	} else {
+		p.base = filepath.Join(wd, p.Path)
+	}
+	for _, dir := range p.Watcher.Paths {
+		base := filepath.Join(p.base, dir)
+		if _, err := os.Stat(base); err == nil {
+			if !p.ignore(base) {
+				// check gofmt errors
+				if err := p.fmt(base); err != nil {
+					fmt.Println(err)
+				}
+				if err := filepath.Walk(base, walk); err != nil {
+					log.Println(Red(err.Error()))
+				}
+			}
+		} else {
+			fmt.Println(pname(p.Name, 1), ":\t", Red(base+" path doesn't exist"))
+		}
+	}
+	fmt.Println(Red("Watching: "), pname(p.Name, 1), Magenta(files), "files", Magenta(folders), "folders")
+	fmt.Println()
 }
 
 // Ignore validates a path
