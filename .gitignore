@@ -30,3 +30,4 @@ _testmain.go
 docker
 vendor
 bin
+glide.*
