@@ -103,6 +103,14 @@ A Go build system with file watchers, output streams and live reload. Run, build
     --config                -> Take the defined settings if exist a config file  
     ```    
 
+#### Color reference
+
+- Blue: outputs of the project
+- Red: errors 
+- Magenta: times or changed files
+- Green: successfully completed action
+
+
 #### Config file example
 
 - For more examples check [Realize Examples](https://github.com/tockins/realize-examples)
