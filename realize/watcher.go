@@ -197,9 +197,14 @@ func (p *Project) walks(watcher *fsnotify.Watcher) {
 				if inArray(filepath.Ext(path), p.Watcher.Exts) {
 					files++
 				} else {
+					if err := p.fmt(path); err != nil {
+						fmt.Println(err)
+					}
 					folders++
 				}
+
 			}
+
 		}
 		return nil
 	}
@@ -213,14 +218,8 @@ func (p *Project) walks(watcher *fsnotify.Watcher) {
 	for _, dir := range p.Watcher.Paths {
 		base := filepath.Join(p.base, dir)
 		if _, err := os.Stat(base); err == nil {
-			if !p.ignore(base) {
-				// check gofmt errors
-				if err := p.fmt(base); err != nil {
-					fmt.Println(err)
-				}
-				if err := filepath.Walk(base, walk); err != nil {
-					log.Println(Red(err.Error()))
-				}
+			if err := filepath.Walk(base, walk); err != nil {
+				log.Println(Red(err.Error()))
 			}
 		} else {
 			fmt.Println(pname(p.Name, 1), ":\t", Red(base+" path doesn't exist"))
