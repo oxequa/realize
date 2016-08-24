@@ -113,8 +113,8 @@ func (p *Project) watching() {
 						if err != nil {
 							log.Fatal(Red(err))
 						} else {
-						go routines(p, channel, &wr)
-						p.reload = time.Now().Truncate(time.Second)
+							go routines(p, channel, &wr)
+							p.reload = time.Now().Truncate(time.Second)
 						}
 					}
 				}
@@ -185,18 +185,20 @@ func (p *Project) walks(watcher *fsnotify.Watcher) {
 	wd, _ := os.Getwd()
 
 	walk := func(path string, info os.FileInfo, err error) error {
-		if (info.IsDir() && len(filepath.Ext(path)) == 0 && !strings.HasPrefix(path, ".")) && !strings.Contains(path, "/.") || (inArray(filepath.Ext(path), p.Watcher.Exts)) {
+		if !p.ignore(path) {
+			if (info.IsDir() && len(filepath.Ext(path)) == 0 && !strings.HasPrefix(path, ".")) && !strings.Contains(path, "/.") || (inArray(filepath.Ext(path), p.Watcher.Exts)) {
 
-			if p.Watcher.Preview {
-				fmt.Println(pname(p.Name, 1), ":", path)
-			}
-			if err = watcher.Add(path); err != nil {
-				return filepath.SkipDir
-			}
-			if inArray(filepath.Ext(path), p.Watcher.Exts) {
-				files++
-			} else {
-				folders++
+				if p.Watcher.Preview {
+					fmt.Println(pname(p.Name, 1), ":", path)
+				}
+				if err = watcher.Add(path); err != nil {
+					return filepath.SkipDir
+				}
+				if inArray(filepath.Ext(path), p.Watcher.Exts) {
+					files++
+				} else {
+					folders++
+				}
 			}
 		}
 		return nil
