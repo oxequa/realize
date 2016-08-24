@@ -195,6 +195,12 @@ func (p *Project) walks(watcher *fsnotify.Watcher) {
 				}
 				if inArray(filepath.Ext(path), p.Watcher.Exts) {
 					files++
+					go func() {
+						if err := p.fmt(path); err != nil {
+							fmt.Println(err)
+						}
+					}()
+
 				} else {
 					folders++
 				}
