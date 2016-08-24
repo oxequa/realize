@@ -100,7 +100,7 @@ func (p *Project) watching() {
 					}
 
 					i := strings.Index(event.Name, filepath.Ext(event.Name))
-					if event.Name[:i] != "" {
+					if event.Name[:i] != "" && inArray(ext, p.Watcher.Exts) {
 						log.Println(pname(p.Name, 4), ":", Magenta(event.Name[:i]+ext))
 						// stop and run again
 						if p.Run {
@@ -187,7 +187,6 @@ func (p *Project) walks(watcher *fsnotify.Watcher) {
 	walk := func(path string, info os.FileInfo, err error) error {
 		if !p.ignore(path) {
 			if (info.IsDir() && len(filepath.Ext(path)) == 0 && !strings.HasPrefix(path, ".")) && !strings.Contains(path, "/.") || (inArray(filepath.Ext(path), p.Watcher.Exts)) {
-
 				if p.Watcher.Preview {
 					fmt.Println(pname(p.Name, 1), ":", path)
 				}
@@ -197,14 +196,9 @@ func (p *Project) walks(watcher *fsnotify.Watcher) {
 				if inArray(filepath.Ext(path), p.Watcher.Exts) {
 					files++
 				} else {
-					if err := p.fmt(path); err != nil {
-						fmt.Println(err)
-					}
 					folders++
 				}
-
 			}
-
 		}
 		return nil
 	}
