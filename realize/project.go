@@ -33,7 +33,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 	build.Dir = p.base
 	defer func() {
 		if err := build.Process.Kill(); err != nil {
-			log.Fatal(Red("failed to stop: "), Red(err))
+			log.Fatal(Red("Failed to stop: "), Red(err))
 		}
 		log.Println(pname(p.Name, 2), ":", RedS("Stopped"))
 		wr.Done()
