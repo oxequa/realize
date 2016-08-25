@@ -73,20 +73,20 @@ func New(params *cli.Context) *Config {
 }
 
 // Duplicates check projects with same name or same combinations of main/path
-func Duplicates(value Project, arr []Project) error {
+func Duplicates(value Project, arr []Project) (error, Project) {
 	for _, val := range arr {
 		if value.Path == val.Path || value.Name == val.Name {
-			return errors.New("There is a duplicate of '" + val.Name + "'. Check your config file!")
+			return errors.New("There is a duplicate of '" + val.Name + "'. Check your config file!"), val
 		}
 	}
-	return nil
+	return nil, Project{}
 }
 
 // Clean duplicate projects
 func (h *Config) Clean() {
 	arr := h.Projects
 	for key, val := range arr {
-		if err := Duplicates(val, arr[key+1:]); err != nil {
+		if err, _ := Duplicates(val, arr[key+1:]); err != nil {
 			h.Projects = append(arr[:key], arr[key+1:]...)
 			break
 		}
@@ -139,7 +139,7 @@ func (h *Config) Add(params *cli.Context) error {
 				Ignore: watcherIgnores,
 			},
 		}
-		if err := Duplicates(new, h.Projects); err != nil {
+		if err, _ := Duplicates(new, h.Projects); err != nil {
 			return err
 		}
 		h.Projects = append(h.Projects, new)
