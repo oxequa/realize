@@ -171,6 +171,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
 - [ ] Unit test
 - [ ] Custom path support on commands
 - [ ] Output files support
+- [ ] Cli args
 
 
 #### Contacts
