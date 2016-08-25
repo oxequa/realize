@@ -169,9 +169,10 @@ A Go build system with file watchers, output streams and live reload. Run, build
 ##### Milestone 1.1
 - [ ] Test under windows
 - [ ] Unit test
-- [ ] Custom path support on commands
-- [ ] Output files support
+- [ ] Custom path on commands
+- [ ] Output files 
 - [ ] Cli args
+- [ ] Before/After command
 
 
 #### Contacts
