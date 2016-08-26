@@ -93,6 +93,13 @@ A Go build system with file watchers, output streams and live reload. Run, build
     $ realize fast
     ```
 
+    If you want you can specify command flags and parameters
+
+    ```
+    $ realize fast --flag1 param1
+    ```
+
+
      The fast command supports the following custom parameters:
 
     ```
@@ -106,7 +113,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
 #### Color reference
 
 - Blue: outputs of the project
-- Red: errors 
+- Red: errors
 - Magenta: times or changed files
 - Green: successfully completed action
 
@@ -124,6 +131,9 @@ A Go build system with file watchers, output streams and live reload. Run, build
           app_bin: true         -> enable/disable go install
           app_build: false      -> enable/disable go build
           app_fmt: true         -> enable/disable go fmt
+          app_params:
+            - --flag1
+            - param1
           app_watcher:
             preview: true       -> prints the observed files on startup
             paths:              -> paths to observe for live reload
@@ -170,7 +180,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
 - [ ] Test under windows
 - [ ] Unit test
 - [ ] Custom path on commands
-- [ ] Output files 
+- [ ] Output files
 - [ ] Cli args
 - [ ] Before/After command
 
