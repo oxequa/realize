@@ -69,6 +69,12 @@ func main() {
 				},
 				Action: func(p *cli.Context) error {
 					y := r.New(p)
+					if p.NArg() > 0 {
+						y.Projects[0].Params = make([]string, p.NArg() - 1)
+						for i := 1; i < p.NArg(); i++ {
+							y.Projects[0].Params[i - 1] = p.Args().Get(i)
+						}
+			    }
 					return handle(y.Fast(p))
 				},
 				Before: func(c *cli.Context) error {

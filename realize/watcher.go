@@ -41,6 +41,7 @@ func (h *Config) Watch() error {
 
 // Fast method run a project from his working directory without makes a config file
 func (h *Config) Fast(params *cli.Context) error {
+	log.Println(h.Projects[0])
 	fast := h.Projects[0]
 	// Takes the values from config if wd path match with someone else
 	if params.Bool("config") {

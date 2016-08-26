@@ -16,20 +16,26 @@ import (
 type Project struct {
 	reload  time.Time
 	base    string
-	Name    string  `yaml:"app_name,omitempty"`
-	Path    string  `yaml:"app_path,omitempty"`
-	Run     bool    `yaml:"app_run,omitempty"`
-	Bin     bool    `yaml:"app_bin,omitempty"`
-	Build   bool    `yaml:"app_build,omitempty"`
-	Fmt     bool    `yaml:"app_fmt,omitempty"`
-	Watcher Watcher `yaml:"app_watcher,omitempty"`
+	Name    string       `yaml:"app_name,omitempty"`
+	Path    string       `yaml:"app_path,omitempty"`
+	Run     bool         `yaml:"app_run,omitempty"`
+	Bin     bool         `yaml:"app_bin,omitempty"`
+	Build   bool         `yaml:"app_build,omitempty"`
+	Fmt     bool         `yaml:"app_fmt,omitempty"`
+	Params  []string		 `yaml:"app_params,omitempty"`
+	Watcher Watcher      `yaml:"app_watcher,omitempty"`
 }
 
 // GoRun  is an implementation of the bin execution
 func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup) error {
 
 	stop := make(chan bool, 1)
-	build := exec.Command(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.Path)))
+	var build *exec.Cmd
+	if len(p.Params) != 0 {
+		build = exec.Command(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.Path)), p.Params...)
+	}	else{
+		build = exec.Command(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.Path)))
+	}
 	build.Dir = p.base
 	defer func() {
 		if err := build.Process.Kill(); err != nil {
