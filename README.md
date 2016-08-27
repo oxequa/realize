@@ -50,6 +50,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
     --name="Project Name"   -> Name, if not specified takes the working directory name
     --path="server"         -> Base Path, if not specified takes the working directory name    
     --build                 -> Enables the build   
+    --test                 -> Enables the tests   
     --no-bin                -> Disables the installation
     --no-run                -> Disables the run
     --no-fmt                -> Disables the fmt (go fmt)
@@ -108,6 +109,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
 
     ```
     --build                 -> Enables the build   
+    --test                  -> Enables the tests   
     --no-bin                -> Disables the installation
     --no-run                -> Disables the run
     --no-fmt                -> Disables the fmt (go fmt)
@@ -144,6 +146,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
           app_bin: true         -> enable/disable go install
           app_build: false      -> enable/disable go build
           app_fmt: true         -> enable/disable go fmt
+          app_test: true        -> enable/disable go test
           app_params:           -> the project will be launched with these parameters
             - --flag1
             - param1
@@ -180,7 +183,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
 - [x] Support for multiple projects
 - [x] Watcher files preview
 - [x] Support for directories with duplicates names
-- [ ] Go test support
+- [x] Go test support
 - [x] Additional arguments
 - [x] Go fmt support
 - [x] Cli fast run
