@@ -129,7 +129,7 @@ func (p *Project) install(channel chan bool, wr *sync.WaitGroup) {
 	if p.Bin {
 		log.Println(pname(p.Name, 1), ":", "Installing..")
 		start := time.Now()
-		if err, std := p.GoInstall(); err != nil {
+		if std, err := p.GoInstall(); err != nil {
 			log.Println(pname(p.Name, 1), ":", fmt.Sprint(Red(err)), std)
 			wr.Done()
 		} else {
@@ -157,7 +157,7 @@ func (p *Project) build() {
 	if p.Build {
 		log.Println(pname(p.Name, 1), ":", "Building..")
 		start := time.Now()
-		if err, std := p.GoBuild(); err != nil {
+		if std, err := p.GoBuild(); err != nil {
 			log.Println(pname(p.Name, 1), ":", fmt.Sprint(Red(err)), std)
 		} else {
 			log.Println(pname(p.Name, 5), ":", Green("Builded")+" after", MagentaS(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), "s"))
