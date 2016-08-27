@@ -201,6 +201,7 @@ func (h *Config) List() error {
 			fmt.Println(MagentaS("|"), "\t", Yellow("Build"), ":", MagentaS(val.Build))
 			fmt.Println(MagentaS("|"), "\t", Yellow("Install"), ":", MagentaS(val.Bin))
 			fmt.Println(MagentaS("|"), "\t", Yellow("Fmt"), ":", MagentaS(val.Fmt))
+			fmt.Println(MagentaS("|"), "\t", Yellow("Params"), ":", MagentaS(val.Params))
 			fmt.Println(MagentaS("|"), "\t", Yellow("Watcher"), ":")
 			fmt.Println(MagentaS("|"), "\t\t", Yellow("After"), ":", MagentaS(val.Watcher.After))
 			fmt.Println(MagentaS("|"), "\t\t", Yellow("Before"), ":", MagentaS(val.Watcher.Before))
