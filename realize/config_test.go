@@ -1,11 +1,11 @@
 package realize
 
-import (
-	"gopkg.in/urfave/cli.v2"
-	"testing"
-)
-
-var context *cli.Context
+//import (
+//	"gopkg.in/urfave/cli.v2"
+//	"testing"
+//)
+//
+//var context *cli.Context
 
 //func TestNew(t *testing.T) {
 //	actual := New(context)
