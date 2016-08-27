@@ -71,6 +71,16 @@ A Go build system with file watchers, output streams and live reload. Run, build
     ```
     $ realize add --name="My Project" --path="projects/package" --build --no-run
     ```
+     
+    If you want, you can specify additional arguments for your project.
+     **The additional arguments must go after the options of "Realize"**
+
+    ```
+    $ realize add --path="/print/printer" --no-run yourParams --yourFlags // correct
+
+    $ realize add yourParams --yourFlags --path="/print/printer" --no-run // wrong
+    ```
+    
 - Remove a project by its name
 
     ```
@@ -92,8 +102,8 @@ A Go build system with file watchers, output streams and live reload. Run, build
     ```
     $ realize fast
     ```
-
-     The fast command supports the following custom parameters:
+    
+    The fast command supports the following custom parameters:
 
     ```
     --build                 -> Enables the build   
@@ -101,12 +111,21 @@ A Go build system with file watchers, output streams and live reload. Run, build
     --no-run                -> Disables the run
     --no-fmt                -> Disables the fmt (go fmt)
     --config                -> Take the defined settings if exist a config file  
-    ```    
+    ```  
+    
+    The "fast" command supporst addittional arguments as the "add" command.
+
+    ```
+    $ realize fast --no-run yourParams --yourFlags // correct
+
+    $ realize fast yourParams --yourFlags --no-run // wrong
+    ```  
+      
 
 #### Color reference
 
 - Blue: outputs of the project
-- Red: errors 
+- Red: errors
 - Magenta: times or changed files
 - Green: successfully completed action
 
@@ -124,6 +143,9 @@ A Go build system with file watchers, output streams and live reload. Run, build
           app_bin: true         -> enable/disable go install
           app_build: false      -> enable/disable go build
           app_fmt: true         -> enable/disable go fmt
+          app_params:
+            - --flag1
+            - param1
           app_watcher:
             preview: true       -> prints the observed files on startup
             paths:              -> paths to observe for live reload
@@ -158,6 +180,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
 - [x] Watcher files preview
 - [x] Support for directories with duplicates names
 - [ ] Go test support
+- [x] Additional arguments
 - [x] Go fmt support
 - [x] Cli fast run
 - [x] Execution times for build/install
@@ -170,7 +193,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
 - [ ] Test under windows
 - [ ] Unit test
 - [ ] Custom path on commands
-- [ ] Output files 
+- [ ] Output files
 - [ ] Cli args
 - [ ] Before/After command
 

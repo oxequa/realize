@@ -19,8 +19,45 @@ type Config struct {
 	Projects []Project
 }
 
+// New method puts the cli params in the struct
+func New(params *cli.Context) *Config {
+	return &Config{
+		file:    AppFile,
+		Version: AppVersion,
+		Projects: []Project{
+			{
+				Name:   nameFlag(params),
+				Path:   filepath.Clean(params.String("path")),
+				Build:  params.Bool("build"),
+				Bin:    boolFlag(params.Bool("no-bin")),
+				Run:    boolFlag(params.Bool("no-run")),
+				Fmt:    boolFlag(params.Bool("no-fmt")),
+				Params: argsParam(params),
+				Watcher: Watcher{
+					Paths:  watcherPaths,
+					Ignore: watcherIgnores,
+					Exts:   watcherExts,
+				},
+			},
+		},
+	}
+}
+
+// argsParam parse one by one the given argumentes
+func argsParam(params *cli.Context) []string {
+	argsN := params.NArg()
+	if argsN > 0 {
+		var args []string
+		for i := 0; i <= argsN-1; i++ {
+			args = append(args, params.Args().Get(i))
+		}
+		return args
+	}
+	return nil
+}
+
 // NameParam check the project name presence. If empty takes the working directory name
-func nameParam(params *cli.Context) string {
+func nameFlag(params *cli.Context) string {
 	var name string
 	if params.String("name") == "" && params.String("path") == "" {
 		return WorkingDir()
@@ -33,7 +70,7 @@ func nameParam(params *cli.Context) string {
 }
 
 // BoolParam is used to check the presence of a bool flag
-func boolParam(b bool) bool {
+func boolFlag(b bool) bool {
 	if b {
 		return false
 	}
@@ -47,29 +84,6 @@ func WorkingDir() string {
 		log.Fatal(Red(err))
 	}
 	return filepath.Base(dir)
-}
-
-// New method puts the cli params in the struct
-func New(params *cli.Context) *Config {
-	return &Config{
-		file:    AppFile,
-		Version: AppVersion,
-		Projects: []Project{
-			{
-				Name:  nameParam(params),
-				Path:  filepath.Clean(params.String("path")),
-				Build: params.Bool("build"),
-				Bin:   boolParam(params.Bool("no-bin")),
-				Run:   boolParam(params.Bool("no-run")),
-				Fmt:   boolParam(params.Bool("no-fmt")),
-				Watcher: Watcher{
-					Paths:  watcherPaths,
-					Ignore: watcherIgnores,
-					Exts:   watcherExts,
-				},
-			},
-		},
-	}
 }
 
 // Duplicates check projects with same name or same combinations of main/path
@@ -127,12 +141,13 @@ func (h *Config) Add(params *cli.Context) error {
 	err := h.Read()
 	if err == nil {
 		new := Project{
-			Name:  nameParam(params),
-			Path:  filepath.Clean(params.String("path")),
-			Build: params.Bool("build"),
-			Bin:   boolParam(params.Bool("no-bin")),
-			Run:   boolParam(params.Bool("no-run")),
-			Fmt:   boolParam(params.Bool("no-fmt")),
+			Name:   nameFlag(params),
+			Path:   filepath.Clean(params.String("path")),
+			Build:  params.Bool("build"),
+			Bin:    boolFlag(params.Bool("no-bin")),
+			Run:    boolFlag(params.Bool("no-run")),
+			Fmt:    boolFlag(params.Bool("no-fmt")),
+			Params: argsParam(params),
 			Watcher: Watcher{
 				Paths:  watcherPaths,
 				Exts:   watcherExts,
@@ -186,6 +201,7 @@ func (h *Config) List() error {
 			fmt.Println(MagentaS("|"), "\t", Yellow("Build"), ":", MagentaS(val.Build))
 			fmt.Println(MagentaS("|"), "\t", Yellow("Install"), ":", MagentaS(val.Bin))
 			fmt.Println(MagentaS("|"), "\t", Yellow("Fmt"), ":", MagentaS(val.Fmt))
+			fmt.Println(MagentaS("|"), "\t", Yellow("Params"), ":", MagentaS(val.Params))
 			fmt.Println(MagentaS("|"), "\t", Yellow("Watcher"), ":")
 			fmt.Println(MagentaS("|"), "\t\t", Yellow("After"), ":", MagentaS(val.Watcher.After))
 			fmt.Println(MagentaS("|"), "\t\t", Yellow("Before"), ":", MagentaS(val.Watcher.Before))
