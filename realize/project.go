@@ -22,6 +22,7 @@ type Project struct {
 	Bin     bool     `yaml:"app_bin,omitempty"`
 	Build   bool     `yaml:"app_build,omitempty"`
 	Fmt     bool     `yaml:"app_fmt,omitempty"`
+	Test    bool     `yaml:"app_test,omitempty"`
 	Params  []string `yaml:"app_params,omitempty"`
 	Watcher Watcher  `yaml:"app_watcher,omitempty"`
 }
@@ -83,7 +84,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 }
 
 // GoBuild is an implementation of the "go build"
-func (p *Project) GoBuild() (error, string) {
+func (p *Project) GoBuild() (string, error) {
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	build := exec.Command("go", "build")
@@ -91,27 +92,27 @@ func (p *Project) GoBuild() (error, string) {
 	build.Stdout = &out
 	build.Stderr = &stderr
 	if err := build.Run(); err != nil {
-		return err, stderr.String()
+		return stderr.String(), err
 	}
-	return nil, ""
+	return "", nil
 }
 
 // GoInstall is an implementation of the "go install"
-func (p *Project) GoInstall() (error, string) {
+func (p *Project) GoInstall() (string, error) {
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	err := os.Setenv("GOBIN", filepath.Join(os.Getenv("GOPATH"), "bin"))
 	if err != nil {
-		return nil, ""
+		return "", nil
 	}
 	build := exec.Command("go", "install")
 	build.Dir = p.base
 	build.Stdout = &out
 	build.Stderr = &stderr
 	if err := build.Run(); err != nil {
-		return err, stderr.String()
+		return stderr.String(), err
 	}
-	return nil, ""
+	return "", nil
 }
 
 // GoFmt is an implementation of the gofmt
@@ -123,6 +124,19 @@ func (p *Project) GoFmt(path string) (io.Writer, error) {
 	build.Stderr = &out
 	if err := build.Run(); err != nil {
 		return build.Stderr, err
+	}
+	return nil, nil
+}
+
+// GoTest is an implementation of the go test
+func (p *Project) GoTest(path string) (io.Writer, error) {
+	var out bytes.Buffer
+	build := exec.Command("go", "test")
+	build.Dir = path
+	build.Stdout = &out
+	build.Stderr = &out
+	if err := build.Run(); err != nil {
+		return build.Stdout, err
 	}
 	return nil, nil
 }

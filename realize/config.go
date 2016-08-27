@@ -32,6 +32,7 @@ func New(params *cli.Context) *Config {
 				Bin:    boolFlag(params.Bool("no-bin")),
 				Run:    boolFlag(params.Bool("no-run")),
 				Fmt:    boolFlag(params.Bool("no-fmt")),
+				Test:   params.Bool("test"),
 				Params: argsParam(params),
 				Watcher: Watcher{
 					Paths:  watcherPaths,
@@ -90,7 +91,7 @@ func WorkingDir() string {
 func Duplicates(value Project, arr []Project) (Project, error) {
 	for _, val := range arr {
 		if value.Path == val.Path || value.Name == val.Name {
-			return errors.New("There is a duplicate of '" + val.Name + "'. Check your config file!"), val
+			return val, errors.New("There is a duplicate of '" + val.Name + "'. Check your config file!")
 		}
 	}
 	return Project{}, nil
@@ -147,6 +148,7 @@ func (h *Config) Add(params *cli.Context) error {
 			Bin:    boolFlag(params.Bool("no-bin")),
 			Run:    boolFlag(params.Bool("no-run")),
 			Fmt:    boolFlag(params.Bool("no-fmt")),
+			Test:   params.Bool("test"),
 			Params: argsParam(params),
 			Watcher: Watcher{
 				Paths:  watcherPaths,

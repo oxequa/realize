@@ -178,6 +178,16 @@ func (p *Project) fmt(path string) error {
 	return nil
 }
 
+// Build calls an implementation of the "go test"
+func (p *Project) test(path string) error {
+	if p.Test {
+		if _, err := p.GoTest(path); err != nil {
+			log.Println(pname(p.Name, 1), Red("Go Test fails in "), ":", Magenta(path))
+		}
+	}
+	return nil
+}
+
 // Walks the file tree of a project
 func (p *Project) walks(watcher *fsnotify.Watcher) {
 	var files, folders int64
@@ -202,6 +212,11 @@ func (p *Project) walks(watcher *fsnotify.Watcher) {
 
 				} else {
 					folders++
+					go func() {
+						if err := p.test(path); err != nil {
+							fmt.Println(err)
+						}
+					}()
 				}
 			}
 		}
