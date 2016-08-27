@@ -144,7 +144,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
           app_bin: true         -> enable/disable go install
           app_build: false      -> enable/disable go build
           app_fmt: true         -> enable/disable go fmt
-          app_params:
+          app_params:           -> the project will be launched with these parameters
             - --flag1
             - param1
           app_watcher:
