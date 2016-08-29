@@ -174,33 +174,14 @@ A Go build system with file watchers, output streams and live reload. Run, build
             - .go
     ```                    
 
-#### Next releases
-
-#####Milestone 1.0
-
-- [x] Cli start, remove, add, list, run
-- [x] Remove duplicate projects
-- [x] Support for multiple projects
-- [x] Watcher files preview
-- [x] Support for directories with duplicates names
-- [x] Go test support
-- [x] Additional arguments
-- [x] Go fmt support
-- [x] Cli fast run
-- [x] Execution times for build/install
-- [x] Go doc
-- [x] Support for server start/stop
-- [x] Stream projects output
-- [x] Cli feedback
+#### Next release
 
 ##### Milestone 1.1
-- [ ] Test under windows
-- [ ] Unit test
-- [ ] Custom path on commands
-- [ ] Output files
-- [ ] Cli args
-- [ ] Before/After command
-- [ ] Cli spinner
+- [ ] Testing on windows
+- [ ] Custom paths for the commands fast/add
+- [ ] Save output on a file
+- [ ] Enable the fields Before/After
+- [ ] Web interface on localhost - **Maybe**
 
 
 #### Contacts
