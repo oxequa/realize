@@ -200,6 +200,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
 - [ ] Output files
 - [ ] Cli args
 - [ ] Before/After command
+- [ ] Cli spinner
 
 
 #### Contacts
