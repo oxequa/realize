@@ -240,7 +240,6 @@ func (p *Project) walks(watcher *fsnotify.Watcher) {
 		}
 	}
 	fmt.Println(Red("Watching: "), pname(p.Name, 1), Magenta(files), "file/s", Magenta(folders), "folder/s")
-	fmt.Println()
 }
 
 // Ignore validates a path
