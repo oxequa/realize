@@ -72,9 +72,9 @@ A Go build system with file watchers, output streams and live reload. Run, build
     ```
     $ realize add --name="My Project" --path="projects/package" --build --no-run
     ```
-     
+
     If you want, you can specify additional arguments for your project.
-    
+
      **The additional arguments must go after the options of "Realize"**
 
     ```
@@ -82,7 +82,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
 
     $ realize add yourParams --yourFlags --path="/print/printer" --no-run // wrong
     ```
-    
+
 - Remove a project by its name
 
     ```
@@ -104,7 +104,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
     ```
     $ realize fast
     ```
-    
+
     The fast command supports the following custom parameters:
 
     ```
@@ -115,7 +115,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
     --no-fmt                -> Disables the fmt (go fmt)
     --config                -> Take the defined settings if exist a config file  
     ```  
-    
+
     The "fast" command supporst addittional arguments as the "add" command.
 
     ```
@@ -123,7 +123,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
 
     $ realize fast yourParams --yourFlags --no-run // wrong
     ```  
-      
+
 
 #### Color reference
 
@@ -189,4 +189,4 @@ A Go build system with file watchers, output streams and live reload. Run, build
 - Chat with us [Gitter](https://gitter.im/tockins/realize)
 
 - [Alessio Pracchia](https://www.linkedin.com/in/alessio-pracchia-38a70673)
-- [Daniele Conventi](https://www.linkedin.com/in/daniele-conventi-b419b0a4)
+- [Daniele Conventi](https://www.linkedin.com/in/conventi)
