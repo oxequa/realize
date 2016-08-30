@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	r "github.com/tockins/realize/realize"
+	_ "github.com/tockins/realize/server"
 	"gopkg.in/urfave/cli.v2"
 	"log"
 	"os"
@@ -61,6 +62,7 @@ func main() {
 				Name:  "fast",
 				Usage: "Build and watch file changes for a single project without any config file",
 				Flags: []cli.Flag{
+					&cli.StringFlag{Name: "path", Aliases: []string{"b"}, Value: "", Usage: "Project base path"},
 					&cli.BoolFlag{Name: "build", Value: false, Usage: "Enables the build"},
 					&cli.BoolFlag{Name: "no-run", Usage: "Disables the run"},
 					&cli.BoolFlag{Name: "no-bin", Usage: "Disables the installation"},

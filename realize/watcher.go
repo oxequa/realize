@@ -1,6 +1,7 @@
 package realize
 
 import (
+	"errors"
 	"fmt"
 	"github.com/fsnotify/fsnotify"
 	"gopkg.in/urfave/cli.v2"
@@ -78,7 +79,11 @@ func (p *Project) watching() {
 	}
 	defer end()
 
-	p.walks(watcher)
+	err = p.walks(watcher)
+	if err != nil {
+		fmt.Println(pname(p.Name, 1), ":", Red(err.Error()))
+		return
+	}
 	go routines(p, channel, &wr)
 	p.reload = time.Now().Truncate(time.Second)
 
@@ -189,7 +194,7 @@ func (p *Project) test(path string) error {
 }
 
 // Walks the file tree of a project
-func (p *Project) walks(watcher *fsnotify.Watcher) {
+func (p *Project) walks(watcher *fsnotify.Watcher) error {
 	var files, folders int64
 	wd, _ := os.Getwd()
 
@@ -226,9 +231,12 @@ func (p *Project) walks(watcher *fsnotify.Watcher) {
 	if p.Path == "." || p.Path == "/" {
 		p.base = wd
 		p.Path = WorkingDir()
+	} else if filepath.IsAbs(p.Path) {
+		p.base = p.Path
 	} else {
 		p.base = filepath.Join(wd, p.Path)
 	}
+
 	for _, dir := range p.Watcher.Paths {
 		base := filepath.Join(p.base, dir)
 		if _, err := os.Stat(base); err == nil {
@@ -236,10 +244,11 @@ func (p *Project) walks(watcher *fsnotify.Watcher) {
 				log.Println(Red(err.Error()))
 			}
 		} else {
-			fmt.Println(pname(p.Name, 1), ":\t", Red(base+" path doesn't exist"))
+			return errors.New(base + " path doesn't exist")
 		}
 	}
 	fmt.Println(Red("Watching: "), pname(p.Name, 1), Magenta(files), "file/s", Magenta(folders), "folder/s")
+	return nil
 }
 
 // Ignore validates a path

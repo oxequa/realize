@@ -178,7 +178,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
 
 ##### Milestone 1.1
 - [ ] Testing on windows
-- [ ] Custom paths for the commands fast/add
+- [x] Custom paths for the commands fast/add
 - [ ] Save output on a file
 - [ ] Enable the fields Before/After
 - [ ] Web panel - **Maybe**
