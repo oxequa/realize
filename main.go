@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	r "github.com/tockins/realize/realize"
-	_ "github.com/tockins/realize/server"
+	//_ "github.com/tockins/realize/server"
 	"gopkg.in/urfave/cli.v2"
 	"log"
 	"os"
