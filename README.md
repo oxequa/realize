@@ -50,7 +50,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
     --name="Project Name"   -> Name, if not specified takes the working directory name
     --path="server"         -> Base Path, if not specified takes the working directory name    
     --build                 -> Enables the build   
-    --test                 -> Enables the tests   
+    --test                  -> Enables the tests   
     --no-bin                -> Disables the installation
     --no-run                -> Disables the run
     --no-fmt                -> Disables the fmt (go fmt)
@@ -59,18 +59,16 @@ A Go build system with file watchers, output streams and live reload. Run, build
 
     ```
     $ realize add
-    ```
-    ```
+
     $ realize add --path="mypath"
-    ```   
-    ```
+
     $ realize add --name="My Project" --build
-    ```    
-    ```
+
     $ realize add --name="My Project" --path="/projects/package" --build
-    ```    
-    ```
+
     $ realize add --name="My Project" --path="projects/package" --build --no-run
+    
+    $ realize add --path="/Users/alessio/go/src/github.com/tockins/realize-examples/coin/"
     ```
 
     If you want, you can specify additional arguments for your project.
@@ -116,12 +114,14 @@ A Go build system with file watchers, output streams and live reload. Run, build
     --config                -> Take the defined settings if exist a config file  
     ```  
 
-    The "fast" command supporst addittional arguments as the "add" command.
+    The "fast" command supports addittional arguments as the "add" command.
 
     ```
     $ realize fast --no-run yourParams --yourFlags // correct
 
     $ realize fast yourParams --yourFlags --no-run // wrong
+    
+    $ realize fast --path="/Users/alessio/go/src/github.com/tockins/realize-examples/coin/"
     ```  
 
 
