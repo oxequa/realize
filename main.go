@@ -11,7 +11,7 @@ import (
 
 func main() {
 
-	app := r.Info()
+	app := r.App
 
 	handle := func(err error) error {
 		if err != nil {
@@ -50,8 +50,7 @@ func main() {
 				Name:  "run",
 				Usage: "Build and watch file changes",
 				Action: func(p *cli.Context) error {
-					y := r.New(p)
-					return handle(y.Watch())
+					return handle(app.Blueprint.Run())
 				},
 				Before: func(c *cli.Context) error {
 					header()
@@ -60,7 +59,7 @@ func main() {
 			},
 			{
 				Name:  "fast",
-				Usage: "Build and watch file changes for a single project without any config file",
+				Usage: "Build and watch file changes for a single project without any Configuration file",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "path", Aliases: []string{"b"}, Value: "", Usage: "Project base path"},
 					&cli.BoolFlag{Name: "build", Value: false, Usage: "Enables the build"},
@@ -68,11 +67,11 @@ func main() {
 					&cli.BoolFlag{Name: "no-bin", Usage: "Disables the installation"},
 					&cli.BoolFlag{Name: "no-fmt", Usage: "Disables the fmt (go fmt)"},
 					&cli.BoolFlag{Name: "test", Value: false, Usage: "Enable the tests"},
-					&cli.BoolFlag{Name: "config", Value: false, Usage: "Take the defined settings if exist a config file."},
+					&cli.BoolFlag{Name: "Configuration", Value: false, Usage: "Take the defined settings if exist a Configuration file."},
 				},
 				Action: func(p *cli.Context) error {
-					y := r.New(p)
-					return handle(y.Fast(p))
+					app.Blueprint.Add(p)
+					return handle(app.Blueprint.Fast(p))
 				},
 				Before: func(c *cli.Context) error {
 					header()
@@ -81,11 +80,11 @@ func main() {
 			},
 			{
 				Name:     "add",
-				Category: "config",
+				Category: "Configuration",
 				Aliases:  []string{"a"},
 				Usage:    "Add another project",
 				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: r.WorkingDir(), Usage: "Project name"},
+					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: app.Wdir(), Usage: "Project name"},
 					&cli.StringFlag{Name: "path", Aliases: []string{"b"}, Value: "/", Usage: "Project base path"},
 					&cli.BoolFlag{Name: "build", Value: false, Usage: "Enable the build"},
 					&cli.BoolFlag{Name: "no-run", Usage: "Disables the run"},
@@ -94,8 +93,7 @@ func main() {
 					&cli.BoolFlag{Name: "test", Value: false, Usage: "Enable the tests"},
 				},
 				Action: func(p *cli.Context) error {
-					y := r.New(p)
-					return handle(y.Add(p))
+					return handle(app.Blueprint.Insert(p))
 				},
 				Before: func(c *cli.Context) error {
 					header()
@@ -104,15 +102,14 @@ func main() {
 			},
 			{
 				Name:     "remove",
-				Category: "config",
+				Category: "Configuration",
 				Aliases:  []string{"r"},
 				Usage:    "Remove a project",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: ""},
 				},
 				Action: func(p *cli.Context) error {
-					y := r.New(p)
-					return handle(y.Remove(p))
+					return handle(app.Blueprint.Remove(p))
 				},
 				Before: func(c *cli.Context) error {
 					header()
@@ -121,12 +118,11 @@ func main() {
 			},
 			{
 				Name:     "list",
-				Category: "config",
+				Category: "Configuration",
 				Aliases:  []string{"l"},
 				Usage:    "Projects list",
 				Action: func(p *cli.Context) error {
-					y := r.New(p)
-					return handle(y.List())
+					return handle(app.Blueprint.List())
 				},
 				Before: func(c *cli.Context) error {
 					header()

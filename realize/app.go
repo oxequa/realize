@@ -1,21 +1,12 @@
 package realize
 
 import (
-	"fmt"
 	"github.com/fatih/color"
 	"log"
 	"sync"
-	"syscall"
-	"time"
 )
 
-// Default values and info
-const (
-	AppName        = "Realize"
-	AppVersion     = "v1.0"
-	AppDescription = "A Go build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths"
-	AppFile        = "realize.config.yaml"
-)
+var App Realize
 
 var wg sync.WaitGroup
 
@@ -46,47 +37,19 @@ var MagentaS = color.New(color.FgMagenta).SprintFunc()
 // Magenta color bold
 var Magenta = color.New(color.FgMagenta, color.Bold).SprintFunc()
 
-// WatcherIgnores is an array of default ignored paths
-var watcherIgnores = []string{"vendor", "bin"}
-
-// WatcherExts is an array of default exts
-var watcherExts = []string{".go"}
-
-// WatcherPaths is an array of default watched paths
-var watcherPaths = []string{"/"}
-
-type logWriter struct{}
-
-// App struct contains the informations about realize
-type App struct {
-	Name, Version, Description, Author, Email string
-}
-
-// Custom log timestamp
+// Initialize the application
 func init() {
+	App = Realize{
+		Name:        "Realize",
+		Version:     "1.0",
+		Description: "A Go build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths",
+		Limit:       10000,
+	}
+	App.Blueprint.files = map[string]string{
+		"config": "r.config.yaml",
+		"output": "r.output.log",
+	}
+	App.limit()
 	log.SetFlags(0)
 	log.SetOutput(new(logWriter))
-
-	// increases the files limit
-	var rLimit syscall.Rlimit
-	rLimit.Max = 10000
-	rLimit.Cur = 10000
-	err := syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit)
-	if err != nil {
-		fmt.Println(Red("Error Setting Rlimit "), err)
-	}
-}
-
-// Info returns the general informations about Realize
-func Info() *App {
-	return &App{
-		Name:        AppName,
-		Version:     AppVersion,
-		Description: AppDescription,
-	}
-}
-
-// Cewrites the log timestamp
-func (writer logWriter) Write(bytes []byte) (int, error) {
-	return fmt.Print(YellowS("[") + time.Now().Format("15:04:05") + YellowS("]") + string(bytes))
 }

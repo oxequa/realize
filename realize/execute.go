@@ -12,21 +12,6 @@ import (
 	"time"
 )
 
-// The Project struct defines the informations about a project
-type Project struct {
-	reload  time.Time
-	base    string
-	Name    string   `yaml:"app_name,omitempty"`
-	Path    string   `yaml:"app_path,omitempty"`
-	Run     bool     `yaml:"app_run,omitempty"`
-	Bin     bool     `yaml:"app_bin,omitempty"`
-	Build   bool     `yaml:"app_build,omitempty"`
-	Fmt     bool     `yaml:"app_fmt,omitempty"`
-	Test    bool     `yaml:"app_test,omitempty"`
-	Params  []string `yaml:"app_params,omitempty"`
-	Watcher Watcher  `yaml:"app_watcher,omitempty"`
-}
-
 // GoRun  is an implementation of the bin execution
 func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup) error {
 
@@ -51,7 +36,6 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 
 	// Read stdout and stderr in same var
 	outputs := io.MultiReader(stdout, stderr)
-
 	if err != nil {
 		log.Println(Red(err.Error()))
 		return err
@@ -67,7 +51,17 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 		for in.Scan() {
 			select {
 			default:
-				log.Println(pname(p.Name, 3), ":", BlueS(in.Text()))
+				if p.Watcher.Output["cli"] {
+					log.Println(pname(p.Name, 3), ":", BlueS(in.Text()))
+				}
+				if p.Watcher.Output["file"] {
+					path := filepath.Join(p.base, App.Blueprint.files["output"])
+					f := create(path)
+					t := time.Now()
+					if _, err := f.WriteString(t.Format("2006-01-02 15:04:05") + " : " + in.Text() + "\r\n"); err != nil {
+						log.Fatal(err)
+					}
+				}
 			}
 		}
 		close(stop)

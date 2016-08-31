@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/fsnotify/fsnotify"
-	"gopkg.in/urfave/cli.v2"
 	"log"
 	"math/big"
 	"os"
@@ -17,46 +16,13 @@ import (
 // The Watcher struct defines the livereload's logic
 type Watcher struct {
 	// different before and after on re-run?
-	Before  []string `yaml:"before,omitempty"`
-	After   []string `yaml:"after,omitempty"`
-	Paths   []string `yaml:"paths,omitempty"`
-	Ignore  []string `yaml:"ignore_paths,omitempty"`
-	Exts    []string `yaml:"exts,omitempty"`
-	Preview bool     `yaml:"preview,omitempty"`
-}
-
-// Watch method adds the given paths on the Watcher
-func (h *Config) Watch() error {
-	err := h.Read()
-	if err == nil {
-		// loop projects
-		wg.Add(len(h.Projects))
-		for k := range h.Projects {
-			go h.Projects[k].watching()
-		}
-		wg.Wait()
-		return nil
-	}
-	return err
-}
-
-// Fast method run a project from his working directory without makes a config file
-func (h *Config) Fast(params *cli.Context) error {
-	fast := h.Projects[0]
-	// Takes the values from config if wd path match with someone else
-	if params.Bool("config") {
-		if err := h.Read(); err == nil {
-			for _, val := range h.Projects {
-				if fast.Path == val.Path {
-					fast = val
-				}
-			}
-		}
-	}
-	wg.Add(1)
-	go fast.watching()
-	wg.Wait()
-	return nil
+	Before  []string        `yaml:"before,omitempty"`
+	After   []string        `yaml:"after,omitempty"`
+	Paths   []string        `yaml:"paths,omitempty"`
+	Ignore  []string        `yaml:"ignore_paths,omitempty"`
+	Exts    []string        `yaml:"exts,omitempty"`
+	Preview bool            `yaml:"preview,omitempty"`
+	Output  map[string]bool `yaml:"output,omitempty"`
 }
 
 // Watching method is the main core. It manages the livereload and the watching
@@ -84,7 +50,7 @@ func (p *Project) watching() {
 		fmt.Println(pname(p.Name, 1), ":", Red(err.Error()))
 		return
 	}
-	go routines(p, channel, &wr)
+	go p.routines(channel, &wr)
 	p.reload = time.Now().Truncate(time.Second)
 
 	// waiting for an event
@@ -117,7 +83,7 @@ func (p *Project) watching() {
 						if err != nil {
 							log.Fatal(Red(err))
 						} else {
-							go routines(p, channel, &wr)
+							go p.routines(channel, &wr)
 							p.reload = time.Now().Truncate(time.Second)
 						}
 					}
@@ -230,7 +196,7 @@ func (p *Project) walks(watcher *fsnotify.Watcher) error {
 
 	if p.Path == "." || p.Path == "/" {
 		p.base = wd
-		p.Path = WorkingDir()
+		p.Path = App.Wdir()
 	} else if filepath.IsAbs(p.Path) {
 		p.base = p.Path
 	} else {
@@ -247,7 +213,7 @@ func (p *Project) walks(watcher *fsnotify.Watcher) error {
 			return errors.New(base + " path doesn't exist")
 		}
 	}
-	fmt.Println(Red("Watching: "), pname(p.Name, 1), Magenta(files), "file/s", Magenta(folders), "folder/s")
+	fmt.Println(Red("Watching"), ":", pname(p.Name, 1), Magenta(files), "file/s", Magenta(folders), "folder/s")
 	return nil
 }
 
@@ -262,41 +228,9 @@ func (p *Project) ignore(str string) bool {
 }
 
 // Routines launches the following methods: run, build, fmt, install
-func routines(p *Project, channel chan bool, wr *sync.WaitGroup) {
+func (p *Project) routines(channel chan bool, wr *sync.WaitGroup) {
 	wr.Add(1)
 	go p.build()
 	go p.install(channel, wr)
 	wr.Wait()
-}
-
-// check if a string is inArray
-func inArray(str string, list []string) bool {
-	for _, v := range list {
-		if v == str {
-			return true
-		}
-	}
-	return false
-}
-
-// defines the colors scheme for the project name
-func pname(name string, color int) string {
-	switch color {
-	case 1:
-		name = Yellow("[") + strings.ToUpper(name) + Yellow("]")
-		break
-	case 2:
-		name = Yellow("[") + Red(strings.ToUpper(name)) + Yellow("]")
-		break
-	case 3:
-		name = Yellow("[") + Blue(strings.ToUpper(name)) + Yellow("]")
-		break
-	case 4:
-		name = Yellow("[") + Magenta(strings.ToUpper(name)) + Yellow("]")
-		break
-	case 5:
-		name = Yellow("[") + Green(strings.ToUpper(name)) + Yellow("]")
-		break
-	}
-	return name
 }
