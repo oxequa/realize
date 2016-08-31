@@ -138,7 +138,6 @@ A Go build system with file watchers, output streams and live reload. Run, build
 - For more examples check [Realize Examples](https://github.com/tockins/realize-examples)
 
      ```
-    version: "1.0"
     projects:
         - app_name: App One     -> name
           app_path: one         -> root path
@@ -159,19 +158,10 @@ A Go build system with file watchers, output streams and live reload. Run, build
             - bin
             exts:               -> file extensions to observe for live reload
             - .go
-        - app_name: App Two     -> another project
-          app_path: two
-          app_run: true
-          app_build: true
-          app_bin: true
-          app_watcher:
-            paths:
-            - /
-            ignore_paths:
-            - vendor
-            - bin
-            exts:
-            - .go
+            output:             -> enable/disable the output destinations 
+                  cli: true         -> cli output
+                  file: true        -> creates an output file inside the project 
+            
     ```                    
 
 #### Next release
@@ -179,7 +169,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
 ##### Milestone 1.1
 - [ ] Testing on windows
 - [x] Custom paths for the commands fast/add
-- [ ] Save output on a file
+- [x] Save output on a file
 - [ ] Enable the fields Before/After
 - [ ] Web panel - **Maybe**
 

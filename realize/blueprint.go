@@ -16,14 +16,14 @@ import (
 // App struct contains the informations about realize
 type Realize struct {
 	Name, Description, Author, Email string
-	Version                          string `yaml:"version,omitempty"`
+	Version                          string
 	Limit                            uint64
 	Blueprint                        Blueprint
 }
 
 // Projects struct contains a projects list
 type Blueprint struct {
-	Projects []Project `yaml:"projects,omitempty"`
+	Projects []Project `yaml:"Projects,omitempty"`
 	files    map[string]string
 }
 
