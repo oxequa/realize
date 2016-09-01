@@ -9,8 +9,10 @@ import (
 	"os"
 )
 
+var App r.Realize
+
 func init() {
-	App := r.Realize{
+	App = r.Realize{
 		Name:        "Realize",
 		Version:     "1.0",
 		Description: "A Go build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths",
@@ -28,8 +30,6 @@ func init() {
 
 func main() {
 
-	app := r.App
-
 	handle := func(err error) error {
 		if err != nil {
 			fmt.Println(r.Red(err.Error()))
@@ -39,8 +39,8 @@ func main() {
 	}
 
 	header := func() error {
-		fmt.Println(r.Blue(app.Name) + " - " + r.Blue(app.Version))
-		fmt.Println(r.BlueS(app.Description) + "\n")
+		fmt.Println(r.Blue(App.Name) + " - " + r.Blue(App.Version))
+		fmt.Println(r.BlueS(App.Description) + "\n")
 		gopath := os.Getenv("GOPATH")
 		if gopath == "" {
 			log.Fatal(r.Red("$GOPATH isn't set up properly"))
@@ -49,8 +49,8 @@ func main() {
 	}
 
 	cli := &cli.App{
-		Name:    app.Name,
-		Version: app.Version,
+		Name:    App.Name,
+		Version: App.Version,
 		Authors: []*cli.Author{
 			{
 				Name:  "Alessio Pracchia",
@@ -61,13 +61,13 @@ func main() {
 				Email: "conventi@hastega.it",
 			},
 		},
-		Usage: app.Description,
+		Usage: App.Description,
 		Commands: []*cli.Command{
 			{
 				Name:  "run",
 				Usage: "Build and watch file changes",
 				Action: func(p *cli.Context) error {
-					return handle(app.Blueprint.Run())
+					return handle(App.Blueprint.Run())
 				},
 				Before: func(c *cli.Context) error {
 					header()
@@ -87,8 +87,8 @@ func main() {
 					&cli.BoolFlag{Name: "Configuration", Value: false, Usage: "Take the defined settings if exist a Configuration file."},
 				},
 				Action: func(p *cli.Context) error {
-					app.Blueprint.Add(p)
-					return handle(app.Blueprint.Fast(p))
+					App.Blueprint.Add(p)
+					return handle(App.Blueprint.Fast(p))
 				},
 				Before: func(c *cli.Context) error {
 					header()
@@ -101,7 +101,7 @@ func main() {
 				Aliases:  []string{"a"},
 				Usage:    "Add another project",
 				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: app.Wdir(), Usage: "Project name"},
+					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: App.Wdir(), Usage: "Project name"},
 					&cli.StringFlag{Name: "path", Aliases: []string{"b"}, Value: "/", Usage: "Project base path"},
 					&cli.BoolFlag{Name: "build", Value: false, Usage: "Enable the build"},
 					&cli.BoolFlag{Name: "no-run", Usage: "Disables the run"},
@@ -110,7 +110,7 @@ func main() {
 					&cli.BoolFlag{Name: "test", Value: false, Usage: "Enable the tests"},
 				},
 				Action: func(p *cli.Context) error {
-					return handle(app.Blueprint.Insert(p))
+					return handle(App.Blueprint.Insert(p))
 				},
 				Before: func(c *cli.Context) error {
 					header()
@@ -126,7 +126,7 @@ func main() {
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: ""},
 				},
 				Action: func(p *cli.Context) error {
-					return handle(app.Blueprint.Remove(p))
+					return handle(App.Blueprint.Remove(p))
 				},
 				Before: func(c *cli.Context) error {
 					header()
@@ -139,7 +139,7 @@ func main() {
 				Aliases:  []string{"l"},
 				Usage:    "Projects list",
 				Action: func(p *cli.Context) error {
-					return handle(app.Blueprint.List())
+					return handle(App.Blueprint.List())
 				},
 				Before: func(c *cli.Context) error {
 					header()
