@@ -1,13 +1,30 @@
 package main
 
 import (
-	"fmt"
-	r "github.com/tockins/realize/realize"
+	r "github.com/tockins/realize/cli"
 	//_ "github.com/tockins/realize/server"
+	"fmt"
 	"gopkg.in/urfave/cli.v2"
 	"log"
 	"os"
 )
+
+func init() {
+	App := r.Realize{
+		Name:        "Realize",
+		Version:     "1.0",
+		Description: "A Go build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths",
+		Limit:       10000,
+		Blueprint: r.Blueprint{
+			Files: map[string]string{
+				"config": "r.config.yaml",
+				"output": "r.output.log",
+			},
+		},
+	}
+	App.Increases()
+	r.App = App
+}
 
 func main() {
 

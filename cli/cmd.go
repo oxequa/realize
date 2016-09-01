@@ -1,4 +1,4 @@
-package realize
+package cli
 
 import (
 	"errors"
@@ -10,37 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
-	"time"
 )
-
-// App struct contains the informations about realize
-type Realize struct {
-	Name, Description, Author, Email string
-	Version                          string
-	Limit                            uint64
-	Blueprint                        Blueprint
-}
-
-// Projects struct contains a projects list
-type Blueprint struct {
-	Projects []Project `yaml:"Projects,omitempty"`
-	files    map[string]string
-}
-
-// Project defines the informations of a single project
-type Project struct {
-	reload  time.Time
-	base    string
-	Name    string   `yaml:"app_name,omitempty"`
-	Path    string   `yaml:"app_path,omitempty"`
-	Run     bool     `yaml:"app_run,omitempty"`
-	Bin     bool     `yaml:"app_bin,omitempty"`
-	Build   bool     `yaml:"app_build,omitempty"`
-	Fmt     bool     `yaml:"app_fmt,omitempty"`
-	Test    bool     `yaml:"app_test,omitempty"`
-	Params  []string `yaml:"app_params,omitempty"`
-	Watcher Watcher  `yaml:"app_watcher,omitempty"`
-}
 
 // Wdir returns the name last element of the working directory path
 func (r *Realize) Wdir() string {
@@ -51,8 +21,8 @@ func (r *Realize) Wdir() string {
 	return filepath.Base(dir)
 }
 
-// Limit defines the max number of watched files
-func (r *Realize) limit() {
+// Flimit defines the max number of watched files
+func (r *Realize) Increases() {
 	// increases the files limit
 	var rLimit syscall.Rlimit
 	rLimit.Max = r.Limit
@@ -138,7 +108,7 @@ func (h *Blueprint) Clean() {
 
 // Read, Check and remove duplicates from the config file
 func (h *Blueprint) Read() error {
-	content, err := read(h.files["config"])
+	content, err := read(h.Files["config"])
 	if err == nil {
 		err = yaml.Unmarshal(content, h)
 		if err == nil {
@@ -159,7 +129,7 @@ func (h *Blueprint) Create() error {
 	if err != nil {
 		return err
 	}
-	return write(h.files["config"], y)
+	return write(h.Files["config"], y)
 }
 
 // Inserts a new project in the list

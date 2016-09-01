@@ -1,4 +1,4 @@
-package realize
+package cli
 
 import (
 	"errors"
@@ -12,18 +12,6 @@ import (
 	"sync"
 	"time"
 )
-
-// The Watcher struct defines the livereload's logic
-type Watcher struct {
-	// different before and after on re-run?
-	Before  []string        `yaml:"before,omitempty"`
-	After   []string        `yaml:"after,omitempty"`
-	Paths   []string        `yaml:"paths,omitempty"`
-	Ignore  []string        `yaml:"ignore_paths,omitempty"`
-	Exts    []string        `yaml:"exts,omitempty"`
-	Preview bool            `yaml:"preview,omitempty"`
-	Output  map[string]bool `yaml:"output,omitempty"`
-}
 
 // Watching method is the main core. It manages the livereload and the watching
 func (p *Project) watching() {

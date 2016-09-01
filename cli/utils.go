@@ -1,4 +1,4 @@
-package realize
+package cli
 
 import (
 	"errors"
@@ -30,7 +30,7 @@ func read(file string) ([]byte, error) {
 func write(name string, data []byte) error {
 	err := ioutil.WriteFile(name, data, 0655)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(Red(err))
 		return err
 	}
 	return nil
