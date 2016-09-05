@@ -139,6 +139,7 @@ func (p *Project) GoTest(path string) (io.Writer, error) {
 // Cmd exec a list of defined commands
 func (p *Project) Cmd(cmds []string) (errors []error) {
 	for _, cmd := range cmds {
+		cmd := strings.Replace(strings.Replace(cmd, "'", "", -1), "\"", "", -1)
 		c := strings.Split(cmd, " ")
 		build := exec.Command(c[0], c[1:]...)
 		build.Dir = p.base
