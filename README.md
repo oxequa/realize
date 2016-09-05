@@ -170,7 +170,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
 - [ ] Testing on windows
 - [x] Custom paths for the commands fast/add
 - [x] Save output on a file
-- [ ] Enable the fields Before/After
+- [x] Enable the fields Before/After
 - [ ] Web panel - **Maybe**
 
 

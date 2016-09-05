@@ -3,11 +3,13 @@ package cli
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"io"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 )
@@ -27,7 +29,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 		if err := build.Process.Kill(); err != nil {
 			log.Fatal(Red("Failed to stop: "), Red(err))
 		}
-		log.Println(pname(p.Name, 2), ":", RedS("Stopped"))
+		log.Println(pname(p.Name, 2), ":", RedS("Ended"))
 		wr.Done()
 	}()
 
@@ -133,4 +135,17 @@ func (p *Project) GoTest(path string) (io.Writer, error) {
 		return build.Stdout, err
 	}
 	return nil, nil
+}
+
+// Cmd exec a list of defined commands
+func (p *Project) Cmd(cmds []string) (errors []error) {
+	for _, cmd := range cmds {
+		c := strings.Split(cmd, " ")
+		build := exec.Command(c[0], c[1:]...)
+		build.Dir = p.base
+		if err := build.Run(); err != nil {
+			errors = append(errors, err)
+		}
+	}
+	return errors
 }

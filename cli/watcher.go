@@ -7,9 +7,11 @@ import (
 	"log"
 	"math/big"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 )
 
@@ -33,11 +35,13 @@ func (p *Project) watching() {
 	}
 	defer end()
 
+	p.cmd()
 	err = p.walks(watcher)
 	if err != nil {
 		fmt.Println(pname(p.Name, 1), ":", Red(err.Error()))
 		return
 	}
+
 	go p.routines(channel, &wr)
 	p.reload = time.Now().Truncate(time.Second)
 
@@ -60,7 +64,7 @@ func (p *Project) watching() {
 
 					i := strings.Index(event.Name, filepath.Ext(event.Name))
 					if event.Name[:i] != "" && inArray(ext, p.Watcher.Exts) {
-						log.Println(pname(p.Name, 4), ":", Magenta(event.Name[:i]+ext))
+						fmt.Println(pname(p.Name, 4), Magenta(strings.ToUpper(ext[1:])+" changed"), Magenta(event.Name[:i]+ext))
 						// stop and run again
 						if p.Run {
 							close(channel)
@@ -92,7 +96,7 @@ func (p *Project) install(channel chan bool, wr *sync.WaitGroup) {
 			log.Println(pname(p.Name, 1), ":", fmt.Sprint(Red(err)), std)
 			wr.Done()
 		} else {
-			log.Println(pname(p.Name, 5), ":", Green("Installed")+" after", MagentaS(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), "s"))
+			log.Println(pname(p.Name, 5), ":", Green("Installed")+" after", MagentaS(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
 			if p.Run {
 				runner := make(chan bool, 1)
 				log.Println(pname(p.Name, 1), ":", "Running..")
@@ -101,7 +105,7 @@ func (p *Project) install(channel chan bool, wr *sync.WaitGroup) {
 				for {
 					select {
 					case <-runner:
-						log.Println(pname(p.Name, 5), ":", Green("Has been run")+" after", MagentaS(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), "s"))
+						log.Println(pname(p.Name, 5), ":", Green("Has been run")+" after", MagentaS(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
 						return
 					}
 				}
@@ -119,25 +123,53 @@ func (p *Project) build() {
 		if std, err := p.GoBuild(); err != nil {
 			log.Println(pname(p.Name, 1), ":", fmt.Sprint(Red(err)), std)
 		} else {
-			log.Println(pname(p.Name, 5), ":", Green("Builded")+" after", MagentaS(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), "s"))
+			log.Println(pname(p.Name, 5), ":", Green("Builded")+" after", MagentaS(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
 		}
 		return
 	}
 	return
 }
 
-// Build calls an implementation of the "gofmt"
+// Fmt calls an implementation of the "gofmt"
 func (p *Project) fmt(path string) error {
 	if p.Fmt {
 		if _, err := p.GoFmt(path); err != nil {
 			log.Println(pname(p.Name, 1), Red("There are some GoFmt errors in "), ":", Magenta(path))
-			//fmt.Println(msg)
 		}
 	}
 	return nil
 }
 
-// Build calls an implementation of the "go test"
+// Cmd calls an wrapper for execute the commands after/before
+func (p *Project) cmd() {
+	c := make(chan os.Signal, 2)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	cast := func(commands []string) {
+		if errs := p.Cmd(commands); errs != nil {
+			for _, err := range errs {
+				log.Println(pname(p.Name, 2), Red(err))
+			}
+		}
+	}
+
+	if len(p.Watcher.Before) > 0 {
+		cast(p.Watcher.Before)
+	}
+
+	go func() {
+		for {
+			select {
+			case <-c:
+				if len(p.Watcher.After) > 0 {
+					cast(p.Watcher.After)
+				}
+				os.Exit(1)
+			}
+		}
+	}()
+}
+
+// Test calls an implementation of the "go test"
 func (p *Project) test(path string) error {
 	if p.Test {
 		if _, err := p.GoTest(path); err != nil {
@@ -201,7 +233,7 @@ func (p *Project) walks(watcher *fsnotify.Watcher) error {
 			return errors.New(base + " path doesn't exist")
 		}
 	}
-	fmt.Println(Red("Watching"), ":", pname(p.Name, 1), Magenta(files), "file/s", Magenta(folders), "folder/s")
+	fmt.Println(pname(p.Name, 1), Red("Watching"), Magenta(files), "file/s", Magenta(folders), "folder/s")
 	return nil
 }
 
