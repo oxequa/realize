@@ -15,8 +15,8 @@ func (h *Blueprint) Run() error {
 	if err == nil {
 		// loop projects
 		wg.Add(len(h.Projects))
-		for k := range h.Projects {
-			go h.Projects[k].watching()
+		for _,v := range h.Projects {
+			go v.watching()
 		}
 		wg.Wait()
 		return nil
@@ -26,19 +26,23 @@ func (h *Blueprint) Run() error {
 
 // Fast method run a project from his working directory without makes a config file
 func (h *Blueprint) Fast(params *cli.Context) error {
-	fast := h.Projects[0]
 	// Takes the values from config if wd path match with someone else
-	if params.Bool("config") {
-		if err := h.Read(); err == nil {
-			for _, val := range h.Projects {
-				if fast.Path == val.Path {
-					fast = val
+	wg.Add(1)
+	for i := 0; i < len(h.Projects); i++ {
+		v := &h.Projects[i]
+		if params.Bool("config") {
+			if err := h.Read(); err == nil {
+				for l := 0; l < len(h.Projects); l++ {
+					l := &h.Projects[l]
+					if v.Path == l.Path {
+						v = l
+					}
 				}
 			}
 		}
+		go v.watching()
+
 	}
-	wg.Add(1)
-	go fast.watching()
 	wg.Wait()
 	return nil
 }

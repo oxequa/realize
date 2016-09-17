@@ -1,18 +1,18 @@
 package cli
 
 import (
-	"github.com/fatih/color"
 	"log"
 	"sync"
 	"time"
+	"github.com/fatih/color"
 )
 
-var Bp *Blueprint
+var B *Blueprint
 
 var wg sync.WaitGroup
 
-// Green, Red Bold, Red, Blue, Blue Bold, Yellow, Yellow Bold, Magenta, Magenta Bold colors
-var Green, Red, RedS, Blue, BlueS, Yellow, YellowS, Magenta, MagentaS = color.New(color.FgGreen, color.Bold).SprintFunc(),
+var Green, Red, RedS, Blue, BlueS, Yellow, YellowS, Magenta, MagentaS =
+	color.New(color.FgGreen, color.Bold).SprintFunc(),
 	color.New(color.FgRed, color.Bold).SprintFunc(),
 	color.New(color.FgRed).SprintFunc(),
 	color.New(color.FgBlue, color.Bold).SprintFunc(),

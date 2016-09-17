@@ -1,21 +1,20 @@
 package server
 
 import (
+	c "github.com/tockins/realize/cli"
 	"encoding/json"
 	"fmt"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
 	"github.com/labstack/echo/middleware"
-	c "github.com/tockins/realize/cli"
 	"golang.org/x/net/websocket"
 	"log"
 	"net/http"
 )
 
-var Bp *c.Blueprint
-
 // Server struct contains server informations
-type Server struct {
+type Server struct{
+	Blueprint *c.Blueprint
 }
 
 func render(c echo.Context, path string) error {
@@ -35,7 +34,8 @@ func (s *Server) Start() {
 	e := echo.New()
 	e.Use(middleware.Gzip())
 	e.GET("/", func(c echo.Context) error {
-		return render(c, "server/assets/index.html")
+		return c.JSON(200, s.Blueprint)
+		//return render(c, "server/assets/index.html")
 	})
 
 	e.GET("/projects", standard.WrapHandler(projects()))
@@ -46,9 +46,9 @@ func (s *Server) Start() {
 func projects() websocket.Handler {
 	return websocket.Handler(func(ws *websocket.Conn) {
 		for {
-			message, _ := json.Marshal(Bp)
+			message, _ := json.Marshal("")
 			err := websocket.Message.Send(ws, string(message))
-			fmt.Println(Bp)
+			fmt.Println("")
 			if err != nil {
 				log.Fatal(err)
 			}

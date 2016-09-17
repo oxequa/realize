@@ -12,8 +12,8 @@ import (
 	"time"
 )
 
-// Wdir returns the name last element of the working directory path
-func Wdir() string {
+// WorkingDir returns the name last element of the working directory path
+func WorkingDir() string {
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Fatal(Red(err))
@@ -32,7 +32,6 @@ func read(file string) ([]byte, error) {
 		return content, err
 	}
 	return nil, err
-
 }
 
 // Write a file given a name and a byte stream
@@ -71,7 +70,7 @@ func argsParam(params *cli.Context) []string {
 func nameFlag(params *cli.Context) string {
 	var name string
 	if params.String("name") == "" && params.String("path") == "" {
-		return Wdir()
+		return WorkingDir()
 	} else if params.String("path") != "/" {
 		name = filepath.Base(params.String("path"))
 	} else {
