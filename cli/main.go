@@ -41,6 +41,7 @@ type Project struct {
 	Test    bool     `yaml:"app_test,omitempty"`
 	Params  []string `yaml:"app_params,omitempty"`
 	Watcher Watcher  `yaml:"app_watcher,omitempty"`
+	Buffer  Buffer
 }
 
 // Watcher struct defines the livereload's logic
@@ -53,6 +54,13 @@ type Watcher struct {
 	Exts    []string        `yaml:"exts,omitempty"`
 	Preview bool            `yaml:"preview,omitempty"`
 	Output  map[string]bool `yaml:"output,omitempty"`
+}
+
+// Buffer struct for buffering outputs
+type Buffer struct {
+	StdOut []string
+	StdLog []string
+	StdErr []string
 }
 
 // Initialize the application

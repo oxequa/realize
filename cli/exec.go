@@ -16,7 +16,6 @@ import (
 // GoRun  is an implementation of the bin execution
 func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup) error {
 
-	stop := make(chan bool, 1)
 	var build *exec.Cmd
 	if len(p.Params) != 0 {
 		build = exec.Command(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.Path)), p.Params...)
@@ -35,8 +34,6 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 	stdout, err := build.StdoutPipe()
 	stderr, err := build.StderrPipe()
 
-	// Read stdout and stderr in same var
-	outputs := io.MultiReader(stdout, stderr)
 	if err != nil {
 		log.Println(Red(err.Error()))
 		return err
@@ -47,35 +44,49 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 	}
 	close(runner)
 
-	in := bufio.NewScanner(outputs)
-	go func() {
-		for in.Scan() {
+	execOutput := bufio.NewScanner(stdout)
+	execError := bufio.NewScanner(stderr)
+
+	scanner := func(stop chan bool, output *bufio.Scanner, isError bool) {
+		for output.Scan() {
 			select {
 			default:
+				if isError {
+					p.Buffer.StdErr = append(p.Buffer.StdErr, output.Text())
+				} else {
+					p.Buffer.StdOut = append(p.Buffer.StdOut, output.Text())
+				}
 				if p.Watcher.Output["cli"] {
-					log.Println(pname(p.Name, 3), ":", BlueS(in.Text()))
+					log.Println(pname(p.Name, 3), ":", BlueS(output.Text()))
 				}
 				if p.Watcher.Output["file"] {
 					path := filepath.Join(p.base, Bp.Files["output"])
 					f := create(path)
 					t := time.Now()
-					if _, err := f.WriteString(t.Format("2006-01-02 15:04:05") + " : " + in.Text() + "\r\n"); err != nil {
+					if _, err := f.WriteString(t.Format("2006-01-02 15:04:05") + " : " + output.Text() + "\r\n"); err != nil {
 						log.Fatal(err)
 					}
 				}
 			}
 		}
 		close(stop)
-	}()
+	}
+	stopOutput := make(chan bool, 1)
+	stopError := make(chan bool, 1)
+	go scanner(stopOutput, execOutput, false)
+	go scanner(stopError, execError, true)
 
 	for {
 		select {
 		case <-channel:
 			return nil
-		case <-stop:
+		case <-stopOutput:
+			return nil
+		case <-stopError:
 			return nil
 		}
 	}
+
 }
 
 // GoBuild is an implementation of the "go build"

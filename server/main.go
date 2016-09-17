@@ -30,6 +30,7 @@ func render(c echo.Context, path string) error {
 	return nil
 }
 
+// Server starting
 func (s *Server) Start() {
 	e := echo.New()
 	e.Use(middleware.Gzip())
