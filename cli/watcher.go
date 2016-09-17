@@ -1,62 +1,19 @@
-package realize
+package cli
 
 import (
+	"errors"
 	"fmt"
 	"github.com/fsnotify/fsnotify"
-	"gopkg.in/urfave/cli.v2"
 	"log"
 	"math/big"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 )
-
-// The Watcher struct defines the livereload's logic
-type Watcher struct {
-	// different before and after on re-run?
-	Before  []string `yaml:"before,omitempty"`
-	After   []string `yaml:"after,omitempty"`
-	Paths   []string `yaml:"paths,omitempty"`
-	Ignore  []string `yaml:"ignore_paths,omitempty"`
-	Exts    []string `yaml:"exts,omitempty"`
-	Preview bool     `yaml:"preview,omitempty"`
-}
-
-// Watch method adds the given paths on the Watcher
-func (h *Config) Watch() error {
-	err := h.Read()
-	if err == nil {
-		// loop projects
-		wg.Add(len(h.Projects))
-		for k := range h.Projects {
-			go h.Projects[k].watching()
-		}
-		wg.Wait()
-		return nil
-	}
-	return err
-}
-
-// Fast method run a project from his working directory without makes a config file
-func (h *Config) Fast(params *cli.Context) error {
-	fast := h.Projects[0]
-	// Takes the values from config if wd path match with someone else
-	if params.Bool("config") {
-		if err := h.Read(); err == nil {
-			for _, val := range h.Projects {
-				if fast.Path == val.Path {
-					fast = val
-				}
-			}
-		}
-	}
-	wg.Add(1)
-	go fast.watching()
-	wg.Wait()
-	return nil
-}
 
 // Watching method is the main core. It manages the livereload and the watching
 func (p *Project) watching() {
@@ -78,8 +35,14 @@ func (p *Project) watching() {
 	}
 	defer end()
 
-	p.walks(watcher)
-	go routines(p, channel, &wr)
+	p.cmd()
+	err = p.walks(watcher)
+	if err != nil {
+		fmt.Println(pname(p.Name, 1), ":", Red(err.Error()))
+		return
+	}
+
+	go p.routines(channel, &wr)
 	p.reload = time.Now().Truncate(time.Second)
 
 	// waiting for an event
@@ -101,7 +64,7 @@ func (p *Project) watching() {
 
 					i := strings.Index(event.Name, filepath.Ext(event.Name))
 					if event.Name[:i] != "" && inArray(ext, p.Watcher.Exts) {
-						log.Println(pname(p.Name, 4), ":", Magenta(event.Name[:i]+ext))
+						fmt.Println(pname(p.Name, 4), Magenta(strings.ToUpper(ext[1:])+" changed"), Magenta(event.Name[:i]+ext))
 						// stop and run again
 						if p.Run {
 							close(channel)
@@ -112,7 +75,7 @@ func (p *Project) watching() {
 						if err != nil {
 							log.Fatal(Red(err))
 						} else {
-							go routines(p, channel, &wr)
+							go p.routines(channel, &wr)
 							p.reload = time.Now().Truncate(time.Second)
 						}
 					}
@@ -129,11 +92,11 @@ func (p *Project) install(channel chan bool, wr *sync.WaitGroup) {
 	if p.Bin {
 		log.Println(pname(p.Name, 1), ":", "Installing..")
 		start := time.Now()
-		if err, std := p.GoInstall(); err != nil {
+		if std, err := p.GoInstall(); err != nil {
 			log.Println(pname(p.Name, 1), ":", fmt.Sprint(Red(err)), std)
 			wr.Done()
 		} else {
-			log.Println(pname(p.Name, 5), ":", Green("Installed")+" after", MagentaS(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), "s"))
+			log.Println(pname(p.Name, 5), ":", Green("Installed")+" after", MagentaS(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
 			if p.Run {
 				runner := make(chan bool, 1)
 				log.Println(pname(p.Name, 1), ":", "Running..")
@@ -142,7 +105,7 @@ func (p *Project) install(channel chan bool, wr *sync.WaitGroup) {
 				for {
 					select {
 					case <-runner:
-						log.Println(pname(p.Name, 5), ":", Green("Has been run")+" after", MagentaS(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), "s"))
+						log.Println(pname(p.Name, 5), ":", Green("Has been run")+" after", MagentaS(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
 						return
 					}
 				}
@@ -157,29 +120,67 @@ func (p *Project) build() {
 	if p.Build {
 		log.Println(pname(p.Name, 1), ":", "Building..")
 		start := time.Now()
-		if err, std := p.GoBuild(); err != nil {
+		if std, err := p.GoBuild(); err != nil {
 			log.Println(pname(p.Name, 1), ":", fmt.Sprint(Red(err)), std)
 		} else {
-			log.Println(pname(p.Name, 5), ":", Green("Builded")+" after", MagentaS(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), "s"))
+			log.Println(pname(p.Name, 5), ":", Green("Builded")+" after", MagentaS(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
 		}
 		return
 	}
 	return
 }
 
-// Build calls an implementation of the "gofmt"
+// Fmt calls an implementation of the "gofmt"
 func (p *Project) fmt(path string) error {
 	if p.Fmt {
 		if _, err := p.GoFmt(path); err != nil {
 			log.Println(pname(p.Name, 1), Red("There are some GoFmt errors in "), ":", Magenta(path))
-			//fmt.Println(msg)
+		}
+	}
+	return nil
+}
+
+// Cmd calls an wrapper for execute the commands after/before
+func (p *Project) cmd() {
+	c := make(chan os.Signal, 2)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	cast := func(commands []string) {
+		if errs := p.Cmd(commands); errs != nil {
+			for _, err := range errs {
+				log.Println(pname(p.Name, 2), Red(err))
+			}
+		}
+	}
+
+	if len(p.Watcher.Before) > 0 {
+		cast(p.Watcher.Before)
+	}
+
+	go func() {
+		for {
+			select {
+			case <-c:
+				if len(p.Watcher.After) > 0 {
+					cast(p.Watcher.After)
+				}
+				os.Exit(1)
+			}
+		}
+	}()
+}
+
+// Test calls an implementation of the "go test"
+func (p *Project) test(path string) error {
+	if p.Test {
+		if _, err := p.GoTest(path); err != nil {
+			log.Println(pname(p.Name, 1), Red("Go Test fails in "), ":", Magenta(path))
 		}
 	}
 	return nil
 }
 
 // Walks the file tree of a project
-func (p *Project) walks(watcher *fsnotify.Watcher) {
+func (p *Project) walks(watcher *fsnotify.Watcher) error {
 	var files, folders int64
 	wd, _ := os.Getwd()
 
@@ -202,6 +203,11 @@ func (p *Project) walks(watcher *fsnotify.Watcher) {
 
 				} else {
 					folders++
+					go func() {
+						if err := p.test(path); err != nil {
+							fmt.Println(err)
+						}
+					}()
 				}
 			}
 		}
@@ -210,10 +216,13 @@ func (p *Project) walks(watcher *fsnotify.Watcher) {
 
 	if p.Path == "." || p.Path == "/" {
 		p.base = wd
-		p.Path = WorkingDir()
+		p.Path = Wdir()
+	} else if filepath.IsAbs(p.Path) {
+		p.base = p.Path
 	} else {
 		p.base = filepath.Join(wd, p.Path)
 	}
+
 	for _, dir := range p.Watcher.Paths {
 		base := filepath.Join(p.base, dir)
 		if _, err := os.Stat(base); err == nil {
@@ -221,11 +230,11 @@ func (p *Project) walks(watcher *fsnotify.Watcher) {
 				log.Println(Red(err.Error()))
 			}
 		} else {
-			fmt.Println(pname(p.Name, 1), ":\t", Red(base+" path doesn't exist"))
+			return errors.New(base + " path doesn't exist")
 		}
 	}
-	fmt.Println(Red("Watching: "), pname(p.Name, 1), Magenta(files), "file/s", Magenta(folders), "folder/s")
-	fmt.Println()
+	fmt.Println(pname(p.Name, 1), Red("Watching"), Magenta(files), "file/s", Magenta(folders), "folder/s")
+	return nil
 }
 
 // Ignore validates a path
@@ -239,41 +248,9 @@ func (p *Project) ignore(str string) bool {
 }
 
 // Routines launches the following methods: run, build, fmt, install
-func routines(p *Project, channel chan bool, wr *sync.WaitGroup) {
+func (p *Project) routines(channel chan bool, wr *sync.WaitGroup) {
 	wr.Add(1)
 	go p.build()
 	go p.install(channel, wr)
 	wr.Wait()
-}
-
-// check if a string is inArray
-func inArray(str string, list []string) bool {
-	for _, v := range list {
-		if v == str {
-			return true
-		}
-	}
-	return false
-}
-
-// defines the colors scheme for the project name
-func pname(name string, color int) string {
-	switch color {
-	case 1:
-		name = Yellow("[") + strings.ToUpper(name) + Yellow("]")
-		break
-	case 2:
-		name = Yellow("[") + Red(strings.ToUpper(name)) + Yellow("]")
-		break
-	case 3:
-		name = Yellow("[") + Blue(strings.ToUpper(name)) + Yellow("]")
-		break
-	case 4:
-		name = Yellow("[") + Magenta(strings.ToUpper(name)) + Yellow("]")
-		break
-	case 5:
-		name = Yellow("[") + Green(strings.ToUpper(name)) + Yellow("]")
-		break
-	}
-	return name
 }

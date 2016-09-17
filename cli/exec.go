@@ -1,4 +1,4 @@
-package realize
+package cli
 
 import (
 	"bufio"
@@ -8,23 +8,10 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 )
-
-// The Project struct defines the informations about a project
-type Project struct {
-	reload  time.Time
-	base    string
-	Name    string   `yaml:"app_name,omitempty"`
-	Path    string   `yaml:"app_path,omitempty"`
-	Run     bool     `yaml:"app_run,omitempty"`
-	Bin     bool     `yaml:"app_bin,omitempty"`
-	Build   bool     `yaml:"app_build,omitempty"`
-	Fmt     bool     `yaml:"app_fmt,omitempty"`
-	Params  []string `yaml:"app_params,omitempty"`
-	Watcher Watcher  `yaml:"app_watcher,omitempty"`
-}
 
 // GoRun  is an implementation of the bin execution
 func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup) error {
@@ -41,7 +28,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 		if err := build.Process.Kill(); err != nil {
 			log.Fatal(Red("Failed to stop: "), Red(err))
 		}
-		log.Println(pname(p.Name, 2), ":", RedS("Stopped"))
+		log.Println(pname(p.Name, 2), ":", RedS("Ended"))
 		wr.Done()
 	}()
 
@@ -50,7 +37,6 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 
 	// Read stdout and stderr in same var
 	outputs := io.MultiReader(stdout, stderr)
-
 	if err != nil {
 		log.Println(Red(err.Error()))
 		return err
@@ -66,7 +52,17 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 		for in.Scan() {
 			select {
 			default:
-				log.Println(pname(p.Name, 3), ":", BlueS(in.Text()))
+				if p.Watcher.Output["cli"] {
+					log.Println(pname(p.Name, 3), ":", BlueS(in.Text()))
+				}
+				if p.Watcher.Output["file"] {
+					path := filepath.Join(p.base, Bp.Files["output"])
+					f := create(path)
+					t := time.Now()
+					if _, err := f.WriteString(t.Format("2006-01-02 15:04:05") + " : " + in.Text() + "\r\n"); err != nil {
+						log.Fatal(err)
+					}
+				}
 			}
 		}
 		close(stop)
@@ -83,7 +79,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 }
 
 // GoBuild is an implementation of the "go build"
-func (p *Project) GoBuild() (error, string) {
+func (p *Project) GoBuild() (string, error) {
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	build := exec.Command("go", "build")
@@ -91,27 +87,27 @@ func (p *Project) GoBuild() (error, string) {
 	build.Stdout = &out
 	build.Stderr = &stderr
 	if err := build.Run(); err != nil {
-		return err, stderr.String()
+		return stderr.String(), err
 	}
-	return nil, ""
+	return "", nil
 }
 
 // GoInstall is an implementation of the "go install"
-func (p *Project) GoInstall() (error, string) {
+func (p *Project) GoInstall() (string, error) {
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	err := os.Setenv("GOBIN", filepath.Join(os.Getenv("GOPATH"), "bin"))
 	if err != nil {
-		return nil, ""
+		return "", nil
 	}
 	build := exec.Command("go", "install")
 	build.Dir = p.base
 	build.Stdout = &out
 	build.Stderr = &stderr
 	if err := build.Run(); err != nil {
-		return err, stderr.String()
+		return stderr.String(), err
 	}
-	return nil, ""
+	return "", nil
 }
 
 // GoFmt is an implementation of the gofmt
@@ -125,4 +121,31 @@ func (p *Project) GoFmt(path string) (io.Writer, error) {
 		return build.Stderr, err
 	}
 	return nil, nil
+}
+
+// GoTest is an implementation of the go test
+func (p *Project) GoTest(path string) (io.Writer, error) {
+	var out bytes.Buffer
+	build := exec.Command("go", "test")
+	build.Dir = path
+	build.Stdout = &out
+	build.Stderr = &out
+	if err := build.Run(); err != nil {
+		return build.Stdout, err
+	}
+	return nil, nil
+}
+
+// Cmd exec a list of defined commands
+func (p *Project) Cmd(cmds []string) (errors []error) {
+	for _, cmd := range cmds {
+		cmd := strings.Replace(strings.Replace(cmd, "'", "", -1), "\"", "", -1)
+		c := strings.Split(cmd, " ")
+		build := exec.Command(c[0], c[1:]...)
+		build.Dir = p.base
+		if err := build.Run(); err != nil {
+			errors = append(errors, err)
+		}
+	}
+	return errors
 }
