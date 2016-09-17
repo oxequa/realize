@@ -1,13 +1,16 @@
 package server
 
 import (
-	"fmt"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
 	"github.com/labstack/echo/middleware"
+	c "github.com/tockins/realize/cli"
 	"golang.org/x/net/websocket"
+	"log"
 	"net/http"
 )
+
+var Bp *c.Blueprint
 
 // Server struct contains server informations
 type Server struct {
@@ -31,12 +34,24 @@ func (s *Server) Start() {
 	e.GET("/", func(c echo.Context) error {
 		return render(c, "server/assets/index.html")
 	})
-	e.GET("/ws", standard.WrapHandler(projects()))
+
+	e.GET("/projects", standard.WrapHandler(projects()))
 	go e.Run(standard.New(":5000"))
 }
 
+// The WebSocket for projects list
 func projects() websocket.Handler {
 	return websocket.Handler(func(ws *websocket.Conn) {
-		fmt.Println(12)
+		for {
+			err := websocket.Message.Send(ws, "Hello")
+			if err != nil {
+				log.Fatal(err)
+			}
+			msg := ""
+			err = websocket.Message.Receive(ws, &msg)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
 	})
 }

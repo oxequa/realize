@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+var Bp *Blueprint
+
 var wg sync.WaitGroup
 
 // Green, Red Bold, Red, Blue, Blue Bold, Yellow, Yellow Bold, Magenta, Magenta Bold colors
@@ -58,5 +60,3 @@ func init() {
 	log.SetFlags(0)
 	log.SetOutput(new(logWriter))
 }
-
-var Bp Blueprint

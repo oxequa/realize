@@ -47,7 +47,9 @@ func init() {
 		},
 	}
 	App.Increases()
-	c.Bp = App.Blueprint
+	c.Bp = &App.Blueprint
+	s.Bp = &App.Blueprint
+
 }
 
 func main() {
