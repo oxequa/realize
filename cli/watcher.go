@@ -25,7 +25,7 @@ func (p *Project) watching() {
 	if err != nil {
 		log.Println(strings.ToUpper(pname(p.Name, 1)), ":", Red(err.Error()))
 	}
-	channel := make(chan bool, 1)
+	channel, exit := make(chan bool, 1), make(chan bool, 1)
 	if err != nil {
 		log.Println(pname(p.Name, 1), ":", Red(err.Error()))
 	}
@@ -35,7 +35,7 @@ func (p *Project) watching() {
 	}
 	defer end()
 
-	p.cmd()
+	p.cmd(exit)
 	err = p.walks(watcher)
 	if err != nil {
 		fmt.Println(pname(p.Name, 1), ":", Red(err.Error()))
@@ -83,6 +83,8 @@ func (p *Project) watching() {
 			}
 		case err := <-watcher.Errors:
 			log.Println(Red(err.Error()))
+		case <-exit:
+			return
 		}
 	}
 }
@@ -141,7 +143,7 @@ func (p *Project) fmt(path string) error {
 }
 
 // Cmd calls an wrapper for execute the commands after/before
-func (p *Project) cmd() {
+func (p *Project) cmd(exit chan bool) {
 	c := make(chan os.Signal, 2)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	cast := func(commands []string) {
@@ -163,7 +165,7 @@ func (p *Project) cmd() {
 				if len(p.Watcher.After) > 0 {
 					cast(p.Watcher.After)
 				}
-				os.Exit(1)
+				close(exit)
 			}
 		}
 	}()
