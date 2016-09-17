@@ -5,33 +5,9 @@ import (
 	"fmt"
 	"gopkg.in/urfave/cli.v2"
 	"gopkg.in/yaml.v2"
-	"log"
-	"os"
 	"path/filepath"
 	"strings"
-	"syscall"
 )
-
-// Wdir returns the name last element of the working directory path
-func (r *Realize) Wdir() string {
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatal(Red(err))
-	}
-	return filepath.Base(dir)
-}
-
-// Flimit defines the max number of watched files
-func (r *Realize) Increases() {
-	// increases the files limit
-	var rLimit syscall.Rlimit
-	rLimit.Max = r.Limit
-	rLimit.Cur = r.Limit
-	err := syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit)
-	if err != nil {
-		fmt.Println(Red("Error Setting Rlimit "), err)
-	}
-}
 
 // Watch method adds the given paths on the Watcher
 func (h *Blueprint) Run() error {

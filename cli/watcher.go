@@ -216,7 +216,7 @@ func (p *Project) walks(watcher *fsnotify.Watcher) error {
 
 	if p.Path == "." || p.Path == "/" {
 		p.base = wd
-		p.Path = App.Wdir()
+		p.Path = Wdir()
 	} else if filepath.IsAbs(p.Path) {
 		p.base = p.Path
 	} else {

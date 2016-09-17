@@ -7,8 +7,6 @@ import (
 	"time"
 )
 
-var App Realize
-
 var wg sync.WaitGroup
 
 // Green, Red Bold, Red, Blue, Blue Bold, Yellow, Yellow Bold, Magenta, Magenta Bold colors
@@ -21,14 +19,6 @@ var Green, Red, RedS, Blue, BlueS, Yellow, YellowS, Magenta, MagentaS = color.Ne
 	color.New(color.FgYellow).SprintFunc(),
 	color.New(color.FgMagenta, color.Bold).SprintFunc(),
 	color.New(color.FgMagenta).SprintFunc()
-
-// Realize struct contains the general app informations
-type Realize struct {
-	Name, Description, Author, Email string
-	Version                          string
-	Limit                            uint64
-	Blueprint                        Blueprint
-}
 
 // Projects struct contains a projects list
 type Blueprint struct {
@@ -68,3 +58,5 @@ func init() {
 	log.SetFlags(0)
 	log.SetOutput(new(logWriter))
 }
+
+var Bp Blueprint
