@@ -48,12 +48,13 @@ A Go build system with file watchers, output streams and live reload. Run, build
 
     ```
     --name="Project Name"   -> Name, if not specified takes the working directory name
-    --path="server"         -> Base Path, if not specified takes the working directory name    
+    --path="server"         -> Custom Path, if not specified takes the working directory name    
     --build                 -> Enables the build   
     --test                  -> Enables the tests   
     --no-bin                -> Disables the installation
     --no-run                -> Disables the run
     --no-fmt                -> Disables the fmt (go fmt)
+    --no-server             -> Disables the web panel (port :5000)
     ```
     Examples:
 
@@ -106,12 +107,14 @@ A Go build system with file watchers, output streams and live reload. Run, build
     The fast command supports the following custom parameters:
 
     ```
+    --path="server"         -> Custom Path, if not specified takes the working directory name 
     --build                 -> Enables the build   
     --test                  -> Enables the tests   
+    --config                -> Take the defined settings if exist a config file  
     --no-bin                -> Disables the installation
     --no-run                -> Disables the run
     --no-fmt                -> Disables the fmt (go fmt)
-    --config                -> Take the defined settings if exist a config file  
+    --no-server             -> Disables the web panel (port :5000)
     ```  
 
     The "fast" command supports addittional arguments as the "add" command.
