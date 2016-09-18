@@ -2,36 +2,17 @@ package main
 
 import (
 	a "github.com/tockins/realize/app"
-	c "github.com/tockins/realize/cli"
-	"fmt"
 	"gopkg.in/urfave/cli.v2"
-	"log"
 	"os"
 )
 
-var App *a.Realize
+var app a.Realizer
 
 func main() {
-	App = &a.R
-	handle := func(err error) error {
-		if err != nil {
-			fmt.Println(c.Red(err.Error()))
-			return nil
-		}
-		return nil
-	}
-	header := func() error {
-		fmt.Println(c.Blue(App.Name) + " - " + c.Blue(App.Version))
-		fmt.Println(c.BlueS(App.Description) + "\n")
-		gopath := os.Getenv("GOPATH")
-		if gopath == "" {
-			log.Fatal(c.Red("$GOPATH isn't set up properly"))
-		}
-		return nil
-	}
+	app = a.R
 	c := &cli.App{
-		Name:    App.Name,
-		Version: App.Version,
+		Name:    a.Name,
+		Version: a.Version,
 		Authors: []*cli.Author{
 			{
 				Name:  "Alessio Pracchia",
@@ -42,17 +23,19 @@ func main() {
 				Email: "conventi@hastega.it",
 			},
 		},
-		Usage: App.Description,
+		Usage: a.Description,
 		Commands: []*cli.Command{
 			{
 				Name:  "run",
 				Usage: "Build and watch file changes",
+				Flags: []cli.Flag{
+					&cli.BoolFlag{Name: "no-server", Usage: "Enable the web panel"},
+				},
 				Action: func(p *cli.Context) error {
-					return handle(App.Blueprint.Run())
+					return app.Handle(app.Run(p))
 				},
 				Before: func(c *cli.Context) error {
-					header()
-					return nil
+					return app.Before()
 				},
 			},
 			{
@@ -64,17 +47,15 @@ func main() {
 					&cli.BoolFlag{Name: "no-run", Usage: "Disables the run"},
 					&cli.BoolFlag{Name: "no-bin", Usage: "Disables the installation"},
 					&cli.BoolFlag{Name: "no-fmt", Usage: "Disables the fmt (go fmt)"},
-					&cli.BoolFlag{Name: "test", Value: false, Usage: "Enable the tests"},
-					&cli.BoolFlag{Name: "Configuration", Value: false, Usage: "Take the defined settings if exist a Configuration file."},
+					&cli.BoolFlag{Name: "no-server", Usage: "Disables the web panel"},
+					&cli.BoolFlag{Name: "test", Value: false, Usage: "Enables the tests"},
+					&cli.BoolFlag{Name: "config", Value: false, Usage: "Take the defined settings if exist a Configuration file."},
 				},
 				Action: func(p *cli.Context) error {
-					App.Blueprint.Add(p)
-					App.Server.Start()
-					return handle(App.Blueprint.Fast(p))
+					return app.Handle(app.Fast(p))
 				},
 				Before: func(c *cli.Context) error {
-					header()
-					return nil
+					return app.Before()
 				},
 			},
 			{
@@ -83,20 +64,19 @@ func main() {
 				Aliases:  []string{"a"},
 				Usage:    "Add another project",
 				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: c.WorkingDir(), Usage: "Project name"},
+					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: app.Wdir(), Usage: "Project name"},
 					&cli.StringFlag{Name: "path", Aliases: []string{"b"}, Value: "/", Usage: "Project base path"},
 					&cli.BoolFlag{Name: "build", Value: false, Usage: "Enable the build"},
 					&cli.BoolFlag{Name: "no-run", Usage: "Disables the run"},
 					&cli.BoolFlag{Name: "no-bin", Usage: "Disables the installation"},
 					&cli.BoolFlag{Name: "no-fmt", Usage: "Disables the fmt (go fmt)"},
-					&cli.BoolFlag{Name: "test", Value: false, Usage: "Enable the tests"},
+					&cli.BoolFlag{Name: "test", Value: false, Usage: "Enables the tests"},
 				},
 				Action: func(p *cli.Context) error {
-					return handle(App.Blueprint.Insert(p))
+					return app.Handle(app.Add(p))
 				},
 				Before: func(c *cli.Context) error {
-					header()
-					return nil
+					return app.Before()
 				},
 			},
 			{
@@ -108,11 +88,10 @@ func main() {
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: ""},
 				},
 				Action: func(p *cli.Context) error {
-					return handle(App.Blueprint.Remove(p))
+					return app.Handle(app.Remove(p))
 				},
 				Before: func(c *cli.Context) error {
-					header()
-					return nil
+					return app.Before()
 				},
 			},
 			{
@@ -121,11 +100,10 @@ func main() {
 				Aliases:  []string{"l"},
 				Usage:    "Projects list",
 				Action: func(p *cli.Context) error {
-					return handle(App.Blueprint.List())
+					return app.Handle(app.List(p))
 				},
 				Before: func(c *cli.Context) error {
-					header()
-					return nil
+					return app.Before()
 				},
 			},
 		},

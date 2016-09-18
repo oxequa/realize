@@ -1,18 +1,15 @@
 package cli
 
 import (
+	"github.com/fatih/color"
 	"log"
 	"sync"
 	"time"
-	"github.com/fatih/color"
 )
-
-var B *Blueprint
 
 var wg sync.WaitGroup
 
-var Green, Red, RedS, Blue, BlueS, Yellow, YellowS, Magenta, MagentaS =
-	color.New(color.FgGreen, color.Bold).SprintFunc(),
+var Green, Red, RedS, Blue, BlueS, Yellow, YellowS, Magenta, MagentaS = color.New(color.FgGreen, color.Bold).SprintFunc(),
 	color.New(color.FgRed, color.Bold).SprintFunc(),
 	color.New(color.FgRed).SprintFunc(),
 	color.New(color.FgBlue, color.Bold).SprintFunc(),
@@ -22,9 +19,12 @@ var Green, Red, RedS, Blue, BlueS, Yellow, YellowS, Magenta, MagentaS =
 	color.New(color.FgMagenta, color.Bold).SprintFunc(),
 	color.New(color.FgMagenta).SprintFunc()
 
+// Log struct
+type logWriter struct{}
+
 // Projects struct contains a projects list
 type Blueprint struct {
-	Projects []Project         `yaml:"Projects,omitempty"`
+	Projects []Project         `yaml:"projects,omitempty"`
 	Files    map[string]string `yaml:"-"`
 }
 
@@ -41,7 +41,8 @@ type Project struct {
 	Test    bool     `yaml:"app_test,omitempty"`
 	Params  []string `yaml:"app_params,omitempty"`
 	Watcher Watcher  `yaml:"app_watcher,omitempty"`
-	Buffer  Buffer
+	Buffer  Buffer   `yaml:"-"`
+	parent  *Blueprint
 }
 
 // Watcher struct defines the livereload's logic

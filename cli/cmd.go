@@ -15,7 +15,8 @@ func (h *Blueprint) Run() error {
 	if err == nil {
 		// loop projects
 		wg.Add(len(h.Projects))
-		for _,v := range h.Projects {
+		for _, v := range h.Projects {
+			v.parent = h
 			go v.watching()
 		}
 		wg.Wait()
@@ -30,10 +31,15 @@ func (h *Blueprint) Fast(params *cli.Context) error {
 	wg.Add(1)
 	for i := 0; i < len(h.Projects); i++ {
 		v := &h.Projects[i]
+		v.parent = h
 		if params.Bool("config") {
 			if err := h.Read(); err == nil {
 				for l := 0; l < len(h.Projects); l++ {
 					l := &h.Projects[l]
+					if l.Path == "/" {
+						l.Path = "."
+						l.parent = v.parent
+					}
 					if v.Path == l.Path {
 						v = l
 					}
@@ -41,7 +47,6 @@ func (h *Blueprint) Fast(params *cli.Context) error {
 			}
 		}
 		go v.watching()
-
 	}
 	wg.Wait()
 	return nil

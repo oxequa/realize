@@ -1,20 +1,21 @@
 package server
 
 import (
-	c "github.com/tockins/realize/cli"
 	"encoding/json"
 	"fmt"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
 	"github.com/labstack/echo/middleware"
+	c "github.com/tockins/realize/cli"
 	"golang.org/x/net/websocket"
 	"log"
 	"net/http"
 )
 
 // Server struct contains server informations
-type Server struct{
+type Server struct {
 	Blueprint *c.Blueprint
+	Files     map[string]string
 }
 
 func render(c echo.Context, path string) error {

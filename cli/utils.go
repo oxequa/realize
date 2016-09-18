@@ -129,9 +129,6 @@ func pname(name string, color int) string {
 	return name
 }
 
-// Log struct
-type logWriter struct{}
-
 // Cewrites the log timestamp
 func (writer logWriter) Write(bytes []byte) (int, error) {
 	return fmt.Print(YellowS("[") + time.Now().Format("15:04:05") + YellowS("]") + string(bytes))

@@ -60,7 +60,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 					log.Println(pname(p.Name, 3), ":", BlueS(output.Text()))
 				}
 				if p.Watcher.Output["file"] {
-					path := filepath.Join(p.base, B.Files["output"])
+					path := filepath.Join(p.base, p.parent.Files["output"])
 					f := create(path)
 					t := time.Now()
 					if _, err := f.WriteString(t.Format("2006-01-02 15:04:05") + " : " + output.Text() + "\r\n"); err != nil {
