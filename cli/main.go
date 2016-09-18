@@ -26,6 +26,7 @@ type logWriter struct{}
 type Blueprint struct {
 	Projects []Project         `yaml:"projects,omitempty"`
 	Files    map[string]string `yaml:"-"`
+	Sync     chan string
 }
 
 // Project defines the informations of a single project

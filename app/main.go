@@ -46,6 +46,7 @@ type realize struct {
 	Blueprint                        c.Blueprint
 	Server                           s.Server
 	Files                            map[string]string
+	Sync                            chan string
 }
 
 // Application initialization
@@ -59,11 +60,16 @@ func init() {
 			"config": Config,
 			"output": Output,
 		},
+		Sync: make(chan string),
 	}
-	r.Blueprint = c.Blueprint{Files: r.Files}
+	r.Blueprint = c.Blueprint{
+		Files: r.Files,
+		Sync: r.Sync,
+	}
 	r.Server = s.Server{
 		Blueprint: &r.Blueprint,
 		Files:     r.Files,
+		Sync:     r.Sync,
 	}
 	r.Increase()
 	R = &r

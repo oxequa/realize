@@ -56,6 +56,8 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 				} else {
 					p.Buffer.StdOut = append(p.Buffer.StdOut, output.Text())
 				}
+				go func() { p.parent.Sync <- "sync" }()
+
 				if p.Watcher.Output["cli"] {
 					log.Println(pname(p.Name, 3), ":", BlueS(output.Text()))
 				}

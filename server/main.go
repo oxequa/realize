@@ -16,6 +16,7 @@ import (
 type Server struct {
 	Blueprint *c.Blueprint
 	Files     map[string]string
+	Sync      chan string
 }
 
 func render(c echo.Context, path string) error {
@@ -35,28 +36,32 @@ func (s *Server) Start() {
 	e := echo.New()
 	e.Use(middleware.Gzip())
 	e.GET("/", func(c echo.Context) error {
-		return c.JSON(200, s.Blueprint)
+		return c.JSON(200, s.Blueprint.Projects)
 		//return render(c, "server/assets/index.html")
 	})
 
-	e.GET("/projects", standard.WrapHandler(projects()))
+	e.GET("/projects", standard.WrapHandler(s.projects()))
 	go e.Run(standard.New(":5000"))
 }
 
 // The WebSocket for projects list
-func projects() websocket.Handler {
+func (s *Server) projects() websocket.Handler {
 	return websocket.Handler(func(ws *websocket.Conn) {
-		for {
-			message, _ := json.Marshal("")
+		msg := func() {
+			fmt.Println("tick")
+			message, _ := json.Marshal(s.Blueprint.Projects)
 			err := websocket.Message.Send(ws, string(message))
-			fmt.Println("")
 			if err != nil {
 				log.Fatal(err)
 			}
-			msg := ""
-			err = websocket.Message.Receive(ws, &msg)
-			if err != nil {
-				log.Fatal(err)
+		}
+		msg()
+		for {
+			select {
+			default:
+				continue
+			case <-s.Sync:
+				msg()
 			}
 		}
 	})
