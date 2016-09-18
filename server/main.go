@@ -2,7 +2,6 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
 	"github.com/labstack/echo/middleware"
@@ -48,7 +47,6 @@ func (s *Server) Start() {
 func (s *Server) projects() websocket.Handler {
 	return websocket.Handler(func(ws *websocket.Conn) {
 		msg := func() {
-			fmt.Println("tick")
 			message, _ := json.Marshal(s.Blueprint.Projects)
 			err := websocket.Message.Send(ws, string(message))
 			if err != nil {
