@@ -31,19 +31,19 @@ type Blueprint struct {
 
 // Project defines the informations of a single project
 type Project struct {
-	reload  time.Time
-	base    string
-	Name    string   `yaml:"app_name,omitempty"`
-	Path    string   `yaml:"app_path,omitempty"`
-	Run     bool     `yaml:"app_run,omitempty"`
-	Bin     bool     `yaml:"app_bin,omitempty"`
-	Build   bool     `yaml:"app_build,omitempty"`
-	Fmt     bool     `yaml:"app_fmt,omitempty"`
-	Test    bool     `yaml:"app_test,omitempty"`
-	Params  []string `yaml:"app_params,omitempty"`
-	Watcher Watcher  `yaml:"app_watcher,omitempty"`
-	Buffer  Buffer   `yaml:"-"`
-	parent  *Blueprint
+	LastChangedOn time.Time
+	base          string
+	Name          string   `yaml:"app_name,omitempty"`
+	Path          string   `yaml:"app_path,omitempty"`
+	Run           bool     `yaml:"app_run,omitempty"`
+	Bin           bool     `yaml:"app_bin,omitempty"`
+	Build         bool     `yaml:"app_build,omitempty"`
+	Fmt           bool     `yaml:"app_fmt,omitempty"`
+	Test          bool     `yaml:"app_test,omitempty"`
+	Params        []string `yaml:"app_params,omitempty"`
+	Watcher       Watcher  `yaml:"app_watcher,omitempty"`
+	Buffer        Buffer   `yaml:"-"`
+	parent        *Blueprint
 }
 
 // Watcher struct defines the livereload's logic

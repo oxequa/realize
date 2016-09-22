@@ -16,6 +16,10 @@ import (
 // GoRun  is an implementation of the bin execution
 func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup) error {
 
+	sync := func() {
+		p.parent.Sync <- "sync"
+	}
+
 	var build *exec.Cmd
 	if len(p.Params) != 0 {
 		build = exec.Command(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.Path)), p.Params...)
@@ -25,9 +29,12 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 	build.Dir = p.base
 	defer func() {
 		if err := build.Process.Kill(); err != nil {
+			p.Buffer.StdLog = append(p.Buffer.StdLog, "Failed to stop: "+err.Error())
 			log.Fatal(Red("Failed to stop: "), Red(err))
 		}
+		p.Buffer.StdLog = append(p.Buffer.StdLog, "Ended")
 		log.Println(pname(p.Name, 2), ":", RedS("Ended"))
+		go sync()
 		wr.Done()
 	}()
 
@@ -56,7 +63,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 				} else {
 					p.Buffer.StdOut = append(p.Buffer.StdOut, output.Text())
 				}
-				go func() { p.parent.Sync <- "sync" }()
+				go sync()
 
 				if p.Watcher.Output["cli"] {
 					log.Println(pname(p.Name, 3), ":", BlueS(output.Text()))

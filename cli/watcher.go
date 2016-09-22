@@ -43,13 +43,13 @@ func (p *Project) watching() {
 	}
 
 	go p.routines(channel, &wr)
-	p.reload = time.Now().Truncate(time.Second)
+	p.LastChangedOn = time.Now().Truncate(time.Second)
 
 	// waiting for an event
 	for {
 		select {
 		case event := <-watcher.Events:
-			if time.Now().Truncate(time.Second).After(p.reload) {
+			if time.Now().Truncate(time.Second).After(p.LastChangedOn) {
 				if event.Op&fsnotify.Chmod == fsnotify.Chmod {
 					continue
 				}
@@ -76,7 +76,7 @@ func (p *Project) watching() {
 							log.Fatal(Red(err))
 						} else {
 							go p.routines(channel, &wr)
-							p.reload = time.Now().Truncate(time.Second)
+							p.LastChangedOn = time.Now().Truncate(time.Second)
 						}
 					}
 				}

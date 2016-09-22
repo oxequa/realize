@@ -35,11 +35,9 @@ func (s *Server) Start() {
 	e := echo.New()
 	e.Use(middleware.Gzip())
 	e.GET("/", func(c echo.Context) error {
-		return c.JSON(200, s.Blueprint.Projects)
 		//return render(c, "server/assets/index.html")
 	})
-
-	e.GET("/projects", standard.WrapHandler(s.projects()))
+	e.GET("/", standard.WrapHandler(s.projects()))
 	go e.Run(standard.New(":5000"))
 }
 
