@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"os/exec"
 	"runtime"
@@ -26,6 +27,7 @@ func Open(url string) (io.Writer, error) {
 		cmd := exec.Command(open, url)
 		cmd.Stderr = &stderr
 		if err := cmd.Run(); err != nil {
+			fmt.Println(cmd.Stderr, err)
 			return cmd.Stderr, err
 		}
 	}
