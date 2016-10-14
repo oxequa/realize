@@ -12,7 +12,17 @@
 
 A Go build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths
 
-![Preview](http://i.imgur.com/GV2Yus5.png)
+![Preview](http://i.imgur.com/dJbNZjt.gif)
+
+#### What's new
+
+##### v1.1
+- [ ] Windows support - **Moved to 1.2**
+- [x] Custom paths for the commands fast/add
+- [x] Save output on a file
+- [x] Enable the fields Before/After
+- [x] Web panel (localhost:5000)
+
 
 #### Features
 
@@ -48,29 +58,28 @@ A Go build system with file watchers, output streams and live reload. Run, build
 
     ```
     --name="Project Name"   -> Name, if not specified takes the working directory name
-    --path="server"         -> Base Path, if not specified takes the working directory name    
+    --path="server"         -> Custom Path, if not specified takes the working directory name    
     --build                 -> Enables the build   
-    --test                 -> Enables the tests   
+    --test                  -> Enables the tests  
     --no-bin                -> Disables the installation
     --no-run                -> Disables the run
     --no-fmt                -> Disables the fmt (go fmt)
+    --no-server             -> Disables the web panel (port :5000)
     ```
     Examples:
 
     ```
     $ realize add
-    ```
-    ```
+
     $ realize add --path="mypath"
-    ```   
-    ```
+
     $ realize add --name="My Project" --build
-    ```    
-    ```
+
     $ realize add --name="My Project" --path="/projects/package" --build
-    ```    
-    ```
+
     $ realize add --name="My Project" --path="projects/package" --build --no-run
+    
+    $ realize add --path="/Users/alessio/go/src/github.com/tockins/realize-examples/coin/"
     ```
 
     If you want, you can specify additional arguments for your project.
@@ -108,20 +117,23 @@ A Go build system with file watchers, output streams and live reload. Run, build
     The fast command supports the following custom parameters:
 
     ```
+    --path="server"         -> Custom Path, if not specified takes the working directory name 
     --build                 -> Enables the build   
     --test                  -> Enables the tests   
+    --config                -> Take the defined settings if exist a config file  
     --no-bin                -> Disables the installation
     --no-run                -> Disables the run
     --no-fmt                -> Disables the fmt (go fmt)
-    --config                -> Take the defined settings if exist a config file  
+    --no-server             -> Disables the web panel (port :5000)
     ```  
-
-    The "fast" command supporst addittional arguments as the "add" command.
+    The "fast" command supports addittional arguments as the "add" command.
 
     ```
     $ realize fast --no-run yourParams --yourFlags // correct
 
     $ realize fast yourParams --yourFlags --no-run // wrong
+    
+    $ realize fast --path="/Users/alessio/go/src/github.com/tockins/realize-examples/coin/"
     ```  
 
 
@@ -138,7 +150,6 @@ A Go build system with file watchers, output streams and live reload. Run, build
 - For more examples check [Realize Examples](https://github.com/tockins/realize-examples)
 
      ```
-    version: "1.0"
     projects:
         - app_name: App One     -> name
           app_path: one         -> root path
@@ -159,30 +170,17 @@ A Go build system with file watchers, output streams and live reload. Run, build
             - bin
             exts:               -> file extensions to observe for live reload
             - .go
-        - app_name: App Two     -> another project
-          app_path: two
-          app_run: true
-          app_build: true
-          app_bin: true
-          app_watcher:
-            paths:
-            - /
-            ignore_paths:
-            - vendor
-            - bin
-            exts:
-            - .go
+            output:             -> enable/disable the output destinations 
+                  cli: true         -> cli output
+                  file: true        -> creates an output file inside the project 
+            
     ```                    
 
 #### Next release
 
-##### Milestone 1.1
-- [ ] Testing on windows
-- [ ] Custom paths for the commands fast/add
-- [ ] Save output on a file
-- [ ] Enable the fields Before/After
-- [ ] Web panel - **Maybe**
-
+##### v1.2
+- [ ] Windows support 
+- [ ] Go generate support
 
 #### Contacts
 

@@ -27,6 +27,7 @@ _testmain.go
 .idea
 .DS_Store
 
+server/assets
 docker
 vendor
 bin
