@@ -17,9 +17,6 @@ import (
 
 // Watching method is the main core. It manages the livereload and the watching
 func (p *Project) watching() {
-
-	log.Println(p)
-
 	var wr sync.WaitGroup
 	var watcher *fsnotify.Watcher
 
