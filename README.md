@@ -21,7 +21,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
 - [x] Custom paths for the commands fast/add
 - [x] Save output on a file
 - [x] Before/After fields enabled
-- [x] Web panel (localhost:5000)
+- [x] Web panel in material design (localhost:5000)
 
 
 #### Features
