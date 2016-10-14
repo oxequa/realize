@@ -14,6 +14,16 @@ A Go build system with file watchers, output streams and live reload. Run, build
 
 ![Preview](http://i.imgur.com/dJbNZjt.gif)
 
+#### What's new
+
+##### v1.1
+- [ ] Windows support - **Moved to 1.2**
+- [x] Custom paths for the commands fast/add
+- [x] Save output on a file
+- [x] Enable the fields Before/After
+- [x] Web panel (localhost:5000)
+
+
 #### Features
 
 - Build, Install, Test, Fmt and Run at the same time
@@ -169,15 +179,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
 
 #### Next release
 
-##### Milestone 1.1
-- [ ] Windows support - **Moved to 1.2**
-- [x] Custom paths for the commands fast/add
-- [x] Save output on a file
-- [x] Enable the fields Before/After
-- [x] Web panel
-
-
-##### Milestone 1.2
+##### v1.2
 - [ ] Windows support 
 - [ ] Go generate support 
 
