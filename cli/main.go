@@ -26,12 +26,12 @@ type logWriter struct{}
 type Blueprint struct {
 	Projects []Project         `yaml:"projects,omitempty"`
 	Files    map[string]string `yaml:"-"`
-	Sync     chan string
+	Sync     chan string       `yaml:"-"`
 }
 
 // Project defines the informations of a single project
 type Project struct {
-	LastChangedOn time.Time
+	LastChangedOn time.Time `yaml:"-"`
 	base          string
 	Name          string   `yaml:"app_name,omitempty"`
 	Path          string   `yaml:"app_path,omitempty"`
@@ -60,9 +60,14 @@ type Watcher struct {
 
 // Buffer struct for buffering outputs
 type Buffer struct {
-	StdOut []string
-	StdLog []string
-	StdErr []string
+	StdOut []BufferOut
+	StdLog []BufferOut
+	StdErr []BufferOut
+}
+
+type BufferOut struct {
+	Time time.Time
+	Text string
 }
 
 // Initialize the application

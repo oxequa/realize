@@ -29,10 +29,10 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 	build.Dir = p.base
 	defer func() {
 		if err := build.Process.Kill(); err != nil {
-			p.Buffer.StdLog = append(p.Buffer.StdLog, "Failed to stop: "+err.Error())
+			p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Failed to stop: " + err.Error()})
 			log.Fatal(Red("Failed to stop: "), Red(err))
 		}
-		p.Buffer.StdLog = append(p.Buffer.StdLog, "Ended")
+		p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Ended"})
 		log.Println(pname(p.Name, 2), ":", RedS("Ended"))
 		go sync()
 		wr.Done()
@@ -59,9 +59,9 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 			select {
 			default:
 				if isError {
-					p.Buffer.StdErr = append(p.Buffer.StdErr, output.Text())
+					p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: output.Text()})
 				} else {
-					p.Buffer.StdOut = append(p.Buffer.StdOut, output.Text())
+					p.Buffer.StdOut = append(p.Buffer.StdOut, BufferOut{Time: time.Now(), Text: output.Text()})
 				}
 				go sync()
 
@@ -80,6 +80,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 		}
 		close(stop)
 	}
+	p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Started"})
 	go scanner(stopOutput, execOutput, false)
 	go scanner(stopError, execError, true)
 
