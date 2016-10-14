@@ -20,7 +20,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
 - [ ] Windows support - **Moved to 1.2**
 - [x] Custom paths for the commands fast/add
 - [x] Save output on a file
-- [x] Enable the fields Before/After
+- [x] Before/After fields enabled
 - [x] Web panel (localhost:5000)
 
 
