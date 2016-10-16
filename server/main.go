@@ -79,6 +79,7 @@ func (s *Server) Start() {
 	})
 
 	//websocket
+	//e.GET("/ws", standard.WrapHandler(s.projects()))
 	e.GET("/ws", standard.WrapHandler(s.projects()))
 	go e.Run(standard.New(":5000"))
 	Open("http://localhost:5000")
@@ -98,8 +99,6 @@ func (s *Server) projects() websocket.Handler {
 		msg()
 		for {
 			select {
-			default:
-				continue
 			case <-s.Sync:
 				msg()
 			}
