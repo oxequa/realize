@@ -63,6 +63,8 @@ func (p *Project) watching() {
 
 					i := strings.Index(event.Name, filepath.Ext(event.Name))
 					if event.Name[:i] != "" && inArray(ext, p.Watcher.Exts) {
+						p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: event.Name[:i] + ext + " changed"})
+						p.parent.Sync <- "sync"
 						fmt.Println(pname(p.Name, 4), Magenta(strings.ToUpper(ext[1:])+" changed"), Magenta(event.Name[:i]+ext))
 						// stop and run again
 						if p.Run {
