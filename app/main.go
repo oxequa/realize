@@ -105,6 +105,7 @@ func (r *realize) Wdir() string {
 
 func (r *realize) Serve(p *cli.Context) {
 	if !p.Bool("no-server") {
+		r.Server.Open = p.Bool("open")
 		r.Server.Start()
 	}
 }

@@ -30,6 +30,7 @@ func main() {
 				Usage: "Build and watch file changes",
 				Flags: []cli.Flag{
 					&cli.BoolFlag{Name: "no-server", Usage: "Enable the web panel"},
+					&cli.BoolFlag{Name: "open", Usage: "Automatically opens the web panel"},
 				},
 				Action: func(p *cli.Context) error {
 					return app.Handle(app.Run(p))
@@ -48,6 +49,7 @@ func main() {
 					&cli.BoolFlag{Name: "no-bin", Usage: "Disables the installation"},
 					&cli.BoolFlag{Name: "no-fmt", Usage: "Disables the fmt (go fmt)"},
 					&cli.BoolFlag{Name: "no-server", Usage: "Disables the web panel"},
+					&cli.BoolFlag{Name: "open", Usage: "Automatically opens the web panel"},
 					&cli.BoolFlag{Name: "test", Value: false, Usage: "Enables the tests"},
 					&cli.BoolFlag{Name: "config", Value: false, Usage: "Take the defined settings if exist a Configuration file."},
 				},
