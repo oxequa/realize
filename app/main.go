@@ -17,6 +17,7 @@ const (
 	Limit       = 10000
 	Config      = "r.config.yaml"
 	Output      = "r.output.log"
+	Host        = "Web server listening on localhost:5000"
 )
 
 var r realize
@@ -25,28 +26,28 @@ var R Realizer
 // Realizer interface for wrap the cli, app and server functions
 type Realizer interface {
 	Wdir() string
-	Before() error
 	Red(string) string
 	Blue(string) string
 	BlueS(string) string
 	Handle(error) error
 	Serve(*cli.Context)
+	Before(*cli.Context) error
 	Fast(*cli.Context) error
-	Run(p *cli.Context) error
-	Add(p *cli.Context) error
-	Remove(p *cli.Context) error
-	List(p *cli.Context) error
+	Run(*cli.Context) error
+	Add(*cli.Context) error
+	Remove(*cli.Context) error
+	List(*cli.Context) error
 }
 
 // Realize struct contains the general app informations
 type realize struct {
-	Name, Description, Author, Email string
-	Version                          string
-	Limit                            uint64
-	Blueprint                        c.Blueprint
-	Server                           s.Server
-	Files                            map[string]string
-	Sync                             chan string
+	Name, Description, Author, Email, Host string
+	Version                                string
+	Limit                                  uint64
+	Blueprint                              c.Blueprint
+	Server                                 s.Server
+	Files                                  map[string]string
+	Sync                                   chan string
 }
 
 // Application initialization
@@ -55,6 +56,7 @@ func init() {
 		Name:        Name,
 		Version:     Version,
 		Description: Description,
+		Host:        Host,
 		Limit:       Limit,
 		Files: map[string]string{
 			"config": Config,
@@ -133,9 +135,14 @@ func (r *realize) List(p *cli.Context) error {
 	return r.Blueprint.List()
 }
 
-func (r *realize) Before() error {
+func (r *realize) Before(p *cli.Context) error {
 	fmt.Println(r.Blue(r.Name) + " - " + r.Blue(r.Version))
-	fmt.Println(r.BlueS(r.Description) + "\n")
+	if !p.Bool("no-server") {
+		fmt.Println(r.BlueS(r.Description))
+		fmt.Println(r.Red(r.Host) + "\n")
+	} else {
+		fmt.Println(r.BlueS(r.Description) + "\n")
+	}
 	gopath := os.Getenv("GOPATH")
 	if gopath == "" {
 		log.Fatal(r.Red("$GOPATH isn't set up properly"))

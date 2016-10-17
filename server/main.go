@@ -16,7 +16,7 @@ type Server struct {
 	Blueprint *c.Blueprint
 	Files     map[string]string
 	Sync      chan string
-	Open 	  bool
+	Open      bool
 }
 
 func render(c echo.Context, path string, mime int) error {
@@ -83,7 +83,7 @@ func (s *Server) Start() {
 	//e.GET("/ws", standard.WrapHandler(s.projects()))
 	e.GET("/ws", standard.WrapHandler(s.projects()))
 	go e.Run(standard.New(":5000"))
-	if(s.Open) {
+	if s.Open {
 		Open("http://localhost:5000")
 	}
 }

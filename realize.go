@@ -36,7 +36,7 @@ func main() {
 					return app.Handle(app.Run(p))
 				},
 				Before: func(c *cli.Context) error {
-					return app.Before()
+					return app.Before(c)
 				},
 			},
 			{
@@ -57,7 +57,7 @@ func main() {
 					return app.Handle(app.Fast(p))
 				},
 				Before: func(c *cli.Context) error {
-					return app.Before()
+					return app.Before(c)
 				},
 			},
 			{
@@ -78,7 +78,7 @@ func main() {
 					return app.Handle(app.Add(p))
 				},
 				Before: func(c *cli.Context) error {
-					return app.Before()
+					return app.Before(c)
 				},
 			},
 			{
@@ -93,7 +93,7 @@ func main() {
 					return app.Handle(app.Remove(p))
 				},
 				Before: func(c *cli.Context) error {
-					return app.Before()
+					return app.Before(c)
 				},
 			},
 			{
@@ -105,7 +105,7 @@ func main() {
 					return app.Handle(app.List(p))
 				},
 				Before: func(c *cli.Context) error {
-					return app.Before()
+					return app.Before(c)
 				},
 			},
 		},
