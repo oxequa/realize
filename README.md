@@ -65,6 +65,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
     --no-run                -> Disables the run
     --no-fmt                -> Disables the fmt (go fmt)
     --no-server             -> Disables the web panel (port :5000)
+    --open                  -> Open the web panel in a new browser window
     ```
     Examples:
 
@@ -125,6 +126,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
     --no-run                -> Disables the run
     --no-fmt                -> Disables the fmt (go fmt)
     --no-server             -> Disables the web panel (port :5000)
+    --open                  -> Open the web panel in a new browser window 
     ```  
     The "fast" command supports addittional arguments as the "add" command.
 
@@ -181,6 +183,8 @@ A Go build system with file watchers, output streams and live reload. Run, build
 ##### v1.2
 - [ ] Windows support 
 - [ ] Go generate support
+- [ ] Web panel - watched file
+- [ ] Web panel - edit settings
 
 #### Contacts
 
