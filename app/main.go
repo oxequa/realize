@@ -83,7 +83,7 @@ func (r *realize) Increase() {
 	rLimit.Cur = r.Limit
 	err := syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit)
 	if err != nil {
-		fmt.Println(c.Red("Error Setting Rlimit "), err)
+		log.Fatal(c.Red("Error Setting Rlimit "), err)
 	}
 }
 
