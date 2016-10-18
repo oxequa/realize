@@ -20,6 +20,10 @@ func (p *Project) watching() {
 	var wr sync.WaitGroup
 	var watcher *fsnotify.Watcher
 
+	sync := func() {
+		p.parent.Sync <- "sync"
+	}
+
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Println(strings.ToUpper(pname(p.Name, 1)), ":", Red(err.Error()))
@@ -64,7 +68,7 @@ func (p *Project) watching() {
 					i := strings.Index(event.Name, filepath.Ext(event.Name))
 					if event.Name[:i] != "" && inArray(ext, p.Watcher.Exts) {
 						p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: strings.ToUpper(ext[1:]) + " changed " + event.Name[:i] + ext})
-						p.parent.Sync <- "sync"
+						go sync()
 						fmt.Println(pname(p.Name, 4), Magenta(strings.ToUpper(ext[1:])+" changed"), Magenta(event.Name[:i]+ext))
 						// stop and run again
 						if p.Run {

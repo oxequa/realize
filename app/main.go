@@ -107,6 +107,7 @@ func (r *realize) Wdir() string {
 
 func (r *realize) Serve(p *cli.Context) {
 	if !p.Bool("no-server") {
+		fmt.Println(r.Red(r.Host) + "\n")
 		r.Server.Open = p.Bool("open")
 		r.Server.Start()
 	}
@@ -137,12 +138,7 @@ func (r *realize) List(p *cli.Context) error {
 
 func (r *realize) Before(p *cli.Context) error {
 	fmt.Println(r.Blue(r.Name) + " - " + r.Blue(r.Version))
-	if !p.Bool("no-server") {
-		fmt.Println(r.BlueS(r.Description))
-		fmt.Println(r.Red(r.Host) + "\n")
-	} else {
-		fmt.Println(r.BlueS(r.Description) + "\n")
-	}
+	fmt.Println(r.BlueS(r.Description) + "\n")
 	gopath := os.Getenv("GOPATH")
 	if gopath == "" {
 		log.Fatal(r.Red("$GOPATH isn't set up properly"))
