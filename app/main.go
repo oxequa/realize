@@ -25,7 +25,7 @@ var R Realize
 
 // Realize struct contains the general app informations
 type Realize struct {
-	c.Utils
+	c.Config
 	Name, Description, Author, Email, Host string
 	Version                                string
 	Limit                                  uint64
@@ -50,9 +50,9 @@ func init() {
 		Sync: make(chan string),
 	}
 	R.Blueprint = w.Blueprint{
-		Utils: R.Utils,
-		Files: R.Files,
-		Sync:  R.Sync,
+		Config: R.Config,
+		Files:  R.Files,
+		Sync:   R.Sync,
 	}
 	R.Server = s.Server{
 		Blueprint: &R.Blueprint,

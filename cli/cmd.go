@@ -55,6 +55,7 @@ func (h *Blueprint) Fast(params *cli.Context) error {
 // Add a new project
 func (h *Blueprint) Add(params *cli.Context) error {
 	p := Project{
+		Name:   h.name(params),
 		Path:   filepath.Clean(params.String("path")),
 		Build:  params.Bool("build"),
 		Bin:    boolFlag(params.Bool("no-bin")),
@@ -72,7 +73,6 @@ func (h *Blueprint) Add(params *cli.Context) error {
 			},
 		},
 	}
-	p.Name = p.nameFlag(params)
 	if _, err := duplicates(p, h.Projects); err != nil {
 		return err
 	}
@@ -93,7 +93,7 @@ func (h *Blueprint) Clean() {
 
 // Read, Check and remove duplicates from the config file
 func (h *Blueprint) Read() error {
-	content, err := read(h.Files["config"])
+	content, err := h.Stream(h.Files["config"])
 	if err == nil {
 		err = yaml.Unmarshal(content, h)
 		if err == nil {
@@ -114,7 +114,7 @@ func (h *Blueprint) Create() error {
 	if err != nil {
 		return err
 	}
-	return write(h.Files["config"], y)
+	return h.Write(h.Files["config"], y)
 }
 
 // Inserts a new project in the list
@@ -177,4 +177,17 @@ func (h *Blueprint) List() error {
 		}
 	}
 	return err
+}
+
+// NameParam check the project name presence. If empty takes the working directory name
+func (p *Blueprint) name(params *cli.Context) string {
+	var name string
+	if params.String("name") == "" && params.String("path") == "" {
+		return p.Wdir()
+	} else if params.String("path") != "/" {
+		name = filepath.Base(params.String("path"))
+	} else {
+		name = params.String("name")
+	}
+	return name
 }

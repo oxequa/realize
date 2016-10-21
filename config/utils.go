@@ -6,17 +6,22 @@ import (
 	"path/filepath"
 )
 
-type Utils struct{}
-
-func (u *Utils) Wdir() string {
+func (c *Config) Wdir() string {
 	dir, err := os.Getwd()
-	u.Validate(err)
+	c.Validate(err)
 	return filepath.Base(dir)
 }
 
-func (u *Utils) Validate(err error) error {
+func (c *Config) Validate(err error) error {
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(Red(err))
 	}
 	return nil
+}
+
+func (c *Config) Fatal(msg string, err error){
+	if(msg != "") {
+		log.Fatal(Red(msg), err.Error())
+	}
+	log.Fatal(err.Error())
 }

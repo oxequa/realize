@@ -25,7 +25,7 @@ type logWriter struct{}
 
 // Projects struct contains a projects list
 type Blueprint struct {
-	c.Utils
+	c.Config
 	Projects []Project         `yaml:"projects,omitempty"`
 	Files    map[string]string `yaml:"-"`
 	Sync     chan string       `yaml:"-"`
@@ -33,7 +33,7 @@ type Blueprint struct {
 
 // Project defines the informations of a single project
 type Project struct {
-	c.Utils
+	c.Config
 	LastChangedOn time.Time `yaml:"-"`
 	base          string
 	Name          string   `yaml:"app_name,omitempty"`

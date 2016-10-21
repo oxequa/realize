@@ -30,7 +30,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 	defer func() {
 		if err := build.Process.Kill(); err != nil {
 			p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Failed to stop: " + err.Error()})
-			log.Fatal(Red("Failed to stop: "), Red(err))
+			p.Fatal("Failed to stop:", err)
 		}
 		p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Ended"})
 		log.Println(pname(p.Name, 2), ":", RedS("Ended"))
@@ -70,10 +70,10 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 				}
 				if p.Watcher.Output["file"] {
 					path := filepath.Join(p.base, p.parent.Files["output"])
-					f := create(path)
+					f := p.Create(path)
 					t := time.Now()
 					if _, err := f.WriteString(t.Format("2006-01-02 15:04:05") + " : " + output.Text() + "\r\n"); err != nil {
-						log.Fatal(err)
+						p.Fatal("", err)
 					}
 				}
 			}

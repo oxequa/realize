@@ -4,45 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"gopkg.in/urfave/cli.v2"
-	"io/ioutil"
-	"log"
-	"os"
-	"path/filepath"
 	"strings"
 	"time"
 )
-
-// Read a file given a name and return its byte stream
-func read(file string) ([]byte, error) {
-	_, err := os.Stat(file)
-	if err == nil {
-		content, err := ioutil.ReadFile(file)
-		if err != nil {
-			return nil, err
-		}
-		return content, err
-	}
-	return nil, err
-}
-
-// Write a file given a name and a byte stream
-func write(name string, data []byte) error {
-	err := ioutil.WriteFile(name, data, 0655)
-	if err != nil {
-		log.Fatal(Red(err))
-		return err
-	}
-	return nil
-}
-
-// Create a new file and return its pointer
-func create(file string) *os.File {
-	out, err := os.OpenFile(file, os.O_APPEND|os.O_WRONLY|os.O_CREATE|os.O_SYNC, 0655)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return out
-}
 
 // argsParam parse one by one the given argumentes
 func argsParam(params *cli.Context) []string {
@@ -55,19 +19,6 @@ func argsParam(params *cli.Context) []string {
 		return args
 	}
 	return nil
-}
-
-// NameParam check the project name presence. If empty takes the working directory name
-func (p *Project) nameFlag(params *cli.Context) string {
-	var name string
-	if params.String("name") == "" && params.String("path") == "" {
-		return p.Wdir()
-	} else if params.String("path") != "/" {
-		name = filepath.Base(params.String("path"))
-	} else {
-		name = params.String("name")
-	}
-	return name
 }
 
 // BoolParam is used to check the presence of a bool flag

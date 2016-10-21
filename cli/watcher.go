@@ -78,7 +78,7 @@ func (p *Project) watching() {
 
 						err := p.fmt(event.Name[:i] + ext)
 						if err != nil {
-							log.Fatal(Red(err))
+							p.Fatal("", err)
 						} else {
 							go p.routines(channel, &wr)
 							p.LastChangedOn = time.Now().Truncate(time.Second)
