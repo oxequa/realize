@@ -6,10 +6,9 @@ import (
 	"os"
 )
 
-var app a.Realizer
+var app a.Realize
 
 func main() {
-	app = a.R
 	c := &cli.App{
 		Name:    a.Name,
 		Version: a.Version,
@@ -66,7 +65,7 @@ func main() {
 				Aliases:  []string{"a"},
 				Usage:    "Add another project",
 				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: app.Wdir(), Usage: "Project name"},
+					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: app.Dir(), Usage: "Project name"},
 					&cli.StringFlag{Name: "path", Aliases: []string{"b"}, Value: "/", Usage: "Project base path"},
 					&cli.BoolFlag{Name: "build", Value: false, Usage: "Enable the build"},
 					&cli.BoolFlag{Name: "no-run", Usage: "Disables the run"},

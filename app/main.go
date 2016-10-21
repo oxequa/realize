@@ -2,7 +2,8 @@ package app
 
 import (
 	"fmt"
-	c "github.com/tockins/realize/cli"
+	w "github.com/tockins/realize/cli"
+	c "github.com/tockins/realize/config"
 	s "github.com/tockins/realize/server"
 	"gopkg.in/urfave/cli.v2"
 	"log"
@@ -15,36 +16,19 @@ const (
 	Version     = "1.1"
 	Description = "A Go build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths"
 	Limit       = 10000
-	Config      = "r.config.yaml"
-	Output      = "r.output.log"
+	Config      = "R.config.yaml"
+	Output      = "R.output.log"
 	Host        = "Web server listening on localhost:5000"
 )
 
-var r realize
-var R Realizer
-
-// Realizer interface for wrap the cli, app and server functions
-type Realizer interface {
-	Wdir() string
-	Red(string) string
-	Blue(string) string
-	BlueS(string) string
-	Handle(error) error
-	Serve(*cli.Context)
-	Before(*cli.Context) error
-	Fast(*cli.Context) error
-	Run(*cli.Context) error
-	Add(*cli.Context) error
-	Remove(*cli.Context) error
-	List(*cli.Context) error
-}
+var R Realize
 
 // Realize struct contains the general app informations
-type realize struct {
+type Realize struct {
 	Name, Description, Author, Email, Host string
 	Version                                string
 	Limit                                  uint64
-	Blueprint                              c.Blueprint
+	Blueprint                              w.Blueprint
 	Server                                 s.Server
 	Files                                  map[string]string
 	Sync                                   chan string
@@ -52,7 +36,7 @@ type realize struct {
 
 // Application initialization
 func init() {
-	r = realize{
+	R = Realize{
 		Name:        Name,
 		Version:     Version,
 		Description: Description,
@@ -64,91 +48,89 @@ func init() {
 		},
 		Sync: make(chan string),
 	}
-	r.Blueprint = c.Blueprint{
-		Files: r.Files,
-		Sync:  r.Sync,
+	R.Blueprint = w.Blueprint{
+		Files: R.Files,
+		Sync:  R.Sync,
 	}
-	r.Server = s.Server{
-		Blueprint: &r.Blueprint,
-		Files:     r.Files,
-		Sync:      r.Sync,
+	R.Server = s.Server{
+		Blueprint: &R.Blueprint,
+		Files:     R.Files,
+		Sync:      R.Sync,
 	}
-	r.Increase()
-	R = &r
+	R.limit()
 }
 
 // Flimit defines the max number of watched files
-func (r *realize) Increase() {
-	// increases the files limit
+func (r *Realize) limit() {
 	var rLimit syscall.Rlimit
-	rLimit.Max = r.Limit
-	rLimit.Cur = r.Limit
+	rLimit.Max = R.Limit
+	rLimit.Cur = R.Limit
 	err := syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit)
 	if err != nil {
-		log.Fatal(c.Red("Error Setting Rlimit "), err)
+		log.Fatal(w.Red("Error Setting Rlimit "), err)
 	}
 }
 
-func (r *realize) Red(s string) string {
-	return c.Red(s)
+func (r *Realize) Red(s string) string {
+	return w.Red(s)
 }
 
-func (r *realize) Blue(s string) string {
-	return c.Blue(s)
+func (r *Realize) Blue(s string) string {
+	return w.Blue(s)
 }
 
-func (r *realize) BlueS(s string) string {
-	return c.BlueS(s)
+func (r *Realize) BlueS(s string) string {
+	return w.BlueS(s)
 }
 
-func (r *realize) Wdir() string {
-	return c.WorkingDir()
+func (r *Realize) Dir() string {
+	return c.Wdir()
 }
 
-func (r *realize) Serve(p *cli.Context) {
+func (r *Realize) Serve(p *cli.Context) {
 	if !p.Bool("no-server") {
-		fmt.Println(r.Red(r.Host) + "\n")
-		r.Server.Open = p.Bool("open")
-		r.Server.Start()
+		fmt.Println(R.Red(R.Host) + "\n")
+		R.Server.Open = p.Bool("open")
+		R.Server.Start()
 	}
 }
 
-func (r *realize) Run(p *cli.Context) error {
-	r.Serve(p)
-	return r.Blueprint.Run()
+func (r *Realize) Run(p *cli.Context) error {
+	R.Serve(p)
+	return R.Blueprint.Run()
 }
 
-func (r *realize) Fast(p *cli.Context) error {
-	r.Blueprint.Add(p)
-	r.Serve(p)
-	return r.Blueprint.Fast(p)
+func (r *Realize) Fast(p *cli.Context) error {
+	R.Blueprint.Add(p)
+	R.Serve(p)
+	return R.Blueprint.Fast(p)
 }
 
-func (r *realize) Add(p *cli.Context) error {
-	return r.Blueprint.Insert(p)
+func (r *Realize) Add(p *cli.Context) error {
+	return R.Blueprint.Insert(p)
 }
 
-func (r *realize) Remove(p *cli.Context) error {
-	return r.Blueprint.Insert(p)
+func (r *Realize) Remove(p *cli.Context) error {
+	return R.Blueprint.Insert(p)
 }
 
-func (r *realize) List(p *cli.Context) error {
-	return r.Blueprint.List()
+func (r *Realize) List(p *cli.Context) error {
+	return R.Blueprint.List()
 }
 
-func (r *realize) Before(p *cli.Context) error {
-	fmt.Println(r.Blue(r.Name) + " - " + r.Blue(r.Version))
-	fmt.Println(r.BlueS(r.Description) + "\n")
+func (r *Realize) Before(p *cli.Context) error {
+	fmt.Println(R.Blue(R.Name) + " - " + R.Blue(R.Version))
+	fmt.Println(R.BlueS(R.Description) + "\n")
 	gopath := os.Getenv("GOPATH")
 	if gopath == "" {
-		log.Fatal(r.Red("$GOPATH isn't set up properly"))
+		log.Fatal(R.Red("$GOPATH isn't set up properly"))
 	}
 	return nil
 }
 
-func (r *realize) Handle(err error) error {
+func (r *Realize) Handle(err error) error {
 	if err != nil {
-		fmt.Println(r.Red(err.Error()))
+		fmt.Println(R.Red(err.Error()))
 		return nil
 	}
 	return nil
