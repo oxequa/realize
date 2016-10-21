@@ -8,13 +8,13 @@ import (
 
 type Utils struct{}
 
-func Wdir() string {
+func (u *Utils) Wdir() string {
 	dir, err := os.Getwd()
-	Validate(err)
+	u.Validate(err)
 	return filepath.Base(dir)
 }
 
-func Validate(err error) error {
+func (u *Utils) Validate(err error) error {
 	if err != nil {
 		log.Fatal(err)
 	}

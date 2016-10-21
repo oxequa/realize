@@ -12,15 +12,6 @@ import (
 	"time"
 )
 
-// WorkingDir returns the name last element of the working directory path
-func WorkingDir() string {
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatal(Red(err))
-	}
-	return filepath.Base(dir)
-}
-
 // Read a file given a name and return its byte stream
 func read(file string) ([]byte, error) {
 	_, err := os.Stat(file)
@@ -67,10 +58,10 @@ func argsParam(params *cli.Context) []string {
 }
 
 // NameParam check the project name presence. If empty takes the working directory name
-func nameFlag(params *cli.Context) string {
+func (p *Project) nameFlag(params *cli.Context) string {
 	var name string
 	if params.String("name") == "" && params.String("path") == "" {
-		return WorkingDir()
+		return p.Wdir()
 	} else if params.String("path") != "/" {
 		name = filepath.Base(params.String("path"))
 	} else {

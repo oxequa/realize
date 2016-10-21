@@ -55,7 +55,6 @@ func (h *Blueprint) Fast(params *cli.Context) error {
 // Add a new project
 func (h *Blueprint) Add(params *cli.Context) error {
 	p := Project{
-		Name:   nameFlag(params),
 		Path:   filepath.Clean(params.String("path")),
 		Build:  params.Bool("build"),
 		Bin:    boolFlag(params.Bool("no-bin")),
@@ -73,6 +72,7 @@ func (h *Blueprint) Add(params *cli.Context) error {
 			},
 		},
 	}
+	p.Name = p.nameFlag(params)
 	if _, err := duplicates(p, h.Projects); err != nil {
 		return err
 	}

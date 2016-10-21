@@ -2,6 +2,7 @@ package cli
 
 import (
 	"github.com/fatih/color"
+	c "github.com/tockins/realize/config"
 	"log"
 	"sync"
 	"time"
@@ -24,6 +25,7 @@ type logWriter struct{}
 
 // Projects struct contains a projects list
 type Blueprint struct {
+	c.Utils
 	Projects []Project         `yaml:"projects,omitempty"`
 	Files    map[string]string `yaml:"-"`
 	Sync     chan string       `yaml:"-"`
@@ -31,6 +33,7 @@ type Blueprint struct {
 
 // Project defines the informations of a single project
 type Project struct {
+	c.Utils
 	LastChangedOn time.Time `yaml:"-"`
 	base          string
 	Name          string   `yaml:"app_name,omitempty"`
