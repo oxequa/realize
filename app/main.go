@@ -2,7 +2,7 @@ package app
 
 import (
 	"fmt"
-	w "github.com/tockins/realize/cli"
+	w "github.com/tockins/realize/watcher"
 	c "github.com/tockins/realize/config"
 	s "github.com/tockins/realize/server"
 	"gopkg.in/urfave/cli.v2"
