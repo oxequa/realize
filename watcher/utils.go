@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"gopkg.in/urfave/cli.v2"
-	"strings"
 	"time"
 )
 
@@ -49,29 +48,7 @@ func inArray(str string, list []string) bool {
 	return false
 }
 
-// Defines the colors scheme for the project name
-func pname(name string, color int) string {
-	switch color {
-	case 1:
-		name = Yellow("[") + strings.ToUpper(name) + Yellow("]")
-		break
-	case 2:
-		name = Yellow("[") + Red(strings.ToUpper(name)) + Yellow("]")
-		break
-	case 3:
-		name = Yellow("[") + Blue(strings.ToUpper(name)) + Yellow("]")
-		break
-	case 4:
-		name = Yellow("[") + Magenta(strings.ToUpper(name)) + Yellow("]")
-		break
-	case 5:
-		name = Yellow("[") + Green(strings.ToUpper(name)) + Yellow("]")
-		break
-	}
-	return name
-}
-
 // Cewrites the log timestamp
-func (writer logWriter) Write(bytes []byte) (int, error) {
-	return fmt.Print(YellowS("[") + time.Now().Format("15:04:05") + YellowS("]") + string(bytes))
+func (w logWriter) Write(bytes []byte) (int, error) {
+	return fmt.Print(w.Yellow.Regular("[") + time.Now().Format("15:04:05") + w.Yellow.Regular("]") + string(bytes))
 }

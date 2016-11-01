@@ -16,15 +16,14 @@ import (
 // GoRun  is an implementation of the bin execution
 func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup) error {
 
+	var build *exec.Cmd
 	sync := func() {
 		p.parent.Sync <- "sync"
 	}
-
-	var build *exec.Cmd
 	if len(p.Params) != 0 {
-		build = exec.Command(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.Path)), p.Params...)
+		build = exec.Command(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.path)), p.Params...)
 	} else {
-		build = exec.Command(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.Path)))
+		build = exec.Command(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.path)))
 	}
 	build.Dir = p.base
 	defer func() {
@@ -33,7 +32,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 			p.Fatal("Failed to stop:", err)
 		}
 		p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Ended"})
-		log.Println(pname(p.Name, 2), ":", RedS("Ended"))
+		log.Println(p.pname(p.Name, 2), ":", p.Red.Regular("Ended"))
 		go sync()
 		wr.Done()
 	}()
@@ -42,11 +41,11 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 	stderr, err := build.StderrPipe()
 
 	if err != nil {
-		log.Println(Red(err.Error()))
+		log.Println(p.Red.Bold(err.Error()))
 		return err
 	}
 	if err := build.Start(); err != nil {
-		log.Println(Red(err.Error()))
+		log.Println(p.Red.Bold(err.Error()))
 		return err
 	}
 	close(runner)
@@ -66,10 +65,10 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 				go sync()
 
 				if p.Watcher.Output["cli"] {
-					log.Println(pname(p.Name, 3), ":", BlueS(output.Text()))
+					log.Println(p.pname(p.Name, 3), ":", p.Blue.Regular(output.Text()))
 				}
 				if p.Watcher.Output["file"] {
-					path := filepath.Join(p.base, p.parent.Files["output"])
+					path := filepath.Join(p.base, p.parent.Resources.Output)
 					f := p.Create(path)
 					t := time.Now()
 					if _, err := f.WriteString(t.Format("2006-01-02 15:04:05") + " : " + output.Text() + "\r\n"); err != nil {

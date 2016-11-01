@@ -1,8 +1,7 @@
 package cli
 
 import (
-	"github.com/fatih/color"
-	c "github.com/tockins/realize/config"
+	c "github.com/tockins/realize/settings"
 	"log"
 	"sync"
 	"time"
@@ -10,43 +9,35 @@ import (
 
 var wg sync.WaitGroup
 
-var Green, Red, RedS, Blue, BlueS, Yellow, YellowS, Magenta, MagentaS = color.New(color.FgGreen, color.Bold).SprintFunc(),
-	color.New(color.FgRed, color.Bold).SprintFunc(),
-	color.New(color.FgRed).SprintFunc(),
-	color.New(color.FgBlue, color.Bold).SprintFunc(),
-	color.New(color.FgBlue).SprintFunc(),
-	color.New(color.FgYellow, color.Bold).SprintFunc(),
-	color.New(color.FgYellow).SprintFunc(),
-	color.New(color.FgMagenta, color.Bold).SprintFunc(),
-	color.New(color.FgMagenta).SprintFunc()
-
 // Log struct
-type logWriter struct{}
+type logWriter struct {
+	c.Colors
+}
 
 // Projects struct contains a projects list
 type Blueprint struct {
-	c.Config
-	Projects []Project         `yaml:"projects,omitempty"`
-	Files    map[string]string `yaml:"-"`
-	Sync     chan string       `yaml:"-"`
+	*c.Settings `yaml:"-"`
+	Projects    []Project   `yaml:"projects,omitempty"`
+	Sync        chan string `yaml:"-"`
 }
 
 // Project defines the informations of a single project
 type Project struct {
-	c.Config
+	c.Settings    `yaml:"-"`
 	LastChangedOn time.Time `yaml:"-"`
 	base          string
-	Name          string   `yaml:"app_name,omitempty"`
-	Path          string   `yaml:"app_path,omitempty"`
-	Run           bool     `yaml:"app_run,omitempty"`
-	Bin           bool     `yaml:"app_bin,omitempty"`
-	Build         bool     `yaml:"app_build,omitempty"`
-	Fmt           bool     `yaml:"app_fmt,omitempty"`
-	Test          bool     `yaml:"app_test,omitempty"`
-	Params        []string `yaml:"app_params,omitempty"`
-	Watcher       Watcher  `yaml:"app_watcher,omitempty"`
+	Name          string   `yaml:"name,omitempty"`
+	Path          string   `yaml:"path,omitempty"`
+	Run           bool     `yaml:"run,omitempty"`
+	Bin           bool     `yaml:"bin,omitempty"`
+	Build         bool     `yaml:"build,omitempty"`
+	Fmt           bool     `yaml:"fmt,omitempty"`
+	Test          bool     `yaml:"test,omitempty"`
+	Params        []string `yaml:"params,omitempty"`
+	Watcher       Watcher  `yaml:"watcher,omitempty"`
 	Buffer        Buffer   `yaml:"-"`
 	parent        *Blueprint
+	path          string
 }
 
 // Watcher struct defines the livereload's logic

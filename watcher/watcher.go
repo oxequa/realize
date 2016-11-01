@@ -19,29 +19,28 @@ import (
 func (p *Project) watching() {
 	var wr sync.WaitGroup
 	var watcher *fsnotify.Watcher
-
 	sync := func() {
 		p.parent.Sync <- "sync"
 	}
-
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		log.Println(strings.ToUpper(pname(p.Name, 1)), ":", Red(err.Error()))
+		log.Println(strings.ToUpper(p.pname(p.Name, 1)), ":", p.Red.Bold(err.Error()))
 	}
 	channel, exit := make(chan bool, 1), make(chan bool, 1)
 	if err != nil {
-		log.Println(pname(p.Name, 1), ":", Red(err.Error()))
+		log.Println(p.pname(p.Name, 1), ":", p.Red.Bold(err.Error()))
 	}
 	end := func() {
 		watcher.Close()
 		wg.Done()
 	}
 	defer end()
+	p.path = p.Path
 
 	p.cmd(exit)
 	err = p.walks(watcher)
 	if err != nil {
-		fmt.Println(pname(p.Name, 1), ":", Red(err.Error()))
+		fmt.Println(p.pname(p.Name, 1), ":", p.Red.Bold(err.Error()))
 		return
 	}
 
@@ -69,7 +68,7 @@ func (p *Project) watching() {
 					if event.Name[:i] != "" && inArray(ext, p.Watcher.Exts) {
 						p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: strings.ToUpper(ext[1:]) + " changed " + event.Name[:i] + ext})
 						go sync()
-						fmt.Println(pname(p.Name, 4), Magenta(strings.ToUpper(ext[1:])+" changed"), Magenta(event.Name[:i]+ext))
+						fmt.Println(p.pname(p.Name, 4), p.Magenta.Bold(strings.ToUpper(ext[1:])+" changed"), p.Magenta.Bold(event.Name[:i]+ext))
 						// stop and run again
 						if p.Run {
 							close(channel)
@@ -87,7 +86,7 @@ func (p *Project) watching() {
 				}
 			}
 		case err := <-watcher.Errors:
-			log.Println(Red(err.Error()))
+			log.Println(p.Red.Bold(err.Error()))
 		case <-exit:
 			return
 		}
@@ -97,22 +96,22 @@ func (p *Project) watching() {
 // Install calls an implementation of the "go install"
 func (p *Project) install(channel chan bool, wr *sync.WaitGroup) {
 	if p.Bin {
-		log.Println(pname(p.Name, 1), ":", "Installing..")
+		log.Println(p.pname(p.Name, 1), ":", "Installing..")
 		start := time.Now()
 		if std, err := p.GoInstall(); err != nil {
-			log.Println(pname(p.Name, 1), ":", fmt.Sprint(Red(err)), std)
+			log.Println(p.pname(p.Name, 1), ":", fmt.Sprint(p.Red.Bold(err)), std)
 			wr.Done()
 		} else {
-			log.Println(pname(p.Name, 5), ":", Green("Installed")+" after", MagentaS(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
+			log.Println(p.pname(p.Name, 5), ":", p.Green.Regular("Installed")+" after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
 			if p.Run {
 				runner := make(chan bool, 1)
-				log.Println(pname(p.Name, 1), ":", "Running..")
+				log.Println(p.pname(p.Name, 1), ":", "Running..")
 				start = time.Now()
 				go p.GoRun(channel, runner, wr)
 				for {
 					select {
 					case <-runner:
-						log.Println(pname(p.Name, 5), ":", Green("Has been run")+" after", MagentaS(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
+						log.Println(p.pname(p.Name, 5), ":", p.Green.Regular("Has been run")+" after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
 						return
 					}
 				}
@@ -125,12 +124,12 @@ func (p *Project) install(channel chan bool, wr *sync.WaitGroup) {
 // Build calls an implementation of the "go build"
 func (p *Project) build() {
 	if p.Build {
-		log.Println(pname(p.Name, 1), ":", "Building..")
+		log.Println(p.pname(p.Name, 1), ":", "Building..")
 		start := time.Now()
 		if std, err := p.GoBuild(); err != nil {
-			log.Println(pname(p.Name, 1), ":", fmt.Sprint(Red(err)), std)
+			log.Println(p.pname(p.Name, 1), ":", fmt.Sprint(p.Red.Bold(err)), std)
 		} else {
-			log.Println(pname(p.Name, 5), ":", Green("Builded")+" after", MagentaS(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
+			log.Println(p.pname(p.Name, 5), ":", p.Green.Regular("Builded")+" after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
 		}
 		return
 	}
@@ -141,7 +140,7 @@ func (p *Project) build() {
 func (p *Project) fmt(path string) error {
 	if p.Fmt {
 		if _, err := p.GoFmt(path); err != nil {
-			log.Println(pname(p.Name, 1), Red("There are some GoFmt errors in "), ":", Magenta(path))
+			log.Println(p.pname(p.Name, 1), p.Red.Bold("There are some GoFmt errors in "), ":", p.Magenta.Bold(path))
 		}
 	}
 	return nil
@@ -154,7 +153,7 @@ func (p *Project) cmd(exit chan bool) {
 	cast := func(commands []string) {
 		if errs := p.Cmd(commands); errs != nil {
 			for _, err := range errs {
-				log.Println(pname(p.Name, 2), Red(err))
+				log.Println(p.pname(p.Name, 2), p.Red.Bold(err))
 			}
 		}
 	}
@@ -180,7 +179,7 @@ func (p *Project) cmd(exit chan bool) {
 func (p *Project) test(path string) error {
 	if p.Test {
 		if _, err := p.GoTest(path); err != nil {
-			log.Println(pname(p.Name, 1), Red("Go Test fails in "), ":", Magenta(path))
+			log.Println(p.pname(p.Name, 1), p.Red.Bold("Go Test fails in "), ":", p.Magenta.Bold(path))
 		}
 	}
 	return nil
@@ -195,7 +194,7 @@ func (p *Project) walks(watcher *fsnotify.Watcher) error {
 		if !p.ignore(path) {
 			if (info.IsDir() && len(filepath.Ext(path)) == 0 && !strings.HasPrefix(path, ".")) && !strings.Contains(path, "/.") || (inArray(filepath.Ext(path), p.Watcher.Exts)) {
 				if p.Watcher.Preview {
-					fmt.Println(pname(p.Name, 1), ":", path)
+					fmt.Println(p.pname(p.Name, 1), ":", path)
 				}
 				if err = watcher.Add(path); err != nil {
 					return filepath.SkipDir
@@ -221,26 +220,26 @@ func (p *Project) walks(watcher *fsnotify.Watcher) error {
 		return nil
 	}
 
-	if p.Path == "." || p.Path == "/" {
+	if p.path == "." || p.path == "/" {
 		p.base = wd
-		p.Path = p.Wdir()
-	} else if filepath.IsAbs(p.Path) {
-		p.base = p.Path
+		p.path = p.Wdir()
+	} else if filepath.IsAbs(p.path) {
+		p.base = p.path
 	} else {
-		p.base = filepath.Join(wd, p.Path)
+		p.base = filepath.Join(wd, p.path)
 	}
 
 	for _, dir := range p.Watcher.Paths {
 		base := filepath.Join(p.base, dir)
 		if _, err := os.Stat(base); err == nil {
 			if err := filepath.Walk(base, walk); err != nil {
-				log.Println(Red(err.Error()))
+				log.Println(p.Red.Bold(err.Error()))
 			}
 		} else {
 			return errors.New(base + " path doesn't exist")
 		}
 	}
-	fmt.Println(pname(p.Name, 1), Red("Watching"), Magenta(files), "file/s", Magenta(folders), "folder/s")
+	fmt.Println(p.pname(p.Name, 1), p.Red.Bold("Watching"), p.Magenta.Bold(files), "file/s", p.Magenta.Bold(folders), "folder/s")
 	return nil
 }
 
@@ -260,4 +259,26 @@ func (p *Project) routines(channel chan bool, wr *sync.WaitGroup) {
 	go p.build()
 	go p.install(channel, wr)
 	wr.Wait()
+}
+
+// Defines the colors scheme for the project name
+func (p *Project) pname(name string, color int) string {
+	switch color {
+	case 1:
+		name = p.Yellow.Regular("[") + strings.ToUpper(name) + p.Yellow.Regular("]")
+		break
+	case 2:
+		name = p.Yellow.Regular("[") + p.Red.Bold(strings.ToUpper(name)) + p.Yellow.Regular("]")
+		break
+	case 3:
+		name = p.Yellow.Regular("[") + p.Blue.Bold(strings.ToUpper(name)) + p.Yellow.Regular("]")
+		break
+	case 4:
+		name = p.Yellow.Regular("[") + p.Magenta.Bold(strings.ToUpper(name)) + p.Yellow.Regular("]")
+		break
+	case 5:
+		name = p.Yellow.Regular("[") + p.Green.Bold(strings.ToUpper(name)) + p.Yellow.Regular("]")
+		break
+	}
+	return name
 }
