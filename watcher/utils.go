@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// argsParam parse one by one the given argumentes
+// Argsparam parse one by one the given argumentes
 func argsParam(params *cli.Context) []string {
 	argsN := params.NArg()
 	if argsN > 0 {
@@ -30,7 +30,7 @@ func duplicates(value Project, arr []Project) (Project, error) {
 	return Project{}, nil
 }
 
-// check if a string is inArray
+// Check if a string is inArray
 func inArray(str string, list []string) bool {
 	for _, v := range list {
 		if v == str {
@@ -40,7 +40,7 @@ func inArray(str string, list []string) bool {
 	return false
 }
 
-// Cewrites the log timestamp
+// Rewrite the layout of the log timestamp
 func (w logWriter) Write(bytes []byte) (int, error) {
 	return fmt.Print(w.Yellow.Regular("[") + time.Now().Format("15:04:05") + w.Yellow.Regular("]") + string(bytes))
 }
