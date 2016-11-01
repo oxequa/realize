@@ -44,9 +44,9 @@ func (h *Blueprint) Add(p *cli.Context) error {
 		Name:   h.name(p),
 		Path:   filepath.Clean(p.String("path")),
 		Build:  p.Bool("build"),
-		Bin:    boolFlag(p.Bool("no-bin")),
-		Run:    boolFlag(p.Bool("no-run")),
-		Fmt:    boolFlag(p.Bool("no-fmt")),
+		Bin:    !p.Bool("no-bin"),
+		Run:    !p.Bool("no-run"),
+		Fmt:    !p.Bool("no-fmt"),
 		Test:   p.Bool("test"),
 		Params: argsParam(p),
 		Watcher: Watcher{

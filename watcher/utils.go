@@ -20,14 +20,6 @@ func argsParam(params *cli.Context) []string {
 	return nil
 }
 
-// BoolParam is used to check the presence of a bool flag
-func boolFlag(b bool) bool {
-	if b {
-		return false
-	}
-	return true
-}
-
 // Duplicates check projects with same name or same combinations of main/path
 func duplicates(value Project, arr []Project) (Project, error) {
 	for _, val := range arr {
