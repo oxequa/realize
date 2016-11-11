@@ -3,7 +3,6 @@ package cli
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -12,6 +11,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"fmt"
 )
 
 // GoRun  is an implementation of the bin execution
@@ -97,6 +97,9 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 
 // GoBuild is an implementation of the "go build"
 func (p *Project) GoBuild() (string, error) {
+	defer func() {
+		p.parent.Sync <- "sync"
+	}()
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	build := exec.Command("go", "build")
@@ -112,6 +115,9 @@ func (p *Project) GoBuild() (string, error) {
 
 // GoInstall is an implementation of the "go install"
 func (p *Project) GoInstall() (string, error) {
+	defer func() {
+		p.parent.Sync <- "sync"
+	}()
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	err := os.Setenv("GOBIN", filepath.Join(os.Getenv("GOPATH"), "bin"))
@@ -132,6 +138,9 @@ func (p *Project) GoInstall() (string, error) {
 
 // GoFmt is an implementation of the gofmt
 func (p *Project) GoFmt(path string) (io.Writer, error) {
+	defer func() {
+		p.parent.Sync <- "sync"
+	}()
 	var out bytes.Buffer
 	build := exec.Command("gofmt", "-s", "-w", "-e", path)
 	build.Dir = p.base
@@ -147,6 +156,9 @@ func (p *Project) GoFmt(path string) (io.Writer, error) {
 
 // GoTest is an implementation of the go test
 func (p *Project) GoTest(path string) (io.Writer, error) {
+	defer func() {
+		p.parent.Sync <- "sync"
+	}()
 	var out bytes.Buffer
 	build := exec.Command("go", "test")
 	build.Dir = path
@@ -161,6 +173,9 @@ func (p *Project) GoTest(path string) (io.Writer, error) {
 
 // GoGenerate is an implementation of the go test
 func (p *Project) GoGenerate(path string) (io.Writer, error) {
+	defer func() {
+		p.parent.Sync <- "sync"
+	}()
 	var out bytes.Buffer
 	build := exec.Command("go", "generate")
 	build.Dir = path
@@ -175,6 +190,9 @@ func (p *Project) GoGenerate(path string) (io.Writer, error) {
 
 // Cmd exec a list of defined commands
 func (p *Project) Cmd(cmds []string) (errors []error) {
+	defer func() {
+		p.parent.Sync <- "sync"
+	}()
 	for _, cmd := range cmds {
 		cmd := strings.Replace(strings.Replace(cmd, "'", "", -1), "\"", "", -1)
 		c := strings.Split(cmd, " ")
