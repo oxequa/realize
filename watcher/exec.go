@@ -3,6 +3,7 @@ package cli
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -63,11 +64,10 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 					p.Buffer.StdOut = append(p.Buffer.StdOut, BufferOut{Time: time.Now(), Text: output.Text()})
 				}
 				go sync()
-
-				if p.Watcher.Output["cli"] {
+				if p.Cli.Streams {
 					log.Println(p.pname(p.Name, 3), ":", p.Blue.Regular(output.Text()))
 				}
-				if p.Watcher.Output["file"] {
+				if p.File.Streams {
 					path := filepath.Join(p.base, p.parent.Resources.Output)
 					f := p.Create(path)
 					t := time.Now()
@@ -104,6 +104,7 @@ func (p *Project) GoBuild() (string, error) {
 	build.Stdout = &out
 	build.Stderr = &stderr
 	if err := build.Run(); err != nil {
+		p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error()})
 		return stderr.String(), err
 	}
 	return "", nil
@@ -115,13 +116,15 @@ func (p *Project) GoInstall() (string, error) {
 	var stderr bytes.Buffer
 	err := os.Setenv("GOBIN", filepath.Join(os.Getenv("GOPATH"), "bin"))
 	if err != nil {
-		return "", nil
+		p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error()})
+		return "", err
 	}
 	build := exec.Command("go", "install")
 	build.Dir = p.base
 	build.Stdout = &out
 	build.Stderr = &stderr
 	if err := build.Run(); err != nil {
+		p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error()})
 		return stderr.String(), err
 	}
 	return "", nil
@@ -135,6 +138,8 @@ func (p *Project) GoFmt(path string) (io.Writer, error) {
 	build.Stdout = &out
 	build.Stderr = &out
 	if err := build.Run(); err != nil {
+		fmt.Print("append")
+		p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error()})
 		return build.Stderr, err
 	}
 	return nil, nil
@@ -148,6 +153,21 @@ func (p *Project) GoTest(path string) (io.Writer, error) {
 	build.Stdout = &out
 	build.Stderr = &out
 	if err := build.Run(); err != nil {
+		p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error()})
+		return build.Stdout, err
+	}
+	return nil, nil
+}
+
+// GoGenerate is an implementation of the go test
+func (p *Project) GoGenerate(path string) (io.Writer, error) {
+	var out bytes.Buffer
+	build := exec.Command("go", "generate")
+	build.Dir = path
+	build.Stdout = &out
+	build.Stderr = &out
+	if err := build.Run(); err != nil {
+		p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error()})
 		return build.Stdout, err
 	}
 	return nil, nil
@@ -161,6 +181,7 @@ func (p *Project) Cmd(cmds []string) (errors []error) {
 		build := exec.Command(c[0], c[1:]...)
 		build.Dir = p.base
 		if err := build.Run(); err != nil {
+			p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error()})
 			errors = append(errors, err)
 		}
 	}
