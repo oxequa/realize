@@ -53,10 +53,14 @@ func (h *Blueprint) Add(p *cli.Context) error {
 			Paths:  []string{"/"},
 			Ignore: []string{"vendor"},
 			Exts:   []string{".go"},
-			Output: map[string]bool{
-				"cli":  true,
-				"file": false,
-			},
+		},
+		Cli: Cli{
+			Streams: true,
+		},
+		File: File{
+			Streams: false,
+			Logs:    false,
+			Errors:  false,
 		},
 	}
 	if _, err := duplicates(project, h.Projects); err != nil {
@@ -106,17 +110,32 @@ func (h *Blueprint) List() error {
 			fmt.Println(h.Magenta.Regular("|"), "\t", h.Yellow.Regular("Install"), ":", h.Magenta.Regular(val.Bin))
 			fmt.Println(h.Magenta.Regular("|"), "\t", h.Yellow.Regular("Fmt"), ":", h.Magenta.Regular(val.Fmt))
 			fmt.Println(h.Magenta.Regular("|"), "\t", h.Yellow.Regular("Test"), ":", h.Magenta.Regular(val.Test))
-			fmt.Println(h.Magenta.Regular("|"), "\t", h.Yellow.Regular("Params"), ":", h.Magenta.Regular(val.Params))
+			if len(val.Params) > 0 {
+				fmt.Println(h.Magenta.Regular("|"), "\t", h.Yellow.Regular("Params"), ":", h.Magenta.Regular(val.Params))
+			}
 			fmt.Println(h.Magenta.Regular("|"), "\t", h.Yellow.Regular("Watcher"), ":")
-			fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("After"), ":", h.Magenta.Regular(val.Watcher.After))
-			fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("Before"), ":", h.Magenta.Regular(val.Watcher.Before))
-			fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("Extensions"), ":", h.Magenta.Regular(val.Watcher.Exts))
-			fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("Paths"), ":", h.Magenta.Regular(val.Watcher.Paths))
-			fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("Paths ignored"), ":", h.Magenta.Regular(val.Watcher.Ignore))
-			fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("Watch preview"), ":", h.Magenta.Regular(val.Watcher.Preview))
-			fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("Output"), ":")
-			fmt.Println(h.Magenta.Regular("|"), "\t\t\t", h.Yellow.Regular("Cli"), ":", h.Magenta.Regular(val.Watcher.Output["cli"]))
-			fmt.Println(h.Magenta.Regular("|"), "\t\t\t", h.Yellow.Regular("File"), ":", h.Magenta.Regular(val.Watcher.Output["file"]))
+			if len(val.Watcher.After) > 0 {
+				fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("After"), ":", h.Magenta.Regular(val.Watcher.After))
+			}
+			if len(val.Watcher.Before) > 0 {
+				fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("Before"), ":", h.Magenta.Regular(val.Watcher.Before))
+			}
+			if len(val.Watcher.Exts) > 0 {
+				fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("Extensions"), ":", h.Magenta.Regular(val.Watcher.Exts))
+			}
+			if len(val.Watcher.Paths) > 0 {
+				fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("Paths"), ":", h.Magenta.Regular(val.Watcher.Paths))
+			}
+			if len(val.Watcher.Ignore) > 0 {
+				fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("Ignored paths"), ":", h.Magenta.Regular(val.Watcher.Ignore))
+			}
+			fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("Files preview"), ":", h.Magenta.Regular(val.Watcher.Preview))
+			fmt.Println(h.Magenta.Regular("|"), "\t", h.Yellow.Regular("Cli"), ":")
+			fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("Streams"), ":", h.Magenta.Regular(val.Cli.Streams))
+			fmt.Println(h.Magenta.Regular("|"), "\t", h.Yellow.Regular("File"), ":")
+			fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("Streams"), ":", h.Magenta.Regular(val.File.Streams))
+			fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("Logs"), ":", h.Magenta.Regular(val.File.Logs))
+			fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("Errors"), ":", h.Magenta.Regular(val.File.Errors))
 		}
 		return nil
 	}
