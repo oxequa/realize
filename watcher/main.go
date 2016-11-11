@@ -26,15 +26,18 @@ type Project struct {
 	c.Settings    `yaml:"-"`
 	LastChangedOn time.Time `yaml:"-"`
 	base          string
-	Name          string   `yaml:"name,omitempty"`
-	Path          string   `yaml:"path,omitempty"`
-	Run           bool     `yaml:"run,omitempty"`
-	Bin           bool     `yaml:"bin,omitempty"`
-	Build         bool     `yaml:"build,omitempty"`
-	Fmt           bool     `yaml:"fmt,omitempty"`
-	Test          bool     `yaml:"test,omitempty"`
-	Params        []string `yaml:"params,omitempty"`
-	Watcher       Watcher  `yaml:"watcher,omitempty"`
+	Name          string   `yaml:"name"`
+	Path          string   `yaml:"path"`
+	Run           bool     `yaml:"run"`
+	Bin           bool     `yaml:"bin"`
+	Generate      bool     `yaml:"generate"`
+	Build         bool     `yaml:"build"`
+	Fmt           bool     `yaml:"fmt"`
+	Test          bool     `yaml:"test"`
+	Params        []string `yaml:"params"`
+	Watcher       Watcher  `yaml:"watcher"`
+	Cli           Cli      `yaml:"cli"`
+	File          File     `yaml:"file"`
 	Buffer        Buffer   `yaml:"-"`
 	parent        *Blueprint
 	path          string
@@ -43,13 +46,22 @@ type Project struct {
 // Watcher struct defines the livereload's logic
 type Watcher struct {
 	// different before and after on re-run?
-	Before  []string        `yaml:"before,omitempty"`
-	After   []string        `yaml:"after,omitempty"`
-	Paths   []string        `yaml:"paths,omitempty"`
-	Ignore  []string        `yaml:"ignore_paths,omitempty"`
-	Exts    []string        `yaml:"exts,omitempty"`
-	Preview bool            `yaml:"preview,omitempty"`
-	Output  map[string]bool `yaml:"output,omitempty"`
+	Before  []string `yaml:"before"`
+	After   []string `yaml:"after"`
+	Paths   []string `yaml:"paths"`
+	Ignore  []string `yaml:"ignore_paths"`
+	Exts    []string `yaml:"exts"`
+	Preview bool     `yaml:"preview"`
+}
+
+type Cli struct {
+	Streams bool `yaml:"streams"`
+}
+
+type File struct {
+	Streams bool `yaml:"streams"`
+	Logs    bool `yaml:"logs"`
+	Errors  bool `yaml:"errors"`
 }
 
 // Buffer struct for buffering outputs
