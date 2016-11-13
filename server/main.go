@@ -3,15 +3,13 @@ package server
 import (
 	"encoding/json"
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine/standard"
 	"github.com/labstack/echo/middleware"
 	c "github.com/tockins/realize/settings"
 	w "github.com/tockins/realize/watcher"
 	"golang.org/x/net/websocket"
-	"log"
+	"gopkg.in/urfave/cli.v2"
 	"net/http"
 	"strconv"
-	"gopkg.in/urfave/cli.v2"
 )
 
 // Server struct contains server informations
@@ -83,9 +81,9 @@ func (s *Server) Start(p *cli.Context) (err error) {
 		})
 
 		//websocket
-		e.GET("/ws", standard.WrapHandler(s.projects()))
+		e.GET("/ws", echo.WrapHandler(s.projects()))
 
-		go e.Run(standard.New(string(s.Settings.Server.Host) + ":" + strconv.Itoa(s.Settings.Server.Port)))
+		go e.Start(string(s.Settings.Server.Host) + ":" + strconv.Itoa(s.Settings.Server.Port))
 		if s.Open || p.Bool("open") {
 			_, err = Open("http://" + string(s.Settings.Server.Host) + ":" + strconv.Itoa(s.Settings.Server.Port))
 			if err != nil {
@@ -100,12 +98,8 @@ func (s *Server) Start(p *cli.Context) (err error) {
 func (s *Server) projects() websocket.Handler {
 	return websocket.Handler(func(ws *websocket.Conn) {
 		msg := func() {
-
 			message, _ := json.Marshal(s.Blueprint.Projects)
-			err := websocket.Message.Send(ws, string(message))
-			if err != nil {
-				log.Fatal(err)
-			}
+			websocket.Message.Send(ws, string(message))
 		}
 		msg()
 		for {
