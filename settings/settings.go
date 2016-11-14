@@ -13,19 +13,20 @@ type Settings struct {
 }
 
 type Config struct {
-	Flimit uint64 `yaml:"flimit,omitempty"`
+	Flimit uint64 `yaml:"flimit"`
 }
 
 type Server struct {
-	Enabled bool   `yaml:"enable,omitempty"`
-	Open    bool   `yaml:"open,omitempty"`
-	Host    string `yaml:"host,omitempty"`
-	Port    int    `yaml:"port,omitempty"`
+	Enabled bool   `yaml:"enable"`
+	Open    bool   `yaml:"open"`
+	Host    string `yaml:"host"`
+	Port    int    `yaml:"port"`
 }
 
 type Resources struct {
-	Config string `yaml:"config,omitempty"`
-	Output string `yaml:"output,omitempty"`
+	Config string `yaml:"-"`
+	Output string `yaml:"output"`
+	Log    string `yaml:"log"`
 }
 
 // Flimit defines the max number of watched files
