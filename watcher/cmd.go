@@ -24,20 +24,6 @@ func (h *Blueprint) Run() error {
 	return err
 }
 
-// Fast method run a project from his working directory without makes a config file
-func (h *Blueprint) Fast(p *cli.Context) error {
-	// Takes the values from config if wd path match with someone else
-	wg.Add(1)
-	for i := 0; i < len(h.Projects); i++ {
-		v := &h.Projects[i]
-		v.parent = h
-		v.path = v.Path
-		go v.watching()
-	}
-	wg.Wait()
-	return nil
-}
-
 // Add a new project
 func (h *Blueprint) Add(p *cli.Context) error {
 	project := Project{
@@ -142,7 +128,7 @@ func (h *Blueprint) List() error {
 	return err
 }
 
-// Check if there are projects
+// Check whether there is a project
 func (h *Blueprint) check() error {
 	if len(h.Projects) > 0 {
 		h.Clean()

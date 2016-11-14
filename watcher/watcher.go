@@ -89,7 +89,7 @@ func (p *Project) install(channel chan bool, wr *sync.WaitGroup) {
 	if p.Bin {
 		log.Println(p.pname(p.Name, 1), ":", "Installing..")
 		start := time.Now()
-		if std, err := p.GoInstall(); err != nil {
+		if std, err := p.goInstall(); err != nil {
 			log.Println(p.pname(p.Name, 1), ":", fmt.Sprint(p.Red.Bold(err)), std)
 			wr.Done()
 		} else {
@@ -98,7 +98,7 @@ func (p *Project) install(channel chan bool, wr *sync.WaitGroup) {
 				runner := make(chan bool, 1)
 				log.Println(p.pname(p.Name, 1), ":", "Running..")
 				start = time.Now()
-				go p.GoRun(channel, runner, wr)
+				go p.goRun(channel, runner, wr)
 				for {
 					select {
 					case <-runner:
@@ -117,7 +117,7 @@ func (p *Project) build() {
 	if p.Build {
 		log.Println(p.pname(p.Name, 1), ":", "Building..")
 		start := time.Now()
-		if std, err := p.GoBuild(); err != nil {
+		if std, err := p.goBuild(); err != nil {
 			log.Println(p.pname(p.Name, 1), ":", fmt.Sprint(p.Red.Bold(err)), std)
 		} else {
 			log.Println(p.pname(p.Name, 5), ":", p.Green.Regular("Builded")+" after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
@@ -129,8 +129,8 @@ func (p *Project) build() {
 // Fmt calls an implementation of the "go fmt"
 func (p *Project) fmt(path string) error {
 	if p.Fmt {
-		if stream, err := p.GoFmt(path); err != nil {
-			log.Println(p.pname(p.Name, 1), p.Red.Bold("Go Fmt"), p.Red.Bold("there are some errors in"), ":", p.Magenta.Bold(path))
+		if stream, err := p.goFmt(path); err != nil {
+			log.Println(p.pname(p.Name, 1), p.Red.Bold("go Fmt"), p.Red.Bold("there are some errors in"), ":", p.Magenta.Bold(path))
 			fmt.Println(stream)
 			return err
 		}
@@ -141,8 +141,8 @@ func (p *Project) fmt(path string) error {
 // Generate calls an implementation of the "go generate"
 func (p *Project) generate(path string) error {
 	if p.Generate {
-		if stream, err := p.GoGenerate(path); err != nil {
-			log.Println(p.pname(p.Name, 1), p.Red.Bold("Go Generate"), p.Red.Bold("there are some errors in"), ":", p.Magenta.Bold(path))
+		if stream, err := p.goGenerate(path); err != nil {
+			log.Println(p.pname(p.Name, 1), p.Red.Bold("go Generate"), p.Red.Bold("there are some errors in"), ":", p.Magenta.Bold(path))
 			fmt.Println(stream)
 			return err
 		}
@@ -155,7 +155,7 @@ func (p *Project) cmd(exit chan bool) {
 	c := make(chan os.Signal, 2)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	cast := func(commands []string) {
-		if errs := p.Cmd(commands); errs != nil {
+		if errs := p.cmds(commands); errs != nil {
 			for _, err := range errs {
 				log.Println(p.pname(p.Name, 2), p.Red.Bold(err))
 			}
@@ -182,8 +182,8 @@ func (p *Project) cmd(exit chan bool) {
 // Test calls an implementation of the "go test"
 func (p *Project) test(path string) error {
 	if p.Test {
-		if stream, err := p.GoTest(path); err != nil {
-			log.Println(p.pname(p.Name, 1), p.Red.Bold("Go Test fails in "), ":", p.Magenta.Bold(path))
+		if stream, err := p.goTest(path); err != nil {
+			log.Println(p.pname(p.Name, 1), p.Red.Bold("go Test fails in "), ":", p.Magenta.Bold(path))
 			fmt.Println(stream)
 			return err
 		}
@@ -216,6 +216,7 @@ func (p *Project) walks(watcher *fsnotify.Watcher) error {
 		}
 		return nil
 	}
+
 	if p.path == "." || p.path == "/" {
 		p.base = wd
 		p.path = p.Wdir()

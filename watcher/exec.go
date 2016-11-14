@@ -3,6 +3,7 @@ package cli
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -11,16 +12,12 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"fmt"
 )
 
 // GoRun  is an implementation of the bin execution
-func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup) error {
+func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup) error {
 
 	var build *exec.Cmd
-	sync := func() {
-		p.parent.Sync <- "sync"
-	}
 	if len(p.Params) != 0 {
 		build = exec.Command(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.path)), p.Params...)
 	} else {
@@ -34,7 +31,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 		}
 		p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Ended"})
 		log.Println(p.pname(p.Name, 2), ":", p.Red.Regular("Ended"))
-		go sync()
+		go p.sync()
 		wr.Done()
 	}()
 
@@ -63,7 +60,7 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 				} else {
 					p.Buffer.StdOut = append(p.Buffer.StdOut, BufferOut{Time: time.Now(), Text: output.Text()})
 				}
-				go sync()
+				go p.sync()
 				if p.Cli.Streams {
 					log.Println(p.pname(p.Name, 3), ":", p.Blue.Regular(output.Text()))
 				}
@@ -96,9 +93,9 @@ func (p *Project) GoRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 }
 
 // GoBuild is an implementation of the "go build"
-func (p *Project) GoBuild() (string, error) {
+func (p *Project) goBuild() (string, error) {
 	defer func() {
-		p.parent.Sync <- "sync"
+		p.sync()
 	}()
 	var out bytes.Buffer
 	var stderr bytes.Buffer
@@ -114,9 +111,9 @@ func (p *Project) GoBuild() (string, error) {
 }
 
 // GoInstall is an implementation of the "go install"
-func (p *Project) GoInstall() (string, error) {
+func (p *Project) goInstall() (string, error) {
 	defer func() {
-		p.parent.Sync <- "sync"
+		p.sync()
 	}()
 	var out bytes.Buffer
 	var stderr bytes.Buffer
@@ -137,9 +134,9 @@ func (p *Project) GoInstall() (string, error) {
 }
 
 // GoFmt is an implementation of the gofmt
-func (p *Project) GoFmt(path string) (io.Writer, error) {
+func (p *Project) goFmt(path string) (io.Writer, error) {
 	defer func() {
-		p.parent.Sync <- "sync"
+		p.sync()
 	}()
 	var out bytes.Buffer
 	build := exec.Command("gofmt", "-s", "-w", "-e", path)
@@ -155,9 +152,9 @@ func (p *Project) GoFmt(path string) (io.Writer, error) {
 }
 
 // GoTest is an implementation of the go test
-func (p *Project) GoTest(path string) (io.Writer, error) {
+func (p *Project) goTest(path string) (io.Writer, error) {
 	defer func() {
-		p.parent.Sync <- "sync"
+		p.sync()
 	}()
 	var out bytes.Buffer
 	build := exec.Command("go", "test")
@@ -172,9 +169,9 @@ func (p *Project) GoTest(path string) (io.Writer, error) {
 }
 
 // GoGenerate is an implementation of the go test
-func (p *Project) GoGenerate(path string) (io.Writer, error) {
+func (p *Project) goGenerate(path string) (io.Writer, error) {
 	defer func() {
-		p.parent.Sync <- "sync"
+		p.sync()
 	}()
 	var out bytes.Buffer
 	build := exec.Command("go", "generate")
@@ -188,11 +185,8 @@ func (p *Project) GoGenerate(path string) (io.Writer, error) {
 	return nil, nil
 }
 
-// Cmd exec a list of defined commands
-func (p *Project) Cmd(cmds []string) (errors []error) {
-	defer func() {
-		p.parent.Sync <- "sync"
-	}()
+// Cmds exec a list of defined commands
+func (p *Project) cmds(cmds []string) (errors []error) {
 	for _, cmd := range cmds {
 		cmd := strings.Replace(strings.Replace(cmd, "'", "", -1), "\"", "", -1)
 		c := strings.Split(cmd, " ")
@@ -201,7 +195,15 @@ func (p *Project) Cmd(cmds []string) (errors []error) {
 		if err := build.Run(); err != nil {
 			p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error()})
 			errors = append(errors, err)
+			return errors
 		}
 	}
-	return errors
+	return nil
+}
+
+// Sync datas with the web server
+func (p *Project) sync() {
+	go func() {
+		p.parent.Sync <- "sync"
+	}()
 }

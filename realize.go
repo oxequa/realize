@@ -15,7 +15,9 @@ const (
 	version     = "1.2"
 	description = "A Go build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths"
 	config      = "realize.yaml"
-	output      = "realize.log"
+	output      = "outputs.log"
+	log         = "logs.log"
+	err         = "errors.log"
 	host        = "localhost"
 	port        = 5000
 	server      = true
@@ -48,6 +50,7 @@ func init() {
 			Resources: c.Resources{
 				Config: config,
 				Output: output,
+				Log:    log,
 			},
 			Server: c.Server{
 				Enabled: server,
@@ -116,23 +119,7 @@ func main() {
 		Commands: []*cli.Command{
 			{
 				Name:  "run",
-				Usage: "Build and watch file changes",
-				Flags: []cli.Flag{
-					&cli.BoolFlag{Name: "no-server", Usage: "Disables the web panel"},
-					&cli.BoolFlag{Name: "open", Usage: "Automatically opens the web panel"},
-				},
-				Action: func(p *cli.Context) error {
-					handle(r.Server.Start(p))
-					handle(r.Blueprint.Run())
-					return nil
-				},
-				Before: func(c *cli.Context) error {
-					return before()
-				},
-			},
-			{
-				Name:  "fast",
-				Usage: "Build and watch file changes for a single project without any Configuration file",
+				Usage: "Build and watch file changes. Can be used even with a single project or without the config file",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "path", Aliases: []string{"b"}, Value: "", Usage: "Project base path"},
 					&cli.BoolFlag{Name: "build", Value: false, Usage: "Enables the build"},
@@ -140,17 +127,33 @@ func main() {
 					&cli.BoolFlag{Name: "no-bin", Usage: "Disables the installation"},
 					&cli.BoolFlag{Name: "no-fmt", Usage: "Disables the fmt (go fmt)"},
 					&cli.BoolFlag{Name: "no-server", Usage: "Disables the web panel"},
+					&cli.BoolFlag{Name: "no-config", Value: false, Usage: "Uses the config settings"},
 					&cli.BoolFlag{Name: "open", Usage: "Automatically opens the web panel"},
 					&cli.BoolFlag{Name: "test", Value: false, Usage: "Enables the tests"},
-					&cli.BoolFlag{Name: "config", Value: false, Usage: "Take the defined settings if exist a Configuration file."},
 				},
 				Action: func(p *cli.Context) error {
-					if !p.Bool("config") {
+					if p.Bool("no-config") {
+						r.Settings = c.Settings{
+							Config: c.Config{
+								Flimit: 0,
+							},
+							Resources: c.Resources{
+								Config: config,
+								Output: output,
+								Log:    log,
+							},
+							Server: c.Server{
+								Enabled: server,
+								Open:    open,
+								Host:    host,
+								Port:    port,
+							},
+						}
 						r.Blueprint.Projects = r.Blueprint.Projects[:0]
 					}
-					handle(r.Blueprint.Add(p))
+					r.Blueprint.Add(p)
 					handle(r.Server.Start(p))
-					handle(r.Blueprint.Fast(p))
+					handle(r.Blueprint.Run())
 					return nil
 				},
 				Before: func(c *cli.Context) error {
