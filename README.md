@@ -109,13 +109,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
     $ realize run
     ```
 
-    Fast run launches a project from its working directory without a config file
-
-    ```
-    $ realize fast
-    ```
-
-    The fast command supports the following custom parameters:
+    Run can also launch a project from its working directory without a config file. It supports the following custom parameters:
 
     ```
     --path="server"         -> Custom Path, if not specified takes the working directory name 
@@ -128,16 +122,15 @@ A Go build system with file watchers, output streams and live reload. Run, build
     --no-server             -> Disables the web panel (port :5000)
     --open                  -> Open the web panel in a new browser window 
     ```  
-    The "fast" command supports addittional arguments as the "add" command.
-
-    ```
-    $ realize fast --no-run yourParams --yourFlags // correct
-
-    $ realize fast yourParams --yourFlags --no-run // wrong
+    And addittional arguments as the "add" command.
     
-    $ realize fast --path="/Users/alessio/go/src/github.com/tockins/realize-examples/coin/"
-    ```  
+    ```
+    $ realize run --no-run yourParams --yourFlags // correct
 
+    $ realize run yourParams --yourFlags --no-run // wrong
+    
+    $ realize run --path="/Users/alessio/go/src/github.com/tockins/realize-examples/coin/"
+    ```  
 
 #### Color reference
 
@@ -152,38 +145,46 @@ A Go build system with file watchers, output streams and live reload. Run, build
 - For more examples check [Realize Examples](https://github.com/tockins/realize-examples)
 
      ```
-    projects:
-        - app_name: App One     -> name
-          app_path: one         -> root path
-          app_run: true         -> enable/disable go run (require app_bin)
-          app_bin: true         -> enable/disable go install
-          app_build: false      -> enable/disable go build
-          app_fmt: true         -> enable/disable go fmt
-          app_test: true        -> enable/disable go test
-          app_params:           -> the project will be launched with these parameters
-            - --flag1
-            - param1
-          app_watcher:
-            preview: true       -> prints the observed files on startup
-            paths:              -> paths to observe for live reload
-            - /
-            ignore_paths:       -> paths to ignore
-            - vendor
-            - bin
-            exts:               -> file extensions to observe for live reload
-            - .go
-            output:             -> enable/disable the output destinations 
-                  cli: true         -> cli output
-                  file: true        -> creates an output file inside the project 
-            
+     settings:
+       resources:
+         output: outputs.log  // name of the output file
+         log: logs.log        // name of the log file (errors included)
+       server:
+         enable: true         // enables the web server 
+         open: false          // opens the web server in a new tab
+         host: localhost      // web server host
+         port: 5000           // wev server port
+     projects:
+     - name: printer          // project name
+       path: /                // project path
+       run: true              // enables go run  (require bin)
+       bin: true              // enables go install
+       generate: false        // enables go generate
+       build: false           // enables go build
+       fmt: true              // enables go fmt
+       test: false            // enables go test   
+       params: []             // array of additionals params. the project will be launched with these parameters   
+       watcher:
+         before: []           // custom commands launched before the execution of the project 
+         after: []            // custom commands launched after the execution of the project 
+         paths:               // paths to observe for live reload
+         - /
+         ignore_paths:        // paths to ignore
+         - vendor
+         exts:                // file extensions to observe for live reload
+         - .go
+         preview: true        // prints the observed files on startup
+       cli:                   
+         streams: true        // prints the output streams of the project in the cli 
+       file:
+         streams: false       // saves the output stream of the project in a file
+         logs: false          // saves the logs of the project in a file
+         errors: false        // saves the errors of the project in a file
     ```                    
 
 #### Next release
 
-##### v1.2
-- [ ] Windows support 
-- [ ] Go generate support
-- [ ] Web panel - watched file
+##### v1.3
 - [ ] Web panel - edit settings
 
 #### Contacts
