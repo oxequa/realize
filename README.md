@@ -16,12 +16,11 @@ A Go build system with file watchers, output streams and live reload. Run, build
 
 #### What's new
 
-##### v1.1
-- [ ] Windows support - **Moved to 1.2**
-- [x] Custom paths for the commands fast/add
-- [x] Save output on a file
-- [x] Before/After fields enabled
-- [x] Web panel in material design (localhost:5000)
+##### v1.2
+- [x] Windows support
+- [x] Go generate support
+- [x] Bugs fix
+- [x] Refactoring
 
 
 #### Features
