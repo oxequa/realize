@@ -3,8 +3,6 @@ package cli
 import (
 	"bufio"
 	"bytes"
-	"fmt"
-	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -134,55 +132,42 @@ func (p *Project) goInstall() (string, error) {
 }
 
 // GoFmt is an implementation of the gofmt
-func (p *Project) goFmt(path string) (io.Writer, error) {
-	defer func() {
-		p.sync()
-	}()
-	var out bytes.Buffer
+func (p *Project) goFmt(path string) (string, error) {
+	var out, stderr bytes.Buffer
 	build := exec.Command("gofmt", "-s", "-w", "-e", path)
 	build.Dir = p.base
 	build.Stdout = &out
-	build.Stderr = &out
+	build.Stderr = &stderr
 	if err := build.Run(); err != nil {
-		fmt.Print("append")
-		p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error()})
-		return build.Stderr, err
+		return stderr.String(), err
 	}
-	return nil, nil
+	return "", nil
 }
 
 // GoTest is an implementation of the go test
-func (p *Project) goTest(path string) (io.Writer, error) {
-	defer func() {
-		p.sync()
-	}()
-	var out bytes.Buffer
+func (p *Project) goTest(path string) (string, error) {
+	var out, stderr bytes.Buffer
 	build := exec.Command("go", "test")
 	build.Dir = path
 	build.Stdout = &out
-	build.Stderr = &out
+	build.Stderr = &stderr
 	if err := build.Run(); err != nil {
-		p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error()})
-		return build.Stdout, err
+		return stderr.String(), err
 	}
-	return nil, nil
+	return "", nil
 }
 
 // GoGenerate is an implementation of the go test
-func (p *Project) goGenerate(path string) (io.Writer, error) {
-	defer func() {
-		p.sync()
-	}()
-	var out bytes.Buffer
+func (p *Project) goGenerate(path string) (string, error) {
+	var out, stderr bytes.Buffer
 	build := exec.Command("go", "generate")
 	build.Dir = path
 	build.Stdout = &out
-	build.Stderr = &out
+	build.Stderr = &stderr
 	if err := build.Run(); err != nil {
-		p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error()})
-		return build.Stdout, err
+		return stderr.String(), err
 	}
-	return nil, nil
+	return "", nil
 }
 
 // Cmds exec a list of defined commands
@@ -193,7 +178,6 @@ func (p *Project) cmds(cmds []string) (errors []error) {
 		build := exec.Command(c[0], c[1:]...)
 		build.Dir = p.base
 		if err := build.Run(); err != nil {
-			p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error()})
 			errors = append(errors, err)
 			return errors
 		}

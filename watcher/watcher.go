@@ -86,11 +86,16 @@ func (p *Project) watching() {
 
 // Install calls an implementation of the "go install"
 func (p *Project) install(channel chan bool, wr *sync.WaitGroup) {
+	defer func() {
+		p.sync()
+	}()
 	if p.Bin {
 		log.Println(p.pname(p.Name, 1), ":", "Installing..")
 		start := time.Now()
-		if std, err := p.goInstall(); err != nil {
-			log.Println(p.pname(p.Name, 1), ":", fmt.Sprint(p.Red.Bold(err)), std)
+		if stream, err := p.goInstall(); err != nil {
+			p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error(), Type: "Go Install", Stream: stream})
+			log.Println(p.pname(p.Name, 1), p.Red.Bold("Go Install"), p.Red.Regular(err.Error()))
+			fmt.Println(stream)
 			wr.Done()
 		} else {
 			log.Println(p.pname(p.Name, 5), ":", p.Green.Regular("Installed")+" after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
@@ -114,11 +119,16 @@ func (p *Project) install(channel chan bool, wr *sync.WaitGroup) {
 
 // Build calls an implementation of the "go build"
 func (p *Project) build() {
+	defer func() {
+		p.sync()
+	}()
 	if p.Build {
 		log.Println(p.pname(p.Name, 1), ":", "Building..")
 		start := time.Now()
-		if std, err := p.goBuild(); err != nil {
-			log.Println(p.pname(p.Name, 1), ":", fmt.Sprint(p.Red.Bold(err)), std)
+		if stream, err := p.goBuild(); err != nil {
+			p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error(), Type: "Go Build", Stream: stream})
+			log.Println(p.pname(p.Name, 1), p.Red.Bold("Go Build"), p.Red.Regular(err.Error()))
+			fmt.Println(stream)
 		} else {
 			log.Println(p.pname(p.Name, 5), ":", p.Green.Regular("Builded")+" after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
 		}
@@ -128,9 +138,13 @@ func (p *Project) build() {
 
 // Fmt calls an implementation of the "go fmt"
 func (p *Project) fmt(path string) error {
+	defer func() {
+		p.sync()
+	}()
 	if p.Fmt {
 		if stream, err := p.goFmt(path); err != nil {
-			log.Println(p.pname(p.Name, 1), p.Red.Bold("go Fmt"), p.Red.Bold("there are some errors in"), ":", p.Magenta.Bold(path))
+			p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Fmt", Stream: stream})
+			log.Println(p.pname(p.Name, 1), p.Red.Bold("Go Fmt"), p.Red.Regular("there are some errors in"), ":", p.Magenta.Bold(path))
 			fmt.Println(stream)
 			return err
 		}
@@ -140,9 +154,13 @@ func (p *Project) fmt(path string) error {
 
 // Generate calls an implementation of the "go generate"
 func (p *Project) generate(path string) error {
+	defer func() {
+		p.sync()
+	}()
 	if p.Generate {
 		if stream, err := p.goGenerate(path); err != nil {
-			log.Println(p.pname(p.Name, 1), p.Red.Bold("go Generate"), p.Red.Bold("there are some errors in"), ":", p.Magenta.Bold(path))
+			p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Generate", Stream: stream})
+			log.Println(p.pname(p.Name, 1), p.Red.Bold("Go Generate"), p.Red.Regular("there are some errors in"), ":", p.Magenta.Bold(path))
 			fmt.Println(stream)
 			return err
 		}
@@ -157,6 +175,7 @@ func (p *Project) cmd(exit chan bool) {
 	cast := func(commands []string) {
 		if errs := p.cmds(commands); errs != nil {
 			for _, err := range errs {
+
 				log.Println(p.pname(p.Name, 2), p.Red.Bold(err))
 			}
 		}
@@ -181,9 +200,13 @@ func (p *Project) cmd(exit chan bool) {
 
 // Test calls an implementation of the "go test"
 func (p *Project) test(path string) error {
+	defer func() {
+		p.sync()
+	}()
 	if p.Test {
 		if stream, err := p.goTest(path); err != nil {
-			log.Println(p.pname(p.Name, 1), p.Red.Bold("go Test fails in "), ":", p.Magenta.Bold(path))
+			p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Test", Stream: stream})
+			log.Println(p.pname(p.Name, 1), p.Red.Bold("Go Test"), p.Red.Regular("there are some errors in "), ":", p.Magenta.Bold(path))
 			fmt.Println(stream)
 			return err
 		}
