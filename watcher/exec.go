@@ -29,7 +29,7 @@ func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 		}
 		p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Ended"})
 		log.Println(p.pname(p.Name, 2), ":", p.Red.Regular("Ended"))
-		go p.sync()
+		p.sync()
 		wr.Done()
 	}()
 
@@ -54,16 +54,16 @@ func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 			select {
 			default:
 				if isError {
-					p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: output.Text()})
+					p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: output.Text(), Type: "Go Run"})
 				} else {
 					p.Buffer.StdOut = append(p.Buffer.StdOut, BufferOut{Time: time.Now(), Text: output.Text()})
 				}
-				go p.sync()
+				p.sync()
 				if p.Cli.Streams {
 					log.Println(p.pname(p.Name, 3), ":", p.Blue.Regular(output.Text()))
 				}
 				if p.File.Streams {
-					path := filepath.Join(p.base, p.parent.Resources.Output)
+					path := filepath.Join(p.base, p.Resources.Output)
 					f := p.Create(path)
 					t := time.Now()
 					if _, err := f.WriteString(t.Format("2006-01-02 15:04:05") + " : " + output.Text() + "\r\n"); err != nil {
@@ -102,7 +102,6 @@ func (p *Project) goBuild() (string, error) {
 	build.Stdout = &out
 	build.Stderr = &stderr
 	if err := build.Run(); err != nil {
-		p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error()})
 		return stderr.String(), err
 	}
 	return "", nil
@@ -117,7 +116,6 @@ func (p *Project) goInstall() (string, error) {
 	var stderr bytes.Buffer
 	err := os.Setenv("GOBIN", filepath.Join(os.Getenv("GOPATH"), "bin"))
 	if err != nil {
-		p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error()})
 		return "", err
 	}
 	build := exec.Command("go", "install")
@@ -125,7 +123,6 @@ func (p *Project) goInstall() (string, error) {
 	build.Stdout = &out
 	build.Stderr = &stderr
 	if err := build.Run(); err != nil {
-		p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error()})
 		return stderr.String(), err
 	}
 	return "", nil
@@ -171,14 +168,21 @@ func (p *Project) goGenerate(path string) (string, error) {
 }
 
 // Cmds exec a list of defined commands
-func (p *Project) cmds(cmds []string) (errors []error) {
+func (p *Project) cmds(cmds []string) (errors []string) {
+	defer func() {
+		p.sync()
+	}()
 	for _, cmd := range cmds {
+		var out bytes.Buffer
+		var stderr bytes.Buffer
 		cmd := strings.Replace(strings.Replace(cmd, "'", "", -1), "\"", "", -1)
 		c := strings.Split(cmd, " ")
 		build := exec.Command(c[0], c[1:]...)
 		build.Dir = p.base
+		build.Stdout = &out
+		build.Stderr = &stderr
 		if err := build.Run(); err != nil {
-			errors = append(errors, err)
+			errors = append(errors, stderr.String())
 			return errors
 		}
 	}

@@ -72,8 +72,12 @@ type Buffer struct {
 }
 
 type BufferOut struct {
-	Time time.Time
-	Text string
+	Time   time.Time
+	Text   string
+	Path   string
+	Type   string
+	Stream string
+	Errors []string
 }
 
 // Initialize the application

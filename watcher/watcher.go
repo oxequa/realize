@@ -61,7 +61,7 @@ func (p *Project) watching() {
 						go func() {
 							p.parent.Sync <- "sync"
 						}()
-						fmt.Println(p.pname(p.Name, 4), p.Magenta.Bold(strings.ToUpper(ext[1:])+" changed"), p.Magenta.Bold(file))
+						log.Println(p.pname(p.Name, 4), ":", p.Magenta.Bold(strings.ToUpper(ext[1:])+" changed"), p.Magenta.Bold(file))
 						// stop and run again
 						if p.Run {
 							close(channel)
@@ -93,12 +93,15 @@ func (p *Project) install(channel chan bool, wr *sync.WaitGroup) {
 		log.Println(p.pname(p.Name, 1), ":", "Installing..")
 		start := time.Now()
 		if stream, err := p.goInstall(); err != nil {
-			p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error(), Type: "Go Install", Stream: stream})
-			log.Println(p.pname(p.Name, 1), p.Red.Bold("Go Install"), p.Red.Regular(err.Error()))
-			fmt.Println(stream)
+			msg := fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Install"), p.Red.Regular(err.Error()))
+			out := BufferOut{Time: time.Now(), Text: err.Error(), Type: "Go Install", Stream: stream}
+			p.print("error", out, msg, stream)
 			wr.Done()
 		} else {
-			log.Println(p.pname(p.Name, 5), ":", p.Green.Regular("Installed")+" after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
+			msg := fmt.Sprintln(p.pname(p.Name, 5), ":", p.Green.Regular("Installed")+" after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
+			out := BufferOut{Time: time.Now(), Text: "Installed"}
+			p.print("log", out, msg, stream)
+
 			if p.Run {
 				runner := make(chan bool, 1)
 				log.Println(p.pname(p.Name, 1), ":", "Running..")
@@ -107,7 +110,9 @@ func (p *Project) install(channel chan bool, wr *sync.WaitGroup) {
 				for {
 					select {
 					case <-runner:
-						log.Println(p.pname(p.Name, 5), ":", p.Green.Regular("Has been run")+" after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
+						msg := fmt.Sprintln(p.pname(p.Name, 5), ":", p.Green.Regular("Has been run")+" after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
+						out := BufferOut{Time: time.Now(), Text: "Has been run"}
+						p.print("log", out, msg, stream)
 						return
 					}
 				}
@@ -126,11 +131,13 @@ func (p *Project) build() {
 		log.Println(p.pname(p.Name, 1), ":", "Building..")
 		start := time.Now()
 		if stream, err := p.goBuild(); err != nil {
-			p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error(), Type: "Go Build", Stream: stream})
-			log.Println(p.pname(p.Name, 1), p.Red.Bold("Go Build"), p.Red.Regular(err.Error()))
-			fmt.Println(stream)
+			msg := fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Build"), p.Red.Regular(err.Error()))
+			out := BufferOut{Time: time.Now(), Text: err.Error(), Type: "Go Build", Stream: stream}
+			p.print("error", out, msg, stream)
 		} else {
-			log.Println(p.pname(p.Name, 5), ":", p.Green.Regular("Builded")+" after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
+			msg := fmt.Sprintln(p.pname(p.Name, 5), ":", p.Green.Regular("Builded")+" after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
+			out := BufferOut{Time: time.Now(), Text: "Builded"}
+			p.print("log", out, msg, stream)
 		}
 	}
 	return
@@ -143,9 +150,9 @@ func (p *Project) fmt(path string) error {
 	}()
 	if p.Fmt {
 		if stream, err := p.goFmt(path); err != nil {
-			p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Fmt", Stream: stream})
-			log.Println(p.pname(p.Name, 1), p.Red.Bold("Go Fmt"), p.Red.Regular("there are some errors in"), ":", p.Magenta.Bold(path))
-			fmt.Println(stream)
+			msg := fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Fmt"), p.Red.Regular("there are some errors in"), ":", p.Magenta.Bold(path))
+			out := BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Fmt", Stream: stream}
+			p.print("error", out, msg, stream)
 			return err
 		}
 	}
@@ -159,9 +166,9 @@ func (p *Project) generate(path string) error {
 	}()
 	if p.Generate {
 		if stream, err := p.goGenerate(path); err != nil {
-			p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Generate", Stream: stream})
-			log.Println(p.pname(p.Name, 1), p.Red.Bold("Go Generate"), p.Red.Regular("there are some errors in"), ":", p.Magenta.Bold(path))
-			fmt.Println(stream)
+			msg := fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Generate"), p.Red.Regular("there are some errors in"), ":", p.Magenta.Bold(path))
+			out := BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Generate", Stream: stream}
+			p.print("error", out, msg, stream)
 			return err
 		}
 	}
@@ -175,8 +182,9 @@ func (p *Project) cmd(exit chan bool) {
 	cast := func(commands []string) {
 		if errs := p.cmds(commands); errs != nil {
 			for _, err := range errs {
-
-				log.Println(p.pname(p.Name, 2), p.Red.Bold(err))
+				msg := fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold(err))
+				out := BufferOut{Time: time.Now(), Text: err, Type: "After/Before"}
+				p.print("error", out, msg, "")
 			}
 		}
 	}
@@ -205,9 +213,9 @@ func (p *Project) test(path string) error {
 	}()
 	if p.Test {
 		if stream, err := p.goTest(path); err != nil {
-			p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Test", Stream: stream})
-			log.Println(p.pname(p.Name, 1), p.Red.Bold("Go Test"), p.Red.Regular("there are some errors in "), ":", p.Magenta.Bold(path))
-			fmt.Println(stream)
+			msg := fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Test"), p.Red.Regular("there are some errors in "), ":", p.Magenta.Bold(path))
+			out := BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Test", Stream: stream}
+			p.print("error", out, msg, stream)
 			return err
 		}
 	}
@@ -222,7 +230,7 @@ func (p *Project) walks(watcher *fsnotify.Watcher) error {
 		if !p.ignore(path) {
 			if (info.IsDir() && len(filepath.Ext(path)) == 0 && !strings.HasPrefix(path, ".")) && !strings.Contains(path, "/.") || (inArray(filepath.Ext(path), p.Watcher.Exts)) {
 				if p.Watcher.Preview {
-					fmt.Println(p.pname(p.Name, 1), ":", path)
+					log.Println(p.pname(p.Name, 1), ":", path)
 				}
 				if err = watcher.Add(path); err != nil {
 					return filepath.SkipDir
@@ -258,7 +266,7 @@ func (p *Project) walks(watcher *fsnotify.Watcher) error {
 			return errors.New(base + " path doesn't exist")
 		}
 	}
-	fmt.Println(p.pname(p.Name, 1), p.Red.Bold("Watching"), p.Magenta.Bold(files), "file/s", p.Magenta.Bold(folders), "folder/s")
+	log.Println(p.pname(p.Name, 1), ":", p.Blue.Bold("Watching"), p.Magenta.Bold(files), "file/s", p.Magenta.Bold(folders), "folder/s")
 	return nil
 }
 
@@ -300,4 +308,44 @@ func (p *Project) pname(name string, color int) string {
 		break
 	}
 	return name
+}
+
+func (p *Project) print(t string, o BufferOut, msg string, stream string) {
+	switch t {
+	case "out":
+		p.Buffer.StdOut = append(p.Buffer.StdOut, o)
+		if p.File.Streams {
+			path := filepath.Join(p.base, p.Resources.Output)
+			f := p.Create(path)
+			t := time.Now()
+			if _, err := f.WriteString(t.Format("2006-01-02 15:04:05") + " : " + o.Text + "\r\n"); err != nil {
+				p.Fatal("", err)
+			}
+		}
+	case "log":
+		p.Buffer.StdLog = append(p.Buffer.StdLog, o)
+		if p.File.Logs {
+			path := filepath.Join(p.base, p.Resources.Log)
+			f := p.Create(path)
+			t := time.Now()
+			if _, err := f.WriteString(t.Format("2006-01-02 15:04:05") + " : " + o.Text + "\r\n"); err != nil {
+				p.Fatal("", err)
+			}
+		}
+	case "error":
+		p.Buffer.StdErr = append(p.Buffer.StdErr, o)
+		if p.File.Errors {
+			path := filepath.Join(p.base, p.Resources.Log)
+			f := p.Create(path)
+			t := time.Now()
+			if _, err := f.WriteString(t.Format("2006-01-02 15:04:05") + " : " + o.Text + "\r\n"); err != nil {
+				p.Fatal("", err)
+			}
+		}
+
+	}
+	log.Print(msg)
+	if stream != "" {
+		fmt.Println(stream)
+	}
 }
