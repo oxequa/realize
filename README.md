@@ -20,6 +20,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
 - [x] Windows support
 - [x] Go generate support
 - [x] Bugs fix
+- [x] Web panel errors log improved
 - [x] Refactoring
 
 
@@ -184,7 +185,8 @@ A Go build system with file watchers, output streams and live reload. Run, build
 #### Next release
 
 ##### v1.3
-- [ ] Web panel - edit settings
+- [ ] Web panel edit settings, moved from v1.2
+- [ ] Tests
 
 #### Contacts
 
