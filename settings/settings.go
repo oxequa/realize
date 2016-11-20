@@ -7,26 +7,26 @@ import (
 
 type Settings struct {
 	Colors    `yaml:"-"`
-	Resources `yaml:"resources,omitempty"`
-	Server    `yaml:"server,omitempty"`
-	Config    `yaml:"config,omitempty"`
+	Resources `yaml:"resources,omitempty" json:"resources,omitempty"`
+	Server    `yaml:"server,omitempty" json:"server,omitempty"`
+	Config    `yaml:"config,omitempty" json:"config,omitempty"`
 }
 
 type Config struct {
-	Flimit uint64 `yaml:"flimit"`
+	Flimit uint64 `yaml:"flimit" json:"flimit"`
 }
 
 type Server struct {
-	Enabled bool   `yaml:"enable"`
-	Open    bool   `yaml:"open"`
-	Host    string `yaml:"host"`
-	Port    int    `yaml:"port"`
+	Enabled bool   `yaml:"enable" json:"enable"`
+	Open    bool   `yaml:"open" json:"open"`
+	Host    string `yaml:"host" json:"host"`
+	Port    int    `yaml:"port" json:"port"`
 }
 
 type Resources struct {
-	Config string `yaml:"-"`
-	Output string `yaml:"output"`
-	Log    string `yaml:"log"`
+	Config string `yaml:"-" json:"-"`
+	Output string `yaml:"output" json:"output"`
+	Log    string `yaml:"log" json:"log"`
 }
 
 // Flimit defines the max number of watched files

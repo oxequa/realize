@@ -33,7 +33,7 @@ type realize struct {
 	Sync                                            chan string  `yaml:"-"`
 	Blueprint                                       w.Blueprint  `yaml:"-"`
 	Server                                          s.Server     `yaml:"-"`
-	Projects                                        *[]w.Project `yaml:"projects"`
+	Projects                                        *[]w.Project `yaml:"projects" json:"projects"`
 }
 
 // Realize struct initialization
@@ -154,6 +154,7 @@ func main() {
 					r.Blueprint.Add(p)
 					handle(r.Server.Start(p))
 					handle(r.Blueprint.Run())
+					handle(r.Record(r))
 					return nil
 				},
 				Before: func(c *cli.Context) error {

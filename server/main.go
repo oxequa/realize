@@ -8,6 +8,7 @@ import (
 	w "github.com/tockins/realize/watcher"
 	"golang.org/x/net/websocket"
 	"gopkg.in/urfave/cli.v2"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -50,6 +51,7 @@ func (s *Server) Start(p *cli.Context) (err error) {
 	if !p.Bool("no-server") && s.Enabled {
 		e := echo.New()
 		e.Use(middleware.Gzip())
+		e.Use(middleware.Recover())
 
 		// web panel
 		e.GET("/", func(c echo.Context) error {
@@ -81,7 +83,8 @@ func (s *Server) Start(p *cli.Context) (err error) {
 		})
 
 		//websocket
-		e.GET("/ws", echo.WrapHandler(s.projects()))
+		//e.GET("/ws", echo.WrapHandler(s.projects()))
+		e.GET("/ws", s.hello)
 
 		go e.Start(string(s.Settings.Server.Host) + ":" + strconv.Itoa(s.Settings.Server.Port))
 		if s.Open || p.Bool("open") {
@@ -94,19 +97,36 @@ func (s *Server) Start(p *cli.Context) (err error) {
 	return nil
 }
 
-// The WebSocket for projects list
-func (s *Server) projects() websocket.Handler {
-	return websocket.Handler(func(ws *websocket.Conn) {
-		msg := func() {
-			message, _ := json.Marshal(s.Blueprint.Projects)
-			websocket.Message.Send(ws, string(message))
-		}
-		msg()
+func (s *Server) hello(c echo.Context) error {
+	websocket.Handler(func(ws *websocket.Conn) {
+		defer ws.Close()
+		msg, _ := json.Marshal(s.Blueprint.Projects)
+		err := websocket.Message.Send(ws, string(msg))
 		for {
 			select {
 			case <-s.Sync:
-				msg()
+				msg, _ := json.Marshal(s.Blueprint.Projects)
+				err = websocket.Message.Send(ws, string(msg))
+				if err != nil {
+					log.Println(err)
+					break
+				}
+			}
+
+			// Read
+			text := ""
+			err := websocket.Message.Receive(ws, &text)
+			if err != nil {
+				log.Println(err)
+				break
+			} else {
+				err := json.Unmarshal([]byte(text), &s.Blueprint.Projects)
+				if err != nil {
+					log.Println(err)
+					break
+				}
 			}
 		}
-	})
+	}).ServeHTTP(c.Response(), c.Request())
+	return nil
 }
