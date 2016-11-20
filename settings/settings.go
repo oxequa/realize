@@ -7,9 +7,9 @@ import (
 
 type Settings struct {
 	Colors    `yaml:"-"`
-	Resources `yaml:"resources,omitempty" json:"resources,omitempty"`
-	Server    `yaml:"server,omitempty" json:"server,omitempty"`
-	Config    `yaml:"config,omitempty" json:"config,omitempty"`
+	Resources `yaml:"resources,omitempty" json:"resources"`
+	Server    `yaml:"server,omitempty" json:"server"`
+	Config    `yaml:"config,omitempty" json:"config"`
 }
 
 type Config struct {
