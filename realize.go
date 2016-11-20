@@ -150,8 +150,10 @@ func main() {
 							},
 						}
 						r.Blueprint.Projects = r.Blueprint.Projects[:0]
+						r.Blueprint.Add(p)
+					} else if len(r.Blueprint.Projects) <= 0 {
+						r.Blueprint.Add(p)
 					}
-					r.Blueprint.Add(p)
 					handle(r.Server.Start(p))
 					handle(r.Blueprint.Run())
 					handle(r.Record(r))
