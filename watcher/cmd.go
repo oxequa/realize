@@ -36,9 +36,10 @@ func (h *Blueprint) Add(p *cli.Context) error {
 		Test:   p.Bool("test"),
 		Params: argsParam(p),
 		Watcher: Watcher{
-			Paths:  []string{"/"},
-			Ignore: []string{"vendor"},
-			Exts:   []string{".go"},
+			Paths:   []string{"/"},
+			Ignore:  []string{"vendor"},
+			Exts:    []string{".go"},
+			Preview: false,
 		},
 		Cli: Cli{
 			Streams: true,
