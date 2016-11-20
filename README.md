@@ -1,6 +1,6 @@
 ## Realize
 
-[![GoDoc](https://img.shields.io/badge/documentation-godoc-blue.svg)](https://godoc.org/github.com/tockins/realize/realize)
+[![GoDoc](https://img.shields.io/badge/documentation-godoc-blue.svg)](https://godoc.org/github.com/tockins/realize)
 [![TeamCity CodeBetter](https://travis-ci.org/tockins/realize.svg?branch=v1)](https://travis-ci.org/tockins/realize)
 [![AUR](https://img.shields.io/aur/license/yaourt.svg?maxAge=2592000?style=flat-square)](https://raw.githubusercontent.com/tockins/realize/v1/LICENSE)
 [![](https://img.shields.io/badge/realize-examples-yellow.svg)](https://github.com/tockins/realize-examples)
@@ -16,13 +16,13 @@ A Go build system with file watchers, output streams and live reload. Run, build
 
 #### What's new
 
-##### v1.1
-- [ ] Windows support - **Moved to 1.2**
-- [x] Custom paths for the commands fast/add
-- [x] Save output on a file
-- [x] Before/After fields enabled
-- [x] Web panel in material design (localhost:5000)
-
+##### v1.2
+- [x] Windows support
+- [x] Go generate support
+- [x] Bugs fix
+- [x] Web panel errors log improved
+- [x] Refactoring
+- [x] Web panel edit settings, partial
 
 #### Features
 
@@ -50,9 +50,9 @@ A Go build system with file watchers, output streams and live reload. Run, build
     $ realize add
     ```
 
-    It will create a realize.config.yaml file if it doesn't exist already and adds the working directory as the project.
+    It will create a realize.yaml file if it doesn't exist already and adds the working directory as the project.
 
-    Otherwise if a config file already exists it adds another project to the existing config file.
+    Otherwise if a config file already exists it adds the working project to the existing config file.
 
     The add command supports the following custom parameters:
 
@@ -109,14 +109,9 @@ A Go build system with file watchers, output streams and live reload. Run, build
     $ realize run
     ```
 
-    Fast run launches a project from its working directory without a config file
-
-    ```
-    $ realize fast
-    ```
-
-    The fast command supports the following custom parameters:
-
+    Run can also launch a project from its working directory with or without make a config file (--no-config option).
+    It supports the following custom parameters:
+    
     ```
     --path="server"         -> Custom Path, if not specified takes the working directory name 
     --build                 -> Enables the build   
@@ -126,18 +121,18 @@ A Go build system with file watchers, output streams and live reload. Run, build
     --no-run                -> Disables the run
     --no-fmt                -> Disables the fmt (go fmt)
     --no-server             -> Disables the web panel (port :5000)
+    --no-config             -> Doesn't create any configuration files
     --open                  -> Open the web panel in a new browser window 
     ```  
-    The "fast" command supports addittional arguments as the "add" command.
-
-    ```
-    $ realize fast --no-run yourParams --yourFlags // correct
-
-    $ realize fast yourParams --yourFlags --no-run // wrong
+    And additional arguments as the "add" command.
     
-    $ realize fast --path="/Users/alessio/go/src/github.com/tockins/realize-examples/coin/"
-    ```  
+    ```
+    $ realize run --no-run yourParams --yourFlags // correct
 
+    $ realize run yourParams --yourFlags --no-run // wrong
+    
+    $ realize run --path="/Users/alessio/go/src/github.com/tockins/realize-examples/coin/"
+    ```  
 
 #### Color reference
 
@@ -152,39 +147,50 @@ A Go build system with file watchers, output streams and live reload. Run, build
 - For more examples check [Realize Examples](https://github.com/tockins/realize-examples)
 
      ```
-    projects:
-        - app_name: App One     -> name
-          app_path: one         -> root path
-          app_run: true         -> enable/disable go run (require app_bin)
-          app_bin: true         -> enable/disable go install
-          app_build: false      -> enable/disable go build
-          app_fmt: true         -> enable/disable go fmt
-          app_test: true        -> enable/disable go test
-          app_params:           -> the project will be launched with these parameters
-            - --flag1
-            - param1
-          app_watcher:
-            preview: true       -> prints the observed files on startup
-            paths:              -> paths to observe for live reload
-            - /
-            ignore_paths:       -> paths to ignore
-            - vendor
-            - bin
-            exts:               -> file extensions to observe for live reload
-            - .go
-            output:             -> enable/disable the output destinations 
-                  cli: true         -> cli output
-                  file: true        -> creates an output file inside the project 
-            
+     settings:
+       resources:
+         output: outputs.log  // name of the output file
+         log: logs.log        // name of the log file (errors included)
+       server:
+         enable: true         // enables the web server 
+         open: false          // opens the web server in a new tab
+         host: localhost      // web server host
+         port: 5000           // wev server port
+      config:                   
+        flimit: 0             // increases the maximum number of open files - supported only on linux or os x, sudo required
+     projects:
+     - name: printer          // project name
+       path: /                // project path
+       run: true              // enables go run  (require bin)
+       bin: true              // enables go install
+       generate: false        // enables go generate
+       build: false           // enables go build
+       fmt: true              // enables go fmt
+       test: false            // enables go test   
+       params: []             // array of additionals params. the project will be launched with these parameters   
+       watcher:
+         before: []           // custom commands launched before the execution of the project 
+         after: []            // custom commands launched after the execution of the project 
+         paths:               // paths to observe for live reload
+         - /
+         ignore_paths:        // paths to ignore
+         - vendor
+         exts:                // file extensions to observe for live reload
+         - .go
+         preview: true        // prints the observed files on startup
+       cli:                   
+         streams: true        // prints the output streams of the project in the cli 
+       file:
+         streams: false       // saves the output stream of the project in a file
+         logs: false          // saves the logs of the project in a file
+         errors: false        // saves the errors of the project in a file
     ```                    
 
 #### Next release
 
-##### v1.2
-- [ ] Windows support 
-- [ ] Go generate support
-- [ ] Web panel - watched file
-- [ ] Web panel - edit settings
+##### v1.3
+- [ ] Web panel edit settings, full support
+- [ ] Tests
 
 #### Contacts
 
