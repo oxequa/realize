@@ -8,7 +8,6 @@ import (
 	w "github.com/tockins/realize/watcher"
 	"golang.org/x/net/websocket"
 	"gopkg.in/urfave/cli.v2"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -108,7 +107,7 @@ func (s *Server) hello(c echo.Context) error {
 				msg, _ := json.Marshal(s.Blueprint.Projects)
 				err = websocket.Message.Send(ws, string(msg))
 				if err != nil {
-					log.Println(err)
+					//log.Println(err)
 					break
 				}
 			}
@@ -117,12 +116,12 @@ func (s *Server) hello(c echo.Context) error {
 			text := ""
 			err := websocket.Message.Receive(ws, &text)
 			if err != nil {
-				log.Println(err)
+				//log.Println(err)
 				break
 			} else {
 				err := json.Unmarshal([]byte(text), &s.Blueprint.Projects)
 				if err != nil {
-					log.Println(err)
+					//log.Println(err)
 					break
 				}
 			}
