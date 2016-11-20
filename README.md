@@ -22,7 +22,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
 - [x] Bugs fix
 - [x] Web panel errors log improved
 - [x] Refactoring
-
+- [x] Web panel edit settings, partial
 
 #### Features
 
@@ -185,7 +185,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
 #### Next release
 
 ##### v1.3
-- [ ] Web panel edit settings, moved from v1.2
+- [ ] Web panel edit settings, full support
 - [ ] Tests
 
 #### Contacts
