@@ -50,9 +50,9 @@ A Go build system with file watchers, output streams and live reload. Run, build
     $ realize add
     ```
 
-    It will create a realize.config.yaml file if it doesn't exist already and adds the working directory as the project.
+    It will create a realize.yaml file if it doesn't exist already and adds the working directory as the project.
 
-    Otherwise if a config file already exists it adds another project to the existing config file.
+    Otherwise if a config file already exists it adds the working project to the existing config file.
 
     The add command supports the following custom parameters:
 
@@ -109,8 +109,9 @@ A Go build system with file watchers, output streams and live reload. Run, build
     $ realize run
     ```
 
-    Run can also launch a project from its working directory without a config file. It supports the following custom parameters:
-
+    Run can also launch a project from its working directory with or without make a config file (--no-config option).
+    It supports the following custom parameters:
+    
     ```
     --path="server"         -> Custom Path, if not specified takes the working directory name 
     --build                 -> Enables the build   
@@ -120,9 +121,10 @@ A Go build system with file watchers, output streams and live reload. Run, build
     --no-run                -> Disables the run
     --no-fmt                -> Disables the fmt (go fmt)
     --no-server             -> Disables the web panel (port :5000)
+    --no-config             -> Doesn't create any configuration files
     --open                  -> Open the web panel in a new browser window 
     ```  
-    And addittional arguments as the "add" command.
+    And additional arguments as the "add" command.
     
     ```
     $ realize run --no-run yourParams --yourFlags // correct
