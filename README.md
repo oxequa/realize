@@ -154,6 +154,8 @@ A Go build system with file watchers, output streams and live reload. Run, build
          open: false          // opens the web server in a new tab
          host: localhost      // web server host
          port: 5000           // wev server port
+      config:                   
+        flimit: 0             // increases the maximum number of open files - supported only on linux or os x, sudo required
      projects:
      - name: printer          // project name
        path: /                // project path
