@@ -2,7 +2,6 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	c "github.com/tockins/realize/settings"
