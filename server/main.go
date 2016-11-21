@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	c "github.com/tockins/realize/settings"
@@ -92,6 +93,8 @@ func (s *Server) Start(p *cli.Context) (err error) {
 				return err
 			}
 		}
+	} else {
+		s.Server.Enabled = false
 	}
 	return nil
 }
