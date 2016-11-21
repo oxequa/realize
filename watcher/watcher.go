@@ -22,18 +22,17 @@ func (p *Project) watching() {
 	channel, exit := make(chan bool, 1), make(chan bool, 1)
 	p.path = p.Path
 	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		log.Println(strings.ToUpper(p.pname(p.Name, 1)), ":", p.Red.Bold(err.Error()))
-		return
-	}
 	defer func() {
-		watcher.Close()
 		wg.Done()
 	}()
 
+	if err != nil {
+		log.Fatalln(p.pname(p.Name, 2), ":", p.Red.Bold(err.Error()))
+		return
+	}
 	p.cmd(exit)
 	if p.walks(watcher) != nil {
-		log.Println(strings.ToUpper(p.pname(p.Name, 1)), ":", p.Red.Bold(err.Error()))
+		log.Fatalln(p.pname(p.Name, 2), ":", p.Red.Bold(err.Error()))
 		return
 	}
 	go p.routines(channel, &wr)
