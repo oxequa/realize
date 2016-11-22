@@ -17,7 +17,12 @@ func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 
 	var build *exec.Cmd
 	if len(p.Params) != 0 {
-		build = exec.Command(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.path)), p.Params...)
+		var params []string
+		for _, param := range p.Params {
+			arr := strings.Fields(param)
+			params = append(params, arr...)
+		}
+		build = exec.Command(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.path)), params...)
 	} else {
 		build = exec.Command(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.path)))
 	}
