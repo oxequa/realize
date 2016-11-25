@@ -3,7 +3,6 @@ package cli
 import (
 	"errors"
 	"fmt"
-	"github.com/fsnotify/fsnotify"
 	"log"
 	"math/big"
 	"os"
@@ -13,6 +12,8 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/fsnotify/fsnotify"
 )
 
 // Watching method is the main core. It manages the livereload and the watching
@@ -147,7 +148,7 @@ func (p *Project) fmt(path string) error {
 	defer func() {
 		p.sync()
 	}()
-	if p.Fmt {
+	if p.Fmt && strings.HasSuffix(path, ".go") {
 		if stream, err := p.goFmt(path); err != nil {
 			msg := fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Fmt"), p.Red.Regular("there are some errors in"), ":", p.Magenta.Bold(path))
 			out := BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Fmt", Stream: stream}
