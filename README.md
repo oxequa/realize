@@ -14,8 +14,6 @@ A Go build system with file watchers, output streams and live reload. Run, build
 
 ![Preview](http://i.imgur.com/dJbNZjt.gif)
 
-#### What's new
-
 #### Features
 
 - Highly customizable
