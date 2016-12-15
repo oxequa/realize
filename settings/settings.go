@@ -33,7 +33,7 @@ type Resources struct {
 // Read from the configuration file
 func (s *Settings) Read(out interface{}) error {
 	localConfigPath := s.Resources.Config
-	if _, err := os.Stat(".realize/"); err == nil {
+	if _, err := os.Stat(".realize/" + s.Resources.Config); err == nil {
 		localConfigPath = ".realize/" + s.Resources.Config
 	}
 	content, err := s.Stream(localConfigPath)
