@@ -1,4 +1,3 @@
-
 // +build !windows
 
 package settings
@@ -12,6 +11,6 @@ func (s *Settings) Flimit() {
 	rLimit.Cur = s.Config.Flimit
 	err := syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit)
 	if err != nil {
-		s.Fatal("Error Setting Rlimit", err)
+		s.Fatal(err, "Error setting rlimit")
 	}
 }
