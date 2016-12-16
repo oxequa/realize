@@ -30,7 +30,7 @@ type Resources struct {
 	Log    string `yaml:"log" json:"log"`
 }
 
-// Read from the configuration file
+// Read from config file
 func (s *Settings) Read(out interface{}) error {
 	localConfigPath := s.Resources.Config
 	if _, err := os.Stat(".realize/" + s.Resources.Config); err == nil {
