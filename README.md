@@ -174,12 +174,13 @@ A Go build system with file watchers, output streams and live reload. Run, build
          errors: false        // saves the errors of the project in a file
     ```                    
 
-#### Next release, in progress...
+#### Next features, in progress...
 
 - [ ] Web panel - edit settings (full support)
-- [ ] Web Panel - logs download
-- [ ] Scheduler - reload a project after a specific time
+- [ ] Web panel - logs download
+- [ ] Schedule - reload a project after a specific time
 - [ ] Easy dependencies - automatically resolve the project dependencies
+- [ ] Import license - retrieve the license for each imported library
 - [ ] Tests
 
 
