@@ -145,37 +145,11 @@ func (p *Project) goInstall() (string, error) {
 	return "", nil
 }
 
-// GoFmt is an implementation of the gofmt
-func (p *Project) goFmt(path string) (string, error) {
+// GoTools is used for run go methods such as fmt, test, generate...
+func (p *Project) goTools(dir string, name string, cmd ...string) (string, error) {
 	var out, stderr bytes.Buffer
-	build := exec.Command("gofmt", "-s", "-w", "-e", path)
-	build.Dir = p.base
-	build.Stdout = &out
-	build.Stderr = &stderr
-	if err := build.Run(); err != nil {
-		return stderr.String(), err
-	}
-	return "", nil
-}
-
-// GoTest is an implementation of the go test
-func (p *Project) goTest(path string) (string, error) {
-	var out, stderr bytes.Buffer
-	build := exec.Command("go", "test")
-	build.Dir = path
-	build.Stdout = &out
-	build.Stderr = &stderr
-	if err := build.Run(); err != nil {
-		return stderr.String(), err
-	}
-	return "", nil
-}
-
-// GoGenerate is an implementation of the go test
-func (p *Project) goGenerate(path string) (string, error) {
-	var out, stderr bytes.Buffer
-	build := exec.Command("go", "generate")
-	build.Dir = path
+	build := exec.Command(name, cmd...)
+	build.Dir = dir
 	build.Stdout = &out
 	build.Stderr = &stderr
 	if err := build.Run(); err != nil {

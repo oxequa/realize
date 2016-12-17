@@ -145,7 +145,7 @@ func (p *Project) fmt(path string) error {
 		p.sync()
 	}()
 	if p.Fmt {
-		if stream, err := p.goFmt(path); err != nil {
+		if stream, err := p.goTools(p.base, "gofmt", "-s", "-w", "-e", path); err != nil {
 			msg := fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Fmt"), p.Red.Regular("there are some errors in"), ":", p.Magenta.Bold(path))
 			out := BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Fmt", Stream: stream}
 			p.print("error", out, msg, stream)
@@ -161,9 +161,25 @@ func (p *Project) generate(path string) error {
 		p.sync()
 	}()
 	if p.Generate {
-		if stream, err := p.goGenerate(path); err != nil {
+		if stream, err := p.goTools(path, "go", "generate"); err != nil {
 			msg := fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Generate"), p.Red.Regular("there are some errors in"), ":", p.Magenta.Bold(path))
 			out := BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Generate", Stream: stream}
+			p.print("error", out, msg, stream)
+			return err
+		}
+	}
+	return nil
+}
+
+// Test calls an implementation of the "go test"
+func (p *Project) test(path string) error {
+	defer func() {
+		p.sync()
+	}()
+	if p.Test {
+		if stream, err := p.goTools(path, "go", "test"); err != nil {
+			msg := fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Test"), p.Red.Regular("there are some errors in "), ":", p.Magenta.Bold(path))
+			out := BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Test", Stream: stream}
 			p.print("error", out, msg, stream)
 			return err
 		}
@@ -200,22 +216,6 @@ func (p *Project) cmd(exit chan bool) {
 			}
 		}
 	}()
-}
-
-// Test calls an implementation of the "go test"
-func (p *Project) test(path string) error {
-	defer func() {
-		p.sync()
-	}()
-	if p.Test {
-		if stream, err := p.goTest(path); err != nil {
-			msg := fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Test"), p.Red.Regular("there are some errors in "), ":", p.Magenta.Bold(path))
-			out := BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Test", Stream: stream}
-			p.print("error", out, msg, stream)
-			return err
-		}
-	}
-	return nil
 }
 
 // Walks the file tree of a project
@@ -307,6 +307,7 @@ func (p *Project) pname(name string, color int) string {
 	return name
 }
 
+// Print on files
 func (p *Project) print(t string, o BufferOut, msg string, stream string) {
 	switch t {
 	case "out":
