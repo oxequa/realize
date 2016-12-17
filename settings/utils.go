@@ -14,14 +14,14 @@ func (s Settings) Wdir() string {
 
 func (s Settings) Validate(err error) error {
 	if err != nil {
-		s.Fatal("", err)
+		s.Fatal(err, "")
 	}
 	return nil
 }
 
-func (s Settings) Fatal(msg string, err error) {
-	if msg != "" {
-		log.Fatal(s.Red.Regular(msg), err.Error())
+func (s Settings) Fatal(err error, msg ...interface{}) {
+	if len(msg) > 0 {
+		log.Fatalln(s.Red.Regular(msg...), err.Error())
 	}
-	log.Fatal(err.Error())
+	log.Fatalln(err.Error())
 }

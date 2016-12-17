@@ -14,27 +14,15 @@ A Go build system with file watchers, output streams and live reload. Run, build
 
 ![Preview](http://i.imgur.com/dJbNZjt.gif)
 
-#### What's new
-
-##### v1.2
-- [x] Windows support
-- [x] Go generate support
-- [x] Bugs fix
-- [x] Web panel errors log improved
-- [x] Refactoring
-- [x] Web panel edit settings, partial
-
 #### Features
 
-- Build, Install, Test, Fmt and Run at the same time
-- Live reload on file changes (re-build, re-install and re-run)
-- Watch custom paths
-- Watch specific file extensions
-- Multiple projects support
-- Output streams
-- Execution times
 - Highly customizable
-- Fast run
+- Build, Install, Test, Fmt, Generate and Run at the same time
+- Live reload on file changes (re-build, re-install...)
+- Watch custom paths and specific file extensions
+- Support for multiple projects
+- Output streams and error logs (Watch them in console or save them on a file)
+- Web Panel (Watch all projects, edit the config settings, download each type of log)
 
 #### Installation and usage
 
@@ -186,11 +174,15 @@ A Go build system with file watchers, output streams and live reload. Run, build
          errors: false        // saves the errors of the project in a file
     ```                    
 
-#### Next release
+#### Next features, in progress...
 
-##### v1.3
-- [ ] Web panel edit settings, full support
+- [ ] Web panel - edit settings (full support)
+- [ ] Web panel - logs download
+- [ ] Schedule - reload a project after a specific time
+- [ ] Easy dependencies - automatically resolve the project dependencies
+- [ ] Import license - retrieve the license for each imported library
 - [ ] Tests
+
 
 #### Contacts
 

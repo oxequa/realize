@@ -12,12 +12,11 @@ import (
 
 const (
 	name        = "Realize"
-	version     = "1.2"
+	version     = "1.2.1"
 	description = "A Go build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths"
 	config      = "realize.yaml"
 	output      = "outputs.log"
 	log         = "logs.log"
-	err         = "errors.log"
 	host        = "localhost"
 	port        = 5000
 	server      = true

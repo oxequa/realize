@@ -2,6 +2,7 @@ package settings
 
 import (
 	"gopkg.in/yaml.v2"
+	"os"
 )
 
 type Settings struct {
@@ -28,9 +29,13 @@ type Resources struct {
 	Log    string `yaml:"log" json:"log"`
 }
 
-// Read from the configuration file
+// Read from config file
 func (s *Settings) Read(out interface{}) error {
-	content, err := s.Stream(s.Resources.Config)
+	localConfigPath := s.Resources.Config
+	if _, err := os.Stat(".realize/" + s.Resources.Config); err == nil {
+		localConfigPath = ".realize/" + s.Resources.Config
+	}
+	content, err := s.Stream(localConfigPath)
 	if err == nil {
 		err = yaml.Unmarshal(content, out)
 		return err
@@ -39,10 +44,15 @@ func (s *Settings) Read(out interface{}) error {
 }
 
 // Record create and unmarshal the yaml config file
-func (h *Settings) Record(out interface{}) error {
+func (s *Settings) Record(out interface{}) error {
 	y, err := yaml.Marshal(out)
 	if err != nil {
 		return err
 	}
-	return h.Write(h.Resources.Config, y)
+	if _, err := os.Stat(".realize/"); os.IsNotExist(err) {
+		if err = os.Mkdir(".realize/", 0770); err != nil {
+			return s.Write(s.Resources.Config, y)
+		}
+	}
+	return s.Write(".realize/"+s.Resources.Config, y)
 }

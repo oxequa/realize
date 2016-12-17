@@ -16,21 +16,34 @@ import (
 func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup) error {
 
 	var build *exec.Cmd
-	if len(p.Params) != 0 {
-		var params []string
-		for _, param := range p.Params {
-			arr := strings.Fields(param)
-			params = append(params, arr...)
-		}
-		build = exec.Command(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.path)), params...)
-	} else {
-		build = exec.Command(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.path)))
+	var params []string
+	var path = ""
+
+	for _, param := range p.Params {
+		arr := strings.Fields(param)
+		params = append(params, arr...)
 	}
-	build.Dir = p.base
+	if _, err := os.Stat(filepath.Join(p.base, p.path)); err == nil {
+		path = filepath.Join(p.base, p.path)
+	}
+	if _, err := os.Stat(filepath.Join(p.base, p.path+".exe")); err == nil {
+		path = filepath.Join(p.base, p.path+".exe")
+	}
+
+	if path != "" {
+		build = exec.Command(path, params...)
+	} else {
+		if _, err := os.Stat(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.path))); err == nil {
+			build = exec.Command(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.path)), params...)
+		} else {
+			p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Can't run a not compiled project"})
+			p.Fatal(err, "Can't run a not compiled project", ":")
+		}
+	}
 	defer func() {
 		if err := build.Process.Kill(); err != nil {
 			p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Failed to stop: " + err.Error()})
-			p.Fatal("Failed to stop:", err)
+			p.Fatal(err, "Failed to stop", ":")
 		}
 		p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Ended"})
 		log.Println(p.pname(p.Name, 2), ":", p.Red.Regular("Ended"))
@@ -68,11 +81,10 @@ func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 					log.Println(p.pname(p.Name, 3), ":", p.Blue.Regular(output.Text()))
 				}
 				if p.File.Streams {
-					path := filepath.Join(p.base, p.Resources.Output)
-					f := p.Create(path)
+					f := p.Create(p.base, p.parent.Resources.Output)
 					t := time.Now()
 					if _, err := f.WriteString(t.Format("2006-01-02 15:04:05") + " : " + output.Text() + "\r\n"); err != nil {
-						p.Fatal("", err)
+						p.Fatal(err, "")
 					}
 				}
 			}
