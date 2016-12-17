@@ -17,7 +17,6 @@ const (
 	config      = "realize.yaml"
 	output      = "outputs.log"
 	log         = "logs.log"
-	err         = "errors.log"
 	host        = "localhost"
 	port        = 5000
 	server      = true

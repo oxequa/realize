@@ -3,6 +3,7 @@ package settings
 import (
 	"io/ioutil"
 	"os"
+	"path/filepath"
 )
 
 // Scan return a byte stream of a given file
@@ -23,7 +24,13 @@ func (s Settings) Write(name string, data []byte) error {
 }
 
 // Create a new file and return its pointer
-func (s Settings) Create(file string) *os.File {
+func (s Settings) Create(path string, name string) *os.File {
+	var file string
+	if _, err := os.Stat(".realize/"); err == nil {
+		file = filepath.Join(path, ".realize/", name)
+	} else {
+		file = filepath.Join(path, name)
+	}
 	out, err := os.OpenFile(file, os.O_APPEND|os.O_WRONLY|os.O_CREATE|os.O_SYNC, 0655)
 	s.Validate(err)
 	return out

@@ -25,7 +25,6 @@ func (p *Project) watching() {
 	defer func() {
 		wg.Done()
 	}()
-
 	if err != nil {
 		log.Fatalln(p.pname(p.Name, 2), ":", p.Red.Bold(err.Error()))
 		return
@@ -312,8 +311,7 @@ func (p *Project) print(t string, o BufferOut, msg string, stream string) {
 	case "out":
 		p.Buffer.StdOut = append(p.Buffer.StdOut, o)
 		if p.File.Streams {
-			path := filepath.Join(p.base, p.Resources.Output)
-			f := p.Create(path)
+			f := p.Create(p.base, p.parent.Resources.Output)
 			t := time.Now()
 			if _, err := f.WriteString(t.Format("2006-01-02 15:04:05") + " : " + o.Text + "\r\n"); err != nil {
 				p.Fatal(err, "")
@@ -322,8 +320,7 @@ func (p *Project) print(t string, o BufferOut, msg string, stream string) {
 	case "log":
 		p.Buffer.StdLog = append(p.Buffer.StdLog, o)
 		if p.File.Logs {
-			path := filepath.Join(p.base, p.Resources.Log)
-			f := p.Create(path)
+			f := p.Create(p.base, p.parent.Resources.Log)
 			t := time.Now()
 			if _, err := f.WriteString(t.Format("2006-01-02 15:04:05") + " : " + o.Text + "\r\n"); err != nil {
 				p.Fatal(err, "")
@@ -332,8 +329,7 @@ func (p *Project) print(t string, o BufferOut, msg string, stream string) {
 	case "error":
 		p.Buffer.StdErr = append(p.Buffer.StdErr, o)
 		if p.File.Errors {
-			path := filepath.Join(p.base, p.Resources.Log)
-			f := p.Create(path)
+			f := p.Create(p.base, p.parent.Resources.Log)
 			t := time.Now()
 			if _, err := f.WriteString(t.Format("2006-01-02 15:04:05") + " : " + o.Text + "\r\n"); err != nil {
 				p.Fatal(err, "")

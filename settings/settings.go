@@ -1,9 +1,8 @@
 package settings
 
 import (
-	"os"
-
 	"gopkg.in/yaml.v2"
+	"os"
 )
 
 type Settings struct {
@@ -51,7 +50,9 @@ func (s *Settings) Record(out interface{}) error {
 		return err
 	}
 	if _, err := os.Stat(".realize/"); os.IsNotExist(err) {
-		os.Mkdir(".realize", 0770)
+		if err = os.Mkdir(".realize/", 0770); err != nil {
+			return s.Write(s.Resources.Config, y)
+		}
 	}
 	return s.Write(".realize/"+s.Resources.Config, y)
 }

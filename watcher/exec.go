@@ -81,8 +81,7 @@ func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 					log.Println(p.pname(p.Name, 3), ":", p.Blue.Regular(output.Text()))
 				}
 				if p.File.Streams {
-					path := filepath.Join(p.base, p.Resources.Output)
-					f := p.Create(path)
+					f := p.Create(p.base, p.parent.Resources.Output)
 					t := time.Now()
 					if _, err := f.WriteString(t.Format("2006-01-02 15:04:05") + " : " + output.Text() + "\r\n"); err != nil {
 						p.Fatal(err, "")
