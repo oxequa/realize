@@ -22,14 +22,15 @@ func init() {
 
 // Open a url in the default browser
 func Open(url string) (io.Writer, error) {
-	if open, err := cmd[runtime.GOOS]; !err {
+	open, err := cmd[runtime.GOOS];
+	if !err {
 		return nil, errors.New("This operating system is not supported.")
-	} else {
-		cmd := exec.Command(open, url)
-		cmd.Stderr = &stderr
-		if err := cmd.Run(); err != nil {
-			return cmd.Stderr, err
-		}
 	}
+	cmd := exec.Command(open, url)
+	cmd.Stderr = &stderr
+	if err := cmd.Run(); err != nil {
+		return cmd.Stderr, err
+	}
+
 	return nil, nil
 }
