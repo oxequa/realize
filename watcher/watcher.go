@@ -82,7 +82,7 @@ func (p *Project) watching() {
 	}
 }
 
-// Install calls an implementation of the "go install"
+// Install calls an implementation of "go install"
 func (p *Project) install() {
 	if p.Bin {
 		start := time.Now()
@@ -101,6 +101,7 @@ func (p *Project) install() {
 	return
 }
 
+// Install calls an implementation of "go run"
 func (p *Project) run(channel chan bool, wr *sync.WaitGroup) {
 	if p.Run {
 		start := time.Now()
@@ -265,7 +266,7 @@ func (p *Project) walks(watcher *fsnotify.Watcher) error {
 	return nil
 }
 
-// Ignore validates a path
+// Ignore and validate a path
 func (p *Project) ignore(str string) bool {
 	for _, v := range p.Watcher.Ignore {
 		if strings.Contains(str, filepath.Join(p.base, v)) {
@@ -275,7 +276,7 @@ func (p *Project) ignore(str string) bool {
 	return false
 }
 
-// Routines launches the following methods: run, build, install
+// Routines launches the toolchain run, build, install
 func (p *Project) routines(channel chan bool, wr *sync.WaitGroup) {
 	p.install()
 	p.build()

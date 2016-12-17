@@ -11,6 +11,7 @@ import (
 var cmd map[string]string
 var stderr bytes.Buffer
 
+// Init an associative array with the os supported
 func init() {
 	cmd = map[string]string{
 		"windows": "start",
@@ -19,6 +20,7 @@ func init() {
 	}
 }
 
+// Open a url in the default browser
 func Open(url string) (io.Writer, error) {
 	if open, err := cmd[runtime.GOOS]; !err {
 		return nil, errors.New("This operating system is not supported.")

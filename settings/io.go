@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-// Scan return a byte stream of a given file
+// Stream return a byte stream of a given file
 func (s Settings) Stream(file string) ([]byte, error) {
 	_, err := os.Stat(file)
 	if err == nil {
