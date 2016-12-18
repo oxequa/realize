@@ -81,7 +81,7 @@ func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 					log.Println(p.pname(p.Name, 3), ":", p.Blue.Regular(output.Text()))
 				}
 				if p.File.Streams {
-					f := p.Create(p.base, p.parent.Resources.Output)
+					f := p.Create(p.base, p.parent.Resources.Streams)
 					t := time.Now()
 					if _, err := f.WriteString(t.Format("2006-01-02 15:04:05") + " : " + output.Text() + "\r\n"); err != nil {
 						p.Fatal(err, "")
@@ -94,7 +94,6 @@ func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 	p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Started"})
 	go scanner(stopOutput, execOutput, false)
 	go scanner(stopError, execError, true)
-
 	for {
 		select {
 		case <-channel:
@@ -159,25 +158,26 @@ func (p *Project) goTools(dir string, name string, cmd ...string) (string, error
 }
 
 // Cmds exec a list of defined commands
-func (p *Project) cmds(cmds []string) (errors []string) {
+func (p *Project) afterBefore(command string) (errors string, logs string) {
 	defer func() {
 		p.sync()
 	}()
-	for _, cmd := range cmds {
-		var out bytes.Buffer
-		var stderr bytes.Buffer
-		cmd := strings.Replace(strings.Replace(cmd, "'", "", -1), "\"", "", -1)
-		c := strings.Split(cmd, " ")
-		build := exec.Command(c[0], c[1:]...)
-		build.Dir = p.base
-		build.Stdout = &out
-		build.Stderr = &stderr
-		if err := build.Run(); err != nil {
-			errors = append(errors, stderr.String())
-			return errors
-		}
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	command = strings.Replace(strings.Replace(command, "'", "", -1), "\"", "", -1)
+	c := strings.Split(command, " ")
+	build := exec.Command(c[0], c[1:]...)
+	build.Dir = p.base
+	build.Stdout = &stdout
+	build.Stderr = &stderr
+	err := build.Run()
+	// check if log
+	logs = stdout.String()
+	if err != nil {
+		errors = stderr.String()
+		return errors, logs
 	}
-	return nil
+	return "", logs
 }
 
 // Sync datas with the web server

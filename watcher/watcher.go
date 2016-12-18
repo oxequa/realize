@@ -83,11 +83,12 @@ func (p *Project) watching() {
 }
 
 // Install calls an implementation of "go install"
-func (p *Project) install() {
+func (p *Project) install() error {
 	if p.Bin {
 		start := time.Now()
 		log.Println(p.pname(p.Name, 1), ":", "Installing..")
-		if stream, err := p.goInstall(); err != nil {
+		stream, err := p.goInstall()
+		if err != nil {
 			msg := fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Install"), p.Red.Regular(err.Error()))
 			out := BufferOut{Time: time.Now(), Text: err.Error(), Type: "Go Install", Stream: stream}
 			p.print("error", out, msg, stream)
@@ -97,8 +98,9 @@ func (p *Project) install() {
 			p.print("log", out, msg, stream)
 		}
 		p.sync()
+		return err
 	}
-	return
+	return nil
 }
 
 // Install calls an implementation of "go run"
@@ -121,11 +123,12 @@ func (p *Project) run(channel chan bool, wr *sync.WaitGroup) {
 }
 
 // Build calls an implementation of the "go build"
-func (p *Project) build() {
+func (p *Project) build() error {
 	if p.Build {
 		start := time.Now()
 		log.Println(p.pname(p.Name, 1), ":", "Building..")
-		if stream, err := p.goBuild(); err != nil {
+		stream, err := p.goBuild()
+		if err != nil {
 			msg := fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Build"), p.Red.Regular(err.Error()))
 			out := BufferOut{Time: time.Now(), Text: err.Error(), Type: "Go Build", Stream: stream}
 			p.print("error", out, msg, stream)
@@ -135,8 +138,9 @@ func (p *Project) build() {
 			p.print("log", out, msg, stream)
 		}
 		p.sync()
+		return err
 	}
-	return
+	return nil
 }
 
 // Fmt calls an implementation of the "go fmt"
@@ -192,11 +196,25 @@ func (p *Project) cmd(exit chan bool) {
 	c := make(chan os.Signal, 2)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	cast := func(commands []string) {
-		if errs := p.cmds(commands); errs != nil {
-			for _, err := range errs {
-				msg := fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold(err))
-				out := BufferOut{Time: time.Now(), Text: err, Type: "After/Before"}
+		for _, command := range commands {
+			errors, logs := p.afterBefore(command)
+			msg := fmt.Sprintln(p.pname(p.Name, 5), ":", p.Green.Bold("Command"), p.Green.Bold("\"")+command+p.Green.Bold("\""))
+			out := BufferOut{Time: time.Now(), Text: command, Type: "After/Before"}
+			if logs != "" {
+				p.print("log", out, msg, "")
+			}
+			if errors != "" {
 				p.print("error", out, msg, "")
+			}
+			if logs != "" {
+				msg = fmt.Sprintln(logs)
+				out = BufferOut{Time: time.Now(), Text: logs, Type: "After/Before"}
+				p.print("log", out, "", msg)
+			}
+			if errors != "" {
+				msg = fmt.Sprintln(p.Red.Regular(errors))
+				out = BufferOut{Time: time.Now(), Text: errors, Type: "After/Before"}
+				p.print("error", out, "", msg)
 			}
 		}
 	}
@@ -278,10 +296,12 @@ func (p *Project) ignore(str string) bool {
 
 // Routines launches the toolchain run, build, install
 func (p *Project) routines(channel chan bool, wr *sync.WaitGroup) {
-	p.install()
-	p.build()
+	install := p.install()
+	build := p.build()
 	wr.Add(1)
-	go p.run(channel, wr)
+	if install == nil && build == nil {
+		go p.run(channel, wr)
+	}
 	wr.Wait()
 }
 
@@ -313,34 +333,36 @@ func (p *Project) print(t string, o BufferOut, msg string, stream string) {
 	case "out":
 		p.Buffer.StdOut = append(p.Buffer.StdOut, o)
 		if p.File.Streams {
-			f := p.Create(p.base, p.parent.Resources.Output)
+			f := p.Create(p.base, p.parent.Resources.Streams)
 			t := time.Now()
-			if _, err := f.WriteString(t.Format("2006-01-02 15:04:05") + " : " + o.Text + "\r\n"); err != nil {
+			if _, err := f.WriteString(t.Format("2006-01-02 15:04:05") + strings.ToUpper(" "+p.Name) + " : " + o.Text + "\r\n"); err != nil {
 				p.Fatal(err, "")
 			}
 		}
 	case "log":
 		p.Buffer.StdLog = append(p.Buffer.StdLog, o)
 		if p.File.Logs {
-			f := p.Create(p.base, p.parent.Resources.Log)
+			f := p.Create(p.base, p.parent.Resources.Logs)
 			t := time.Now()
-			if _, err := f.WriteString(t.Format("2006-01-02 15:04:05") + " : " + o.Text + "\r\n"); err != nil {
+			if _, err := f.WriteString(t.Format("2006-01-02 15:04:05") + strings.ToUpper(" "+p.Name) + " : " + o.Text + "\r\n"); err != nil {
 				p.Fatal(err, "")
 			}
 		}
 	case "error":
 		p.Buffer.StdErr = append(p.Buffer.StdErr, o)
 		if p.File.Errors {
-			f := p.Create(p.base, p.parent.Resources.Log)
+			f := p.Create(p.base, p.parent.Resources.Errors)
 			t := time.Now()
-			if _, err := f.WriteString(t.Format("2006-01-02 15:04:05") + " : " + o.Text + "\r\n"); err != nil {
+			if _, err := f.WriteString(t.Format("2006-01-02 15:04:05") + strings.ToUpper(" "+p.Name) + " : " + o.Text + "\r\n"); err != nil {
 				p.Fatal(err, "")
 			}
 		}
 
 	}
-	log.Print(msg)
+	if msg != "" {
+		log.Print(msg)
+	}
 	if stream != "" {
-		fmt.Println(stream)
+		fmt.Print(stream)
 	}
 }
