@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// Watch method adds the given paths on the Watcher
+// Run launches the toolchain for each project
 func (h *Blueprint) Run() error {
 	err := h.check()
 	if err == nil {
@@ -68,7 +68,7 @@ func (h *Blueprint) Clean() {
 	}
 }
 
-// Inserts a new project in the list
+// Insert a new project in projects list
 func (h *Blueprint) Insert(p *cli.Context) error {
 	err := h.Add(p)
 	return err
@@ -134,9 +134,8 @@ func (h *Blueprint) check() error {
 	if len(h.Projects) > 0 {
 		h.Clean()
 		return nil
-	} else {
-		return errors.New("There are no projects. The config file is empty.")
 	}
+	return errors.New("There are no projects. The config file is empty.")
 }
 
 // NameParam check the project name presence. If empty takes the working directory name

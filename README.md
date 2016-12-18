@@ -38,11 +38,11 @@ A Go build system with file watchers, output streams and live reload. Run, build
     $ realize add
     ```
 
-    It will create a realize.yaml file if it doesn't exist already and adds the working directory as the project.
+    It will create a realize.yaml file if it doesn't exist already and adds the working directory as project.
 
     Otherwise if a config file already exists it adds the working project to the existing config file.
 
-    The add command supports the following custom parameters:
+    The Add command supports the following custom parameters:
 
     ```
     --name="Project Name"   -> Name, if not specified takes the working directory name

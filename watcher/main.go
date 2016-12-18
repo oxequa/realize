@@ -14,7 +14,7 @@ type logWriter struct {
 	c.Colors
 }
 
-// Projects struct contains a projects list
+// Blueprint struct contains a projects list
 type Blueprint struct {
 	*c.Settings `yaml:"-"`
 	Projects    []Project   `yaml:"projects,omitempty" json:"projects,omitempty"`
@@ -28,12 +28,12 @@ type Project struct {
 	base          string
 	Name          string   `yaml:"name" json:"name"`
 	Path          string   `yaml:"path" json:"path"`
-	Run           bool     `yaml:"run" json:"run"`
-	Bin           bool     `yaml:"bin" json:"bin"`
-	Generate      bool     `yaml:"generate" json:"generate"`
-	Build         bool     `yaml:"build" json:"build"`
 	Fmt           bool     `yaml:"fmt" json:"fmt"`
 	Test          bool     `yaml:"test" json:"test"`
+	Generate      bool     `yaml:"generate" json:"generate"`
+	Bin           bool     `yaml:"bin" json:"bin"`
+	Build         bool     `yaml:"build" json:"build"`
+	Run           bool     `yaml:"run" json:"run"`
 	Params        []string `yaml:"params" json:"params"`
 	Watcher       Watcher  `yaml:"watcher" json:"watcher"`
 	Cli           Cli      `yaml:"cli" json:"cli"`
@@ -54,23 +54,26 @@ type Watcher struct {
 	Preview bool     `yaml:"preview" json:"preview"`
 }
 
+// Cli output status, enables or disables
 type Cli struct {
 	Streams bool `yaml:"streams" json:"streams"`
 }
 
+// File determinates the status of each log files (streams, logs, errors)
 type File struct {
 	Streams bool `yaml:"streams" json:"streams"`
 	Logs    bool `yaml:"logs" json:"logs"`
 	Errors  bool `yaml:"errors" json:"errors"`
 }
 
-// Buffer struct for buffering outputs
+// Buffer define an array buffer for each log files
 type Buffer struct {
 	StdOut []BufferOut `json:"stdOut"`
 	StdLog []BufferOut `json:"stdLog"`
 	StdErr []BufferOut `json:"stdErr"`
 }
 
+// BufferOut is used for exchange information between "realize cli" and "web realize"
 type BufferOut struct {
 	Time   time.Time `json:"time"`
 	Text   string    `json:"text"`

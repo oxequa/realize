@@ -12,13 +12,14 @@ import (
 	"strconv"
 )
 
-// Server struct contains server informations
+// Server settings
 type Server struct {
 	*c.Settings  `yaml:"-"`
 	*w.Blueprint `yaml:"-"`
 	Sync         chan string `yaml:"-"`
 }
 
+// Render return a web pages defined in bindata
 func render(c echo.Context, path string, mime int) error {
 	data, err := Asset(path)
 	if err != nil {
@@ -45,7 +46,7 @@ func render(c echo.Context, path string, mime int) error {
 	return nil
 }
 
-// Server starting
+// Start the web server
 func (s *Server) Start(p *cli.Context) (err error) {
 	if !p.Bool("no-server") && s.Enabled {
 		e := echo.New()
@@ -82,8 +83,7 @@ func (s *Server) Start(p *cli.Context) (err error) {
 		})
 
 		//websocket
-		//e.GET("/ws", echo.WrapHandler(s.projects()))
-		e.GET("/ws", s.hello)
+		e.GET("/ws", s.projects)
 
 		go e.Start(string(s.Settings.Server.Host) + ":" + strconv.Itoa(s.Settings.Server.Port))
 		if s.Open || p.Bool("open") {
@@ -98,22 +98,24 @@ func (s *Server) Start(p *cli.Context) (err error) {
 	return nil
 }
 
-func (s *Server) hello(c echo.Context) error {
+func (s *Server) projects(c echo.Context) error {
 	websocket.Handler(func(ws *websocket.Conn) {
 		defer ws.Close()
 		msg, _ := json.Marshal(s.Blueprint.Projects)
 		err := websocket.Message.Send(ws, string(msg))
-		for {
-			select {
-			case <-s.Sync:
-				msg, _ := json.Marshal(s.Blueprint.Projects)
-				err = websocket.Message.Send(ws, string(msg))
-				if err != nil {
-					//log.Println(err)
-					break
+		go func() {
+			for {
+				select {
+				case <-s.Sync:
+					msg, _ := json.Marshal(s.Blueprint.Projects)
+					err = websocket.Message.Send(ws, string(msg))
+					if err != nil {
+						break
+					}
 				}
 			}
-
+		}()
+		for {
 			// Read
 			text := ""
 			err := websocket.Message.Receive(ws, &text)
@@ -123,7 +125,6 @@ func (s *Server) hello(c echo.Context) error {
 			} else {
 				err := json.Unmarshal([]byte(text), &s.Blueprint.Projects)
 				if err != nil {
-					//log.Println(err)
 					break
 				}
 			}
