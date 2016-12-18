@@ -12,14 +12,19 @@ type Colors struct {
 	Magenta
 	Green
 }
+
 // Red color
 type Red struct{}
+
 // Blue color
 type Blue struct{}
+
 // Yellow color
 type Yellow struct{}
+
 // Magenta color
 type Magenta struct{}
+
 // Green color
 type Green struct{}
 

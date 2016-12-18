@@ -15,10 +15,11 @@ const (
 	version     = "1.2.1"
 	description = "A Go build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths"
 	config      = "realize.yaml"
-	output      = "outputs.log"
-	log         = "logs.log"
+	streams     = "streams.log"
+	errs        = "errors.log"
+	logs        = "logs.log"
 	host        = "localhost"
-	port        = 5000
+	port        = 5001
 	server      = true
 	open        = false
 )
@@ -47,9 +48,10 @@ func init() {
 				Flimit: 0,
 			},
 			Resources: c.Resources{
-				Config: config,
-				Output: output,
-				Log:    log,
+				Config:  config,
+				Streams: streams,
+				Logs:    logs,
+				Errors:  errs,
 			},
 			Server: c.Server{
 				Enabled: server,
@@ -137,9 +139,10 @@ func main() {
 								Flimit: 0,
 							},
 							Resources: c.Resources{
-								Config: config,
-								Output: output,
-								Log:    log,
+								Config:  config,
+								Streams: streams,
+								Logs:    logs,
+								Errors:  errs,
 							},
 							Server: c.Server{
 								Enabled: server,
