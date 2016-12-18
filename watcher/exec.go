@@ -3,6 +3,7 @@ package cli
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -14,11 +15,9 @@ import (
 
 // GoRun  is an implementation of the bin execution
 func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup) error {
-
 	var build *exec.Cmd
 	var params []string
 	var path = ""
-
 	for _, param := range p.Params {
 		arr := strings.Fields(param)
 		params = append(params, arr...)
@@ -45,15 +44,14 @@ func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 			p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Failed to stop: " + err.Error()})
 			p.Fatal(err, "Failed to stop", ":")
 		}
-		p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Ended"})
-		log.Println(p.pname(p.Name, 2), ":", p.Red.Regular("Ended"))
-		p.sync()
+		msg := fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Regular("Ended"))
+		out := BufferOut{Time: time.Now(), Text: "Ended", Type: "Go Run"}
+		p.print("log", out, msg, "")
 		wr.Done()
 	}()
 
 	stdout, err := build.StdoutPipe()
 	stderr, err := build.StderrPipe()
-
 	if err != nil {
 		log.Println(p.Red.Bold(err.Error()))
 		return err
@@ -66,32 +64,22 @@ func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 
 	execOutput, execError := bufio.NewScanner(stdout), bufio.NewScanner(stderr)
 	stopOutput, stopError := make(chan bool, 1), make(chan bool, 1)
-
 	scanner := func(stop chan bool, output *bufio.Scanner, isError bool) {
 		for output.Scan() {
 			select {
 			default:
+				msg := fmt.Sprintln(p.pname(p.Name, 3), ":", p.Blue.Regular(output.Text()))
 				if isError {
-					p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: output.Text(), Type: "Go Run"})
+					out := BufferOut{Time: time.Now(), Text: output.Text(), Type: "Go Run"}
+					p.print("error", out, msg, "")
 				} else {
-					p.Buffer.StdOut = append(p.Buffer.StdOut, BufferOut{Time: time.Now(), Text: output.Text()})
-				}
-				p.sync()
-				if p.Cli.Streams {
-					log.Println(p.pname(p.Name, 3), ":", p.Blue.Regular(output.Text()))
-				}
-				if p.File.Streams {
-					f := p.Create(p.base, p.parent.Resources.Streams)
-					t := time.Now()
-					if _, err := f.WriteString(t.Format("2006-01-02 15:04:05") + " : " + output.Text() + "\r\n"); err != nil {
-						p.Fatal(err, "")
-					}
+					out := BufferOut{Time: time.Now(), Text: output.Text()}
+					p.print("out", out, msg, "")
 				}
 			}
 		}
 		close(stop)
 	}
-	p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Started"})
 	go scanner(stopOutput, execOutput, false)
 	go scanner(stopError, execError, true)
 	for {
@@ -108,9 +96,6 @@ func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 
 // GoBuild is an implementation of the "go build"
 func (p *Project) goBuild() (string, error) {
-	defer func() {
-		p.sync()
-	}()
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	build := exec.Command("go", "build")
@@ -125,9 +110,6 @@ func (p *Project) goBuild() (string, error) {
 
 // GoInstall is an implementation of the "go install"
 func (p *Project) goInstall() (string, error) {
-	defer func() {
-		p.sync()
-	}()
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	err := os.Setenv("GOBIN", filepath.Join(os.Getenv("GOPATH"), "bin"))
@@ -159,9 +141,6 @@ func (p *Project) goTools(dir string, name string, cmd ...string) (string, error
 
 // Cmds exec a list of defined commands
 func (p *Project) afterBefore(command string) (errors string, logs string) {
-	defer func() {
-		p.sync()
-	}()
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	command = strings.Replace(strings.Replace(command, "'", "", -1), "\"", "", -1)
@@ -178,11 +157,4 @@ func (p *Project) afterBefore(command string) (errors string, logs string) {
 		return errors, logs
 	}
 	return "", logs
-}
-
-// Sync datas with the web server
-func (p *Project) sync() {
-	go func() {
-		p.parent.Sync <- "sync"
-	}()
 }
