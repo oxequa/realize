@@ -143,7 +143,7 @@ func (p *Project) build() error {
 
 // Fmt calls an implementation of the "go fmt"
 func (p *Project) fmt(path string) error {
-	if p.Fmt {
+	if p.Fmt && strings.HasSuffix(path, ".go") {
 		if stream, err := p.goTools(p.base, "gofmt", "-s", "-w", "-e", path); err != nil {
 			msg := fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Fmt"), p.Red.Regular("there are some errors in"), ":", p.Magenta.Bold(path))
 			out := BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Fmt", Stream: stream}
