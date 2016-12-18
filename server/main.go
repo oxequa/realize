@@ -103,16 +103,19 @@ func (s *Server) projects(c echo.Context) error {
 		defer ws.Close()
 		msg, _ := json.Marshal(s.Blueprint.Projects)
 		err := websocket.Message.Send(ws, string(msg))
-		for {
-			select {
-			case <-s.Sync:
-				msg, _ := json.Marshal(s.Blueprint.Projects)
-				err = websocket.Message.Send(ws, string(msg))
-				if err != nil {
-					break
+		go func() {
+			for {
+				select {
+				case <-s.Sync:
+					msg, _ := json.Marshal(s.Blueprint.Projects)
+					err = websocket.Message.Send(ws, string(msg))
+					if err != nil {
+						break
+					}
 				}
 			}
-
+		}()
+		for {
 			// Read
 			text := ""
 			err := websocket.Message.Receive(ws, &text)

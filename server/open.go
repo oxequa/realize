@@ -22,7 +22,7 @@ func init() {
 
 // Open a url in the default browser
 func Open(url string) (io.Writer, error) {
-	open, err := cmd[runtime.GOOS];
+	open, err := cmd[runtime.GOOS]
 	if !err {
 		return nil, errors.New("This operating system is not supported.")
 	}
