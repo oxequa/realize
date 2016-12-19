@@ -130,6 +130,7 @@ func main() {
 					&cli.BoolFlag{Name: "no-server", Usage: "Disables the web panel"},
 					&cli.BoolFlag{Name: "no-config", Value: false, Usage: "Uses the config settings"},
 					&cli.BoolFlag{Name: "open", Usage: "Automatically opens the web panel"},
+					&cli.IntFlag{Name: "port", Usage: "Sets the web panel port"},
 					&cli.BoolFlag{Name: "test", Value: false, Usage: "Enables the tests"},
 				},
 				Action: func(p *cli.Context) error {
