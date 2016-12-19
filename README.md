@@ -111,6 +111,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
     --no-server             -> Disables the web panel (port :5000)
     --no-config             -> Doesn't create any configuration files
     --open                  -> Open the web panel in a new browser window 
+    --port                  -> Sets the web panel port 
     ```  
     And additional arguments as the "add" command.
     
