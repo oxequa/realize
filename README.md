@@ -52,7 +52,7 @@ A Go build system with file watchers, output streams and live reload. Run, build
     --no-bin                -> Disables the installation
     --no-run                -> Disables the run
     --no-fmt                -> Disables the fmt (go fmt)
-    --no-server             -> Disables the web panel (port :5000)
+    --no-server             -> Disables the web panel (default port 5001)
     --open                  -> Open the web panel in a new browser window
     ```
     Examples:

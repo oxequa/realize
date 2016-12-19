@@ -48,6 +48,9 @@ func render(c echo.Context, path string, mime int) error {
 
 // Start the web server
 func (s *Server) Start(p *cli.Context) (err error) {
+	if p.Int("port") != 0 {
+		s.Settings.Server.Port = p.Int("port")
+	}
 	if !p.Bool("no-server") && s.Enabled {
 		e := echo.New()
 		e.Use(middleware.Gzip())
