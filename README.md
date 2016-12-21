@@ -136,43 +136,41 @@ A Go build system with file watchers, output streams and live reload. Run, build
 - For more examples check [Realize Examples](https://github.com/tockins/realize-examples)
 
      ```
-     settings:
-       resources:
-         output: outputs.log  // name of the output file
-         log: logs.log        // name of the log file (errors included)
-       server:
-         enable: true         // enables the web server 
-         open: false          // opens the web server in a new tab
-         host: localhost      // web server host
-         port: 5000           // wev server port
-      config:                   
-        flimit: 0             // increases the maximum number of open files - supported only on linux or os x, sudo required
+     flimit: 15000                      // Alters the default maximum number of open files
+     server:
+       status: true                     // Disable/Enable the server
+       host: localhost                  // Defines the server address
+       port: 5001                       // Defines the server port   
+       open: true                       // Opens the server in a new browser tab
+     resources:
+        logs: logs.log                  // Save the logs on the defined file, disabled if removed
+        outputs: outputs.log            // Save the outputs on the defined file, disabled if removed
+        errors: errors.log              // Save the errors on the defined file, disabled if removed
      projects:
-     - name: printer          // project name
-       path: /                // project path
-       run: true              // enables go run  (require bin)
-       bin: true              // enables go install
-       generate: false        // enables go generate
-       build: false           // enables go build
-       fmt: true              // enables go fmt
-       test: false            // enables go test   
-       params: []             // array of additionals params. the project will be launched with these parameters   
+     - name: realize                    // Project name
+       path: .                          // Project path
+       fmt: true                        // Disable/Enable go ftm
+       test: false                      // Disable/Enable go test
+       generate: false                  // Disable/Enable go generate       
+       bin: true                        // Disable/Enable go install
+       build: false                     // Disable/Enable go build
+       run: false                       // Disable/Enable go run
+       streams: true                    // Enable/Disable the output streams in cli
+       params: []                       // Run the project with defined additional params
        watcher:
-         before: []           // custom commands launched before the execution of the project 
-         after: []            // custom commands launched after the execution of the project 
-         paths:               // paths to observe for live reload
+         preview: false                 // Enable/Disable the preview of the watched files     
+         paths:                         // Paths to watch, sub-paths included 
          - /
-         ignore_paths:        // paths to ignore
+         ignore_paths:                  // Paths ignored 
          - vendor
-         exts:                // file extensions to observe for live reload
+         exts:                          // File extensions to watch
          - .go
-         preview: true        // prints the observed files on startup
-       cli:                   
-         streams: true        // prints the output streams of the project in the cli 
-       file:
-         streams: false       // saves the output stream of the project in a file
-         logs: false          // saves the logs of the project in a file
-         errors: false        // saves the errors of the project in a file
+         commands:                      // Additional commands to run after and before
+         - before: go install           // Defines if after or before
+         - before: golint
+           watched: true                // Run the command with all watched paths
+           foreach: true                // Run the command at each reload
+         - after: cd server && gobindata
     ```                    
 
 #### Next features, in progress...
