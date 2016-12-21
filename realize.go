@@ -8,6 +8,7 @@ import (
 	w "github.com/tockins/realize/watcher"
 	"gopkg.in/urfave/cli.v2"
 	"os"
+	"time"
 )
 
 const (
@@ -46,6 +47,8 @@ func init() {
 		Settings: c.Settings{
 			Config: c.Config{
 				Flimit: 0,
+				Polling: false,
+				PollingInterval: time.Millisecond * 200,
 			},
 			Resources: c.Resources{
 				Config:  config,
