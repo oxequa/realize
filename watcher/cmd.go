@@ -28,7 +28,7 @@ func (h *Blueprint) Run() error {
 func (h *Blueprint) Add(p *cli.Context) error {
 	project := Project{
 		Name:   h.name(p),
-		Path:   filepath.Clean(p.String("path")),
+		Path:   strings.Replace(filepath.Clean(p.String("path")), "\\", "/", -1),
 		Build:  p.Bool("build"),
 		Bin:    !p.Bool("no-bin"),
 		Run:    !p.Bool("no-run"),
