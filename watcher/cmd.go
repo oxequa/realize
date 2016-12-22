@@ -16,7 +16,11 @@ func (h *Blueprint) Run() error {
 		wg.Add(len(h.Projects))
 		for k := range h.Projects {
 			h.Projects[k].parent = h
-			go h.Projects[k].watching()
+			if h.Polling {
+				go h.Projects[k].watchByPolling()
+			} else {
+				go h.Projects[k].watching()
+			}
 		}
 		wg.Wait()
 		return nil
