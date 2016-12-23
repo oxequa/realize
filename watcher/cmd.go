@@ -16,7 +16,11 @@ func (h *Blueprint) Run() error {
 		wg.Add(len(h.Projects))
 		for k := range h.Projects {
 			h.Projects[k].parent = h
-			go h.Projects[k].watching()
+			if h.Polling {
+				go h.Projects[k].watchByPolling()
+			} else {
+				go h.Projects[k].watching()
+			}
 		}
 		wg.Wait()
 		return nil
@@ -28,7 +32,7 @@ func (h *Blueprint) Run() error {
 func (h *Blueprint) Add(p *cli.Context) error {
 	project := Project{
 		Name:   h.name(p),
-		Path:   filepath.Clean(p.String("path")),
+		Path:   strings.Replace(filepath.Clean(p.String("path")), "\\", "/", -1),
 		Build:  p.Bool("build"),
 		Bin:    !p.Bool("no-bin"),
 		Run:    !p.Bool("no-run"),

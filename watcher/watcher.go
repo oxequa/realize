@@ -16,6 +16,97 @@ import (
 	"time"
 )
 
+type pollWatcher struct {
+	paths map[string]bool
+}
+
+func (w *pollWatcher) isWatching(path string) bool {
+	a, b := w.paths[path]
+	return a && b
+}
+
+func (w *pollWatcher) Add(path string) error {
+	if w.paths == nil {
+		w.paths = map[string]bool{}
+	}
+	w.paths[path] = true
+	return nil
+}
+
+func (p *Project) watchByPolling() {
+	var wr sync.WaitGroup
+	var watcher = new(pollWatcher)
+	channel, exit := make(chan bool, 1), make(chan bool, 1)
+	p.path = p.Path
+	defer func() {
+		wg.Done()
+	}()
+	p.cmd(exit)
+	if err := p.walks(watcher); err != nil {
+		log.Fatalln(p.pname(p.Name, 2), ":", p.Red.Bold(err.Error()))
+		return
+	}
+	go p.routines(channel, &wr)
+	p.LastChangedOn = time.Now().Truncate(time.Second)
+	// waiting for an event
+
+	var walk = func(changed string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		} else if !watcher.isWatching(changed) {
+			return nil
+		} else if !info.ModTime().Truncate(time.Second).After(p.LastChangedOn) {
+			return nil
+		}
+
+		var ext string
+		if index := strings.Index(filepath.Ext(changed), "_"); index == -1 {
+			ext = filepath.Ext(changed)
+		} else {
+			ext = filepath.Ext(changed)[0:index]
+		}
+		i := strings.Index(changed, filepath.Ext(changed))
+		file := changed[:i] + ext
+		path := filepath.Dir(changed[:i])
+		if changed[:i] != "" && inArray(ext, p.Watcher.Exts) {
+			p.LastChangedOn = time.Now().Truncate(time.Second)
+			msg := fmt.Sprintln(p.pname(p.Name, 4), ":", p.Magenta.Bold(strings.ToUpper(ext[1:]) + " changed"), p.Magenta.Bold(file))
+			out := BufferOut{Time: time.Now(), Text: strings.ToUpper(ext[1:]) + " changed " + file}
+			p.print("log", out, msg, "")
+			// stop and run again
+			if p.Run {
+				close(channel)
+				channel = make(chan bool)
+			}
+			// handle multiple errors, need a better way
+			p.fmt(file)
+			p.test(path)
+			p.generate(path)
+			go p.routines(channel, &wr)
+		}
+
+		return nil
+	}
+	for {
+		for _, dir := range p.Watcher.Paths {
+			base := filepath.Join(p.base, dir)
+			if _, err := os.Stat(base); err == nil {
+				if err := filepath.Walk(base, walk); err != nil {
+					log.Println(p.Red.Bold(err.Error()))
+				}
+			} else {
+				log.Println(p.Red.Bold(base + " path doesn't exist"))
+			}
+
+			select {
+			case <-exit:
+				return
+			case <-time.After(p.parent.Config.PollingInterval / time.Duration(len(p.Watcher.Paths))):
+			}
+		}
+	}
+}
+
 // Watching method is the main core. It manages the livereload and the watching
 func (p *Project) watching() {
 	var wr sync.WaitGroup
@@ -42,7 +133,7 @@ func (p *Project) watching() {
 		select {
 		case event := <-watcher.Events:
 			if time.Now().Truncate(time.Second).After(p.LastChangedOn) {
-				if event.Op&fsnotify.Chmod == fsnotify.Chmod {
+				if event.Op & fsnotify.Chmod == fsnotify.Chmod {
 					continue
 				}
 				if _, err := os.Stat(event.Name); err == nil {
@@ -56,7 +147,7 @@ func (p *Project) watching() {
 					file := event.Name[:i] + ext
 					path := filepath.Dir(event.Name[:i])
 					if event.Name[:i] != "" && inArray(ext, p.Watcher.Exts) {
-						msg := fmt.Sprintln(p.pname(p.Name, 4), ":", p.Magenta.Bold(strings.ToUpper(ext[1:])+" changed"), p.Magenta.Bold(file))
+						msg := fmt.Sprintln(p.pname(p.Name, 4), ":", p.Magenta.Bold(strings.ToUpper(ext[1:]) + " changed"), p.Magenta.Bold(file))
 						out := BufferOut{Time: time.Now(), Text: strings.ToUpper(ext[1:]) + " changed " + file}
 						p.print("log", out, msg, "")
 						// stop and run again
@@ -92,7 +183,7 @@ func (p *Project) install() error {
 			out := BufferOut{Time: time.Now(), Text: err.Error(), Type: "Go Install", Stream: stream}
 			p.print("error", out, msg, stream)
 		} else {
-			msg := fmt.Sprintln(p.pname(p.Name, 5), ":", p.Green.Regular("Installed")+" after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
+			msg := fmt.Sprintln(p.pname(p.Name, 5), ":", p.Green.Regular("Installed") + " after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
 			out := BufferOut{Time: time.Now(), Text: "Installed after " + big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3) + " s"}
 			p.print("log", out, msg, stream)
 		}
@@ -111,7 +202,7 @@ func (p *Project) run(channel chan bool, wr *sync.WaitGroup) {
 		for {
 			select {
 			case <-runner:
-				msg := fmt.Sprintln(p.pname(p.Name, 5), ":", p.Green.Regular("Has been run")+" after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
+				msg := fmt.Sprintln(p.pname(p.Name, 5), ":", p.Green.Regular("Has been run") + " after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
 				out := BufferOut{Time: time.Now(), Text: "Has been run after " + big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3) + " s"}
 				p.print("log", out, msg, "")
 				return
@@ -131,7 +222,7 @@ func (p *Project) build() error {
 			out := BufferOut{Time: time.Now(), Text: err.Error(), Type: "Go Build", Stream: stream}
 			p.print("error", out, msg, stream)
 		} else {
-			msg := fmt.Sprintln(p.pname(p.Name, 5), ":", p.Green.Regular("Builded")+" after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
+			msg := fmt.Sprintln(p.pname(p.Name, 5), ":", p.Green.Regular("Builded") + " after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
 			out := BufferOut{Time: time.Now(), Text: "Builded after " + big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3) + " s"}
 			p.print("log", out, msg, stream)
 		}
@@ -186,7 +277,7 @@ func (p *Project) cmd(exit chan bool) {
 	cast := func(commands []string) {
 		for _, command := range commands {
 			errors, logs := p.afterBefore(command)
-			msg := fmt.Sprintln(p.pname(p.Name, 5), ":", p.Green.Bold("Command"), p.Green.Bold("\"")+command+p.Green.Bold("\""))
+			msg := fmt.Sprintln(p.pname(p.Name, 5), ":", p.Green.Bold("Command"), p.Green.Bold("\"") + command + p.Green.Bold("\""))
 			out := BufferOut{Time: time.Now(), Text: command, Type: "After/Before"}
 			if logs != "" {
 				p.print("log", out, msg, "")
@@ -224,8 +315,12 @@ func (p *Project) cmd(exit chan bool) {
 	}()
 }
 
+type watcher interface {
+	Add(path string) error
+}
+
 // Walks the file tree of a project
-func (p *Project) walks(watcher *fsnotify.Watcher) error {
+func (p *Project) walks(watcher watcher) error {
 	var files, folders int64
 	wd, _ := os.Getwd()
 	walk := func(path string, info os.FileInfo, err error) error {

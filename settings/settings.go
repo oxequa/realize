@@ -3,6 +3,7 @@ package settings
 import (
 	"gopkg.in/yaml.v2"
 	"os"
+	"time"
 )
 
 // Settings defines a group of general settings
@@ -16,6 +17,8 @@ type Settings struct {
 // Config defines structural options
 type Config struct {
 	Flimit uint64 `yaml:"flimit" json:"flimit"`
+	Polling bool `yaml:"polling" json:"polling"`
+	PollingInterval time.Duration `yaml:"polling_interval" json:"polling_interval"`
 }
 
 // Server settings, used for the web panel
