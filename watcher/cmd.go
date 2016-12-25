@@ -16,10 +16,11 @@ func (h *Blueprint) Run() error {
 		wg.Add(len(h.Projects))
 		for k := range h.Projects {
 			h.Projects[k].parent = h
-			if h.Polling {
+			h.Projects[k].path = h.Projects[k].Path
+			if h.Polling.Status {
 				go h.Projects[k].watchByPolling()
 			} else {
-				go h.Projects[k].watching()
+				go h.Projects[k].watchByNotify()
 			}
 		}
 		wg.Wait()
@@ -105,11 +106,8 @@ func (h *Blueprint) List() error {
 				fmt.Println(h.Magenta.Regular("|"), "\t", h.Yellow.Regular("Params"), ":", h.Magenta.Regular(val.Params))
 			}
 			fmt.Println(h.Magenta.Regular("|"), "\t", h.Yellow.Regular("Watcher"), ":")
-			if len(val.Watcher.After) > 0 {
-				fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("After"), ":", h.Magenta.Regular(val.Watcher.After))
-			}
-			if len(val.Watcher.Before) > 0 {
-				fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("Before"), ":", h.Magenta.Regular(val.Watcher.Before))
+			if len(val.Watcher.Commands) > 0 {
+				fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("After"), ":", h.Magenta.Regular(val.Watcher.Commands))
 			}
 			if len(val.Watcher.Exts) > 0 {
 				fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("Extensions"), ":", h.Magenta.Regular(val.Watcher.Exts))

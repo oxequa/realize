@@ -35,7 +35,7 @@ func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 		if _, err := os.Stat(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.path))); err == nil {
 			build = exec.Command(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.path)), params...)
 		} else if _, err := os.Stat(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.path)) + ".exe"); err == nil {
-			build = exec.Command(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.path)) + ".exe", params...)
+			build = exec.Command(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.path))+".exe", params...)
 		} else {
 			p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Can't run a not compiled project"})
 			p.Fatal(err, "Can't run a not compiled project", ":")
@@ -142,13 +142,20 @@ func (p *Project) goTools(dir string, name string, cmd ...string) (string, error
 }
 
 // Cmds exec a list of defined commands
-func (p *Project) afterBefore(command string) (errors string, logs string) {
+func (p *Project) command(cmd Command) (errors string, logs string) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
-	command = strings.Replace(strings.Replace(command, "'", "", -1), "\"", "", -1)
+	command := strings.Replace(strings.Replace(cmd.Command, "'", "", -1), "\"", "", -1)
 	c := strings.Split(command, " ")
 	build := exec.Command(c[0], c[1:]...)
 	build.Dir = p.base
+	if cmd.Path != "" {
+		if strings.Contains(cmd.Path, p.base) {
+			build.Dir = cmd.Path
+		} else {
+			build.Dir = filepath.Join(p.base, cmd.Path)
+		}
+	}
 	build.Stdout = &stdout
 	build.Stderr = &stderr
 	err := build.Run()

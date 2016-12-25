@@ -16,14 +16,8 @@ import (
 	"time"
 )
 
-type pollWatcher struct {
-	paths map[string]bool
-}
-
-func (w *pollWatcher) isWatching(path string) bool {
-	a, b := w.paths[path]
-	return a && b
-}
+var msg string
+var out BufferOut
 
 func (w *pollWatcher) Add(path string) error {
 	if w.paths == nil {
@@ -33,24 +27,27 @@ func (w *pollWatcher) Add(path string) error {
 	return nil
 }
 
+func (w *pollWatcher) isWatching(path string) bool {
+	a, b := w.paths[path]
+	return a && b
+}
+
+// Watch the project by polling
 func (p *Project) watchByPolling() {
 	var wr sync.WaitGroup
 	var watcher = new(pollWatcher)
 	channel, exit := make(chan bool, 1), make(chan bool, 1)
-	p.path = p.Path
 	defer func() {
+		p.cmd("after")
 		wg.Done()
 	}()
-	p.cmd(exit)
-	if err := p.walks(watcher); err != nil {
-		log.Fatalln(p.pname(p.Name, 2), ":", p.Red.Bold(err.Error()))
-		return
-	}
+
+	p.cmd("before")
+	p.Fatal(p.walks(watcher))
 	go p.routines(channel, &wr)
 	p.LastChangedOn = time.Now().Truncate(time.Second)
-	// waiting for an event
-
-	var walk = func(changed string, info os.FileInfo, err error) error {
+	walk := func(changed string, info os.FileInfo, err error) error {
+		var ext string
 		if err != nil {
 			return err
 		} else if !watcher.isWatching(changed) {
@@ -58,8 +55,6 @@ func (p *Project) watchByPolling() {
 		} else if !info.ModTime().Truncate(time.Second).After(p.LastChangedOn) {
 			return nil
 		}
-
-		var ext string
 		if index := strings.Index(filepath.Ext(changed), "_"); index == -1 {
 			ext = filepath.Ext(changed)
 		} else {
@@ -70,8 +65,8 @@ func (p *Project) watchByPolling() {
 		path := filepath.Dir(changed[:i])
 		if changed[:i] != "" && inArray(ext, p.Watcher.Exts) {
 			p.LastChangedOn = time.Now().Truncate(time.Second)
-			msg := fmt.Sprintln(p.pname(p.Name, 4), ":", p.Magenta.Bold(strings.ToUpper(ext[1:]) + " changed"), p.Magenta.Bold(file))
-			out := BufferOut{Time: time.Now(), Text: strings.ToUpper(ext[1:]) + " changed " + file}
+			msg = fmt.Sprintln(p.pname(p.Name, 4), ":", p.Magenta.Bold(strings.ToUpper(ext[1:])+" changed"), p.Magenta.Bold(file))
+			out = BufferOut{Time: time.Now(), Text: strings.ToUpper(ext[1:]) + " changed " + file}
 			p.print("log", out, msg, "")
 			// stop and run again
 			if p.Run {
@@ -84,7 +79,6 @@ func (p *Project) watchByPolling() {
 			p.generate(path)
 			go p.routines(channel, &wr)
 		}
-
 		return nil
 	}
 	for {
@@ -92,48 +86,46 @@ func (p *Project) watchByPolling() {
 			base := filepath.Join(p.base, dir)
 			if _, err := os.Stat(base); err == nil {
 				if err := filepath.Walk(base, walk); err != nil {
-					log.Println(p.Red.Bold(err.Error()))
+					msg = fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Regular(err.Error()))
+					out = BufferOut{Time: time.Now(), Text: err.Error()}
+					p.print("error", out, msg, "")
 				}
 			} else {
-				log.Println(p.Red.Bold(base + " path doesn't exist"))
+				msg = fmt.Sprintln(p.pname(p.Name, 2), ":", base, "path doesn't exist")
+				out = BufferOut{Time: time.Now(), Text: base + " path doesn't exist"}
+				p.print("error", out, msg, "")
 			}
-
 			select {
 			case <-exit:
 				return
-			case <-time.After(p.parent.Config.PollingInterval / time.Duration(len(p.Watcher.Paths))):
+			case <-time.After(p.parent.Polling.Interval / time.Duration(len(p.Watcher.Paths))):
 			}
 		}
 	}
 }
 
-// Watching method is the main core. It manages the livereload and the watching
-func (p *Project) watching() {
+// Watch the project by fsnotify
+func (p *Project) watchByNotify() {
 	var wr sync.WaitGroup
 	var watcher *fsnotify.Watcher
-	channel, exit := make(chan bool, 1), make(chan bool, 1)
-	p.path = p.Path
+	channel, exit := make(chan bool, 1), make(chan os.Signal, 2)
+	signal.Notify(exit, os.Interrupt, syscall.SIGTERM)
 	watcher, err := fsnotify.NewWatcher()
+	p.Fatal(err)
 	defer func() {
+		p.cmd("after")
 		wg.Done()
 	}()
-	if err != nil {
-		log.Fatalln(p.pname(p.Name, 2), ":", p.Red.Bold(err.Error()))
-		return
-	}
-	p.cmd(exit)
-	if p.walks(watcher) != nil {
-		log.Fatalln(p.pname(p.Name, 2), ":", p.Red.Bold(err.Error()))
-		return
-	}
+
+	p.cmd("before")
+	p.Fatal(p.walks(watcher))
 	go p.routines(channel, &wr)
 	p.LastChangedOn = time.Now().Truncate(time.Second)
-	// waiting for an event
 	for {
 		select {
 		case event := <-watcher.Events:
 			if time.Now().Truncate(time.Second).After(p.LastChangedOn) {
-				if event.Op & fsnotify.Chmod == fsnotify.Chmod {
+				if event.Op&fsnotify.Chmod == fsnotify.Chmod {
 					continue
 				}
 				if _, err := os.Stat(event.Name); err == nil {
@@ -147,8 +139,9 @@ func (p *Project) watching() {
 					file := event.Name[:i] + ext
 					path := filepath.Dir(event.Name[:i])
 					if event.Name[:i] != "" && inArray(ext, p.Watcher.Exts) {
-						msg := fmt.Sprintln(p.pname(p.Name, 4), ":", p.Magenta.Bold(strings.ToUpper(ext[1:]) + " changed"), p.Magenta.Bold(file))
-						out := BufferOut{Time: time.Now(), Text: strings.ToUpper(ext[1:]) + " changed " + file}
+						p.LastChangedOn = time.Now().Truncate(time.Second)
+						msg = fmt.Sprintln(p.pname(p.Name, 4), ":", p.Magenta.Bold(strings.ToUpper(ext[1:])+" changed"), p.Magenta.Bold(file))
+						out = BufferOut{Time: time.Now(), Text: strings.ToUpper(ext[1:]) + " changed " + file}
 						p.print("log", out, msg, "")
 						// stop and run again
 						if p.Run {
@@ -160,12 +153,13 @@ func (p *Project) watching() {
 						p.test(path)
 						p.generate(path)
 						go p.routines(channel, &wr)
-						p.LastChangedOn = time.Now().Truncate(time.Second)
 					}
 				}
 			}
 		case err := <-watcher.Errors:
-			log.Println(p.Red.Bold(err.Error()))
+			msg = fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Regular(err.Error()))
+			out = BufferOut{Time: time.Now(), Text: err.Error()}
+			p.print("error", out, msg, "")
 		case <-exit:
 			return
 		}
@@ -179,12 +173,12 @@ func (p *Project) install() error {
 		log.Println(p.pname(p.Name, 1), ":", "Installing..")
 		stream, err := p.goInstall()
 		if err != nil {
-			msg := fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Install"), p.Red.Regular(err.Error()))
-			out := BufferOut{Time: time.Now(), Text: err.Error(), Type: "Go Install", Stream: stream}
+			msg = fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Install"), p.Red.Regular(err.Error()))
+			out = BufferOut{Time: time.Now(), Text: err.Error(), Type: "Go Install", Stream: stream}
 			p.print("error", out, msg, stream)
 		} else {
-			msg := fmt.Sprintln(p.pname(p.Name, 5), ":", p.Green.Regular("Installed") + " after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
-			out := BufferOut{Time: time.Now(), Text: "Installed after " + big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3) + " s"}
+			msg = fmt.Sprintln(p.pname(p.Name, 5), ":", p.Green.Regular("Installed")+" after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
+			out = BufferOut{Time: time.Now(), Text: "Installed after " + big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3) + " s"}
 			p.print("log", out, msg, stream)
 		}
 		return err
@@ -202,8 +196,8 @@ func (p *Project) run(channel chan bool, wr *sync.WaitGroup) {
 		for {
 			select {
 			case <-runner:
-				msg := fmt.Sprintln(p.pname(p.Name, 5), ":", p.Green.Regular("Has been run") + " after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
-				out := BufferOut{Time: time.Now(), Text: "Has been run after " + big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3) + " s"}
+				msg = fmt.Sprintln(p.pname(p.Name, 5), ":", p.Green.Regular("Has been run")+" after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
+				out = BufferOut{Time: time.Now(), Text: "Has been run after " + big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3) + " s"}
 				p.print("log", out, msg, "")
 				return
 			}
@@ -218,12 +212,12 @@ func (p *Project) build() error {
 		log.Println(p.pname(p.Name, 1), ":", "Building..")
 		stream, err := p.goBuild()
 		if err != nil {
-			msg := fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Build"), p.Red.Regular(err.Error()))
-			out := BufferOut{Time: time.Now(), Text: err.Error(), Type: "Go Build", Stream: stream}
+			msg = fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Build"), p.Red.Regular(err.Error()))
+			out = BufferOut{Time: time.Now(), Text: err.Error(), Type: "Go Build", Stream: stream}
 			p.print("error", out, msg, stream)
 		} else {
-			msg := fmt.Sprintln(p.pname(p.Name, 5), ":", p.Green.Regular("Builded") + " after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
-			out := BufferOut{Time: time.Now(), Text: "Builded after " + big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3) + " s"}
+			msg = fmt.Sprintln(p.pname(p.Name, 5), ":", p.Green.Regular("Builded")+" after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
+			out = BufferOut{Time: time.Now(), Text: "Builded after " + big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3) + " s"}
 			p.print("log", out, msg, stream)
 		}
 		return err
@@ -235,8 +229,8 @@ func (p *Project) build() error {
 func (p *Project) fmt(path string) error {
 	if p.Fmt && strings.HasSuffix(path, ".go") {
 		if stream, err := p.goTools(p.base, "gofmt", "-s", "-w", "-e", path); err != nil {
-			msg := fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Fmt"), p.Red.Regular("there are some errors in"), ":", p.Magenta.Bold(path))
-			out := BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Fmt", Stream: stream}
+			msg = fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Fmt"), p.Red.Regular("there are some errors in"), ":", p.Magenta.Bold(path))
+			out = BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Fmt", Stream: stream}
 			p.print("error", out, msg, stream)
 			return err
 		}
@@ -248,8 +242,8 @@ func (p *Project) fmt(path string) error {
 func (p *Project) generate(path string) error {
 	if p.Generate {
 		if stream, err := p.goTools(path, "go", "generate"); err != nil {
-			msg := fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Generate"), p.Red.Regular("there are some errors in"), ":", p.Magenta.Bold(path))
-			out := BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Generate", Stream: stream}
+			msg = fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Generate"), p.Red.Regular("there are some errors in"), ":", p.Magenta.Bold(path))
+			out = BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Generate", Stream: stream}
 			p.print("error", out, msg, stream)
 			return err
 		}
@@ -261,8 +255,8 @@ func (p *Project) generate(path string) error {
 func (p *Project) test(path string) error {
 	if p.Test {
 		if stream, err := p.goTools(path, "go", "test"); err != nil {
-			msg := fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Test"), p.Red.Regular("there are some errors in "), ":", p.Magenta.Bold(path))
-			out := BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Test", Stream: stream}
+			msg = fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Test"), p.Red.Regular("there are some errors in "), ":", p.Magenta.Bold(path))
+			out = BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Test", Stream: stream}
 			p.print("error", out, msg, stream)
 			return err
 		}
@@ -271,14 +265,12 @@ func (p *Project) test(path string) error {
 }
 
 // Cmd calls an wrapper for execute the commands after/before
-func (p *Project) cmd(exit chan bool) {
-	c := make(chan os.Signal, 2)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	cast := func(commands []string) {
-		for _, command := range commands {
-			errors, logs := p.afterBefore(command)
-			msg := fmt.Sprintln(p.pname(p.Name, 5), ":", p.Green.Bold("Command"), p.Green.Bold("\"") + command + p.Green.Bold("\""))
-			out := BufferOut{Time: time.Now(), Text: command, Type: "After/Before"}
+func (p *Project) cmd(flag string) {
+	for _, cmd := range p.Watcher.Commands {
+		if strings.ToLower(cmd.Type) == flag {
+			errors, logs := p.command(cmd)
+			msg = fmt.Sprintln(p.pname(p.Name, 5), ":", p.Green.Bold("Command"), p.Green.Bold("\"")+cmd.Command+p.Green.Bold("\""))
+			out = BufferOut{Time: time.Now(), Text: cmd.Command, Type: flag}
 			if logs != "" {
 				p.print("log", out, msg, "")
 			}
@@ -287,36 +279,16 @@ func (p *Project) cmd(exit chan bool) {
 			}
 			if logs != "" {
 				msg = fmt.Sprintln(logs)
-				out = BufferOut{Time: time.Now(), Text: logs, Type: "After/Before"}
+				out = BufferOut{Time: time.Now(), Text: logs, Type: flag}
 				p.print("log", out, "", msg)
 			}
 			if errors != "" {
 				msg = fmt.Sprintln(p.Red.Regular(errors))
-				out = BufferOut{Time: time.Now(), Text: errors, Type: "After/Before"}
+				out = BufferOut{Time: time.Now(), Text: errors, Type: flag}
 				p.print("error", out, "", msg)
 			}
 		}
 	}
-
-	if len(p.Watcher.Before) > 0 {
-		cast(p.Watcher.Before)
-	}
-
-	go func() {
-		for {
-			select {
-			case <-c:
-				if len(p.Watcher.After) > 0 {
-					cast(p.Watcher.After)
-				}
-				close(exit)
-			}
-		}
-	}()
-}
-
-type watcher interface {
-	Add(path string) error
 }
 
 // Walks the file tree of a project
@@ -344,7 +316,6 @@ func (p *Project) walks(watcher watcher) error {
 		}
 		return nil
 	}
-
 	if p.path == "." || p.path == "/" {
 		p.base = wd
 		p.path = p.Wdir()
@@ -363,8 +334,8 @@ func (p *Project) walks(watcher watcher) error {
 			return errors.New(base + " path doesn't exist")
 		}
 	}
-	msg := fmt.Sprintln(p.pname(p.Name, 1), ":", p.Blue.Bold("Watching"), p.Magenta.Bold(files), "file/s", p.Magenta.Bold(folders), "folder/s")
-	out := BufferOut{Time: time.Now(), Text: "Watching " + strconv.FormatInt(files, 10) + " files/s " + strconv.FormatInt(folders, 10) + " folder/s"}
+	msg = fmt.Sprintln(p.pname(p.Name, 1), ":", p.Blue.Bold("Watching"), p.Magenta.Bold(files), "file/s", p.Magenta.Bold(folders), "folder/s")
+	out = BufferOut{Time: time.Now(), Text: "Watching " + strconv.FormatInt(files, 10) + " files/s " + strconv.FormatInt(folders, 10) + " folder/s"}
 	p.print("log", out, msg, "")
 	return nil
 }
