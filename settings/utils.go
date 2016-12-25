@@ -23,8 +23,9 @@ func (s Settings) Validate(err error) error {
 
 // Fatal prints a fatal error with its additional messages
 func (s Settings) Fatal(err error, msg ...interface{}) {
-	if len(msg) > 0 {
+	if len(msg) > 0 && err != nil {
 		log.Fatalln(s.Red.Regular(msg...), err.Error())
+	} else if err != nil {
+		log.Fatalln(err.Error())
 	}
-	log.Fatalln(err.Error())
 }
