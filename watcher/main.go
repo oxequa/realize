@@ -39,15 +39,14 @@ type Project struct {
 	Name          string   `yaml:"name" json:"name"`
 	Path          string   `yaml:"path" json:"path"`
 	Fmt           bool     `yaml:"fmt" json:"fmt"`
-	Test          bool     `yaml:"test" json:"test"`
 	Generate      bool     `yaml:"generate" json:"generate"`
+	Test          bool     `yaml:"test" json:"test"`
 	Bin           bool     `yaml:"bin" json:"bin"`
 	Build         bool     `yaml:"build" json:"build"`
 	Run           bool     `yaml:"run" json:"run"`
 	Params        []string `yaml:"params,omitempty" json:"params,omitempty"`
 	Watcher       Watcher  `yaml:"watcher" json:"watcher"`
-	Cli           Cli      `yaml:"cli,omitempty" json:"cli,omitempty"`
-	File          File     `yaml:"file,omitempty" json:"file,omitempty"`
+	Streams       Streams  `yaml:"streams" json:"streams"`
 	Buffer        Buffer   `yaml:"-" json:"buffer"`
 	parent        *Blueprint
 	path          string
@@ -55,30 +54,26 @@ type Project struct {
 
 // Watcher struct defines the livereload's logic
 type Watcher struct {
-	Preview  bool      `yaml:"preview" json:"preview"`
-	Paths    []string  `yaml:"paths" json:"paths"`
-	Ignore   []string  `yaml:"ignore_paths" json:"ignore"`
-	Exts     []string  `yaml:"exts" json:"exts"`
-	Commands []Command `yaml:"commands,omitempty" json:"commands,omitempty"`
+	Preview bool      `yaml:"preview" json:"preview"`
+	Paths   []string  `yaml:"paths" json:"paths"`
+	Ignore  []string  `yaml:"ignore_paths" json:"ignore"`
+	Exts    []string  `yaml:"exts" json:"exts"`
+	Scripts []Command `yaml:"scripts,omitempty" json:"scripts,omitempty"`
 }
 
 // Command options
 type Command struct {
-	Type    string `yaml:"type,omitempty" json:"type,omitempty"`
-	Command string `yaml:"command,omitempty" json:"command,omitempty"`
-	Path    string `yaml:"path,omitempty" json:"path,omitempty"`
-}
-
-// Cli output status, enables or disables
-type Cli struct {
-	Streams bool `yaml:"streams" json:"streams"`
+	Type    string `yaml:"type" json:"type"`
+	Command string `yaml:"command" json:"command"`
+	Path    string `yaml:"path" json:"path"`
 }
 
 // File determinates the status of each log files (streams, logs, errors)
-type File struct {
-	Streams bool `yaml:"streams,omitempty" json:"streams,omitempty"`
-	Logs    bool `yaml:"logs,omitempty" json:"logs,omitempty"`
-	Errors  bool `yaml:"errors,omitempty" json:"errors,omitempty"`
+type Streams struct {
+	CliOut  bool `yaml:"cli_out" json:"cli_out"`
+	FileOut bool `yaml:"file_out" json:"file_out"`
+	FileLog bool `yaml:"file_log" json:"file_log"`
+	FileErr bool `yaml:"file_err" json:"file_err"`
 }
 
 // Buffer define an array buffer for each log files

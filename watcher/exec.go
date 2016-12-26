@@ -141,7 +141,7 @@ func (p *Project) goTools(dir string, name string, cmd ...string) (string, error
 	return "", nil
 }
 
-// Cmds exec a list of defined commands
+// Exec an additional command from a defined path if specified
 func (p *Project) command(cmd Command) (errors string, logs string) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer

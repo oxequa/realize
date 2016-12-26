@@ -43,7 +43,7 @@ func (p *Project) watchByPolling() {
 	}()
 
 	p.cmd("before")
-	p.Fatal(p.walks(watcher))
+	p.Fatal(p.watch(watcher))
 	go p.routines(channel, &wr)
 	p.LastChangedOn = time.Now().Truncate(time.Second)
 	walk := func(changed string, info os.FileInfo, err error) error {
@@ -64,16 +64,17 @@ func (p *Project) watchByPolling() {
 		file := changed[:i] + ext
 		path := filepath.Dir(changed[:i])
 		if changed[:i] != "" && inArray(ext, p.Watcher.Exts) {
-			p.LastChangedOn = time.Now().Truncate(time.Second)
-			msg = fmt.Sprintln(p.pname(p.Name, 4), ":", p.Magenta.Bold(strings.ToUpper(ext[1:])+" changed"), p.Magenta.Bold(file))
-			out = BufferOut{Time: time.Now(), Text: strings.ToUpper(ext[1:]) + " changed " + file}
-			p.print("log", out, msg, "")
-			// stop and run again
 			if p.Run {
 				close(channel)
 				channel = make(chan bool)
 			}
-			// handle multiple errors, need a better way
+			p.LastChangedOn = time.Now().Truncate(time.Second)
+			// repeat the initial cycle
+			msg = fmt.Sprintln(p.pname(p.Name, 4), ":", p.Magenta.Bold(strings.ToUpper(ext[1:])+" changed"), p.Magenta.Bold(file))
+			out = BufferOut{Time: time.Now(), Text: strings.ToUpper(ext[1:]) + " changed " + file}
+			p.print("log", out, msg, "")
+
+			p.cmd("change")
 			p.fmt(file)
 			p.test(path)
 			p.generate(path)
@@ -98,7 +99,7 @@ func (p *Project) watchByPolling() {
 			select {
 			case <-exit:
 				return
-			case <-time.After(p.parent.Polling.Interval / time.Duration(len(p.Watcher.Paths))):
+			case <-time.After(p.parent.Legacy.Interval / time.Duration(len(p.Watcher.Paths))):
 			}
 		}
 	}
@@ -118,7 +119,7 @@ func (p *Project) watchByNotify() {
 	}()
 
 	p.cmd("before")
-	p.Fatal(p.walks(watcher))
+	p.Fatal(p.watch(watcher))
 	go p.routines(channel, &wr)
 	p.LastChangedOn = time.Now().Truncate(time.Second)
 	for {
@@ -139,16 +140,17 @@ func (p *Project) watchByNotify() {
 					file := event.Name[:i] + ext
 					path := filepath.Dir(event.Name[:i])
 					if event.Name[:i] != "" && inArray(ext, p.Watcher.Exts) {
-						p.LastChangedOn = time.Now().Truncate(time.Second)
-						msg = fmt.Sprintln(p.pname(p.Name, 4), ":", p.Magenta.Bold(strings.ToUpper(ext[1:])+" changed"), p.Magenta.Bold(file))
-						out = BufferOut{Time: time.Now(), Text: strings.ToUpper(ext[1:]) + " changed " + file}
-						p.print("log", out, msg, "")
-						// stop and run again
 						if p.Run {
 							close(channel)
 							channel = make(chan bool)
 						}
-						// handle multiple errors, need a better way
+						p.LastChangedOn = time.Now().Truncate(time.Second)
+						// repeat the initial cycle
+						msg = fmt.Sprintln(p.pname(p.Name, 4), ":", p.Magenta.Bold(strings.ToUpper(ext[1:])+" changed"), p.Magenta.Bold(file))
+						out = BufferOut{Time: time.Now(), Text: strings.ToUpper(ext[1:]) + " changed " + file}
+						p.print("log", out, msg, "")
+
+						p.cmd("change")
 						p.fmt(file)
 						p.test(path)
 						p.generate(path)
@@ -164,6 +166,55 @@ func (p *Project) watchByNotify() {
 			return
 		}
 	}
+}
+
+// Watch the files tree of a project
+func (p *Project) watch(watcher watcher) error {
+	var files, folders int64
+	wd, _ := os.Getwd()
+	walk := func(path string, info os.FileInfo, err error) error {
+		if !p.ignore(path) {
+			if (info.IsDir() && len(filepath.Ext(path)) == 0 && !strings.HasPrefix(path, ".")) && !strings.Contains(path, "/.") || (inArray(filepath.Ext(path), p.Watcher.Exts)) {
+				if p.Watcher.Preview {
+					log.Println(p.pname(p.Name, 1), ":", path)
+				}
+				if err = watcher.Add(path); err != nil {
+					return filepath.SkipDir
+				}
+				if inArray(filepath.Ext(path), p.Watcher.Exts) {
+					files++
+					p.fmt(path)
+				} else {
+					folders++
+					p.generate(path)
+					p.test(path)
+				}
+			}
+		}
+		return nil
+	}
+	if p.path == "." || p.path == "/" {
+		p.base = wd
+		p.path = p.Wdir()
+	} else if filepath.IsAbs(p.path) {
+		p.base = p.path
+	} else {
+		p.base = filepath.Join(wd, p.path)
+	}
+	for _, dir := range p.Watcher.Paths {
+		base := filepath.Join(p.base, dir)
+		if _, err := os.Stat(base); err == nil {
+			if err := filepath.Walk(base, walk); err != nil {
+				log.Println(p.Red.Bold(err.Error()))
+			}
+		} else {
+			return errors.New(base + " path doesn't exist")
+		}
+	}
+	msg = fmt.Sprintln(p.pname(p.Name, 1), ":", p.Blue.Bold("Watching"), p.Magenta.Bold(files), "file/s", p.Magenta.Bold(folders), "folder/s")
+	out = BufferOut{Time: time.Now(), Text: "Watching " + strconv.FormatInt(files, 10) + " files/s " + strconv.FormatInt(folders, 10) + " folder/s"}
+	p.print("log", out, msg, "")
+	return nil
 }
 
 // Install calls an implementation of "go install"
@@ -266,7 +317,7 @@ func (p *Project) test(path string) error {
 
 // Cmd calls an wrapper for execute the commands after/before
 func (p *Project) cmd(flag string) {
-	for _, cmd := range p.Watcher.Commands {
+	for _, cmd := range p.Watcher.Scripts {
 		if strings.ToLower(cmd.Type) == flag {
 			errors, logs := p.command(cmd)
 			msg = fmt.Sprintln(p.pname(p.Name, 5), ":", p.Green.Bold("Command"), p.Green.Bold("\"")+cmd.Command+p.Green.Bold("\""))
@@ -289,55 +340,6 @@ func (p *Project) cmd(flag string) {
 			}
 		}
 	}
-}
-
-// Walks the file tree of a project
-func (p *Project) walks(watcher watcher) error {
-	var files, folders int64
-	wd, _ := os.Getwd()
-	walk := func(path string, info os.FileInfo, err error) error {
-		if !p.ignore(path) {
-			if (info.IsDir() && len(filepath.Ext(path)) == 0 && !strings.HasPrefix(path, ".")) && !strings.Contains(path, "/.") || (inArray(filepath.Ext(path), p.Watcher.Exts)) {
-				if p.Watcher.Preview {
-					log.Println(p.pname(p.Name, 1), ":", path)
-				}
-				if err = watcher.Add(path); err != nil {
-					return filepath.SkipDir
-				}
-				if inArray(filepath.Ext(path), p.Watcher.Exts) {
-					files++
-					p.fmt(path)
-				} else {
-					folders++
-					p.generate(path)
-					p.test(path)
-				}
-			}
-		}
-		return nil
-	}
-	if p.path == "." || p.path == "/" {
-		p.base = wd
-		p.path = p.Wdir()
-	} else if filepath.IsAbs(p.path) {
-		p.base = p.path
-	} else {
-		p.base = filepath.Join(wd, p.path)
-	}
-	for _, dir := range p.Watcher.Paths {
-		base := filepath.Join(p.base, dir)
-		if _, err := os.Stat(base); err == nil {
-			if err := filepath.Walk(base, walk); err != nil {
-				log.Println(p.Red.Bold(err.Error()))
-			}
-		} else {
-			return errors.New(base + " path doesn't exist")
-		}
-	}
-	msg = fmt.Sprintln(p.pname(p.Name, 1), ":", p.Blue.Bold("Watching"), p.Magenta.Bold(files), "file/s", p.Magenta.Bold(folders), "folder/s")
-	out = BufferOut{Time: time.Now(), Text: "Watching " + strconv.FormatInt(files, 10) + " files/s " + strconv.FormatInt(folders, 10) + " folder/s"}
-	p.print("log", out, msg, "")
-	return nil
 }
 
 // Ignore and validate a path
@@ -388,20 +390,20 @@ func (p *Project) print(t string, o BufferOut, msg string, stream string) {
 	switch t {
 	case "out":
 		p.Buffer.StdOut = append(p.Buffer.StdOut, o)
-		if p.File.Streams {
-			f := p.Create(p.base, p.parent.Resources.Streams)
+		if p.Streams.FileOut {
+			f := p.Create(p.base, p.parent.Resources.Outputs)
 			t := time.Now()
 			s := []string{t.Format("2006-01-02 15:04:05"), strings.ToUpper(p.Name), ":", o.Text, "\r\n"}
 			if _, err := f.WriteString(strings.Join(s, " ")); err != nil {
 				p.Fatal(err, "")
 			}
 		}
-		if msg != "" && p.Cli.Streams {
+		if msg != "" && p.Streams.CliOut {
 			log.Print(msg)
 		}
 	case "log":
 		p.Buffer.StdLog = append(p.Buffer.StdLog, o)
-		if p.File.Logs {
+		if p.Streams.FileLog {
 			f := p.Create(p.base, p.parent.Resources.Logs)
 			t := time.Now()
 			s := []string{t.Format("2006-01-02 15:04:05"), strings.ToUpper(p.Name), ":", o.Text, "\r\n"}
@@ -417,7 +419,7 @@ func (p *Project) print(t string, o BufferOut, msg string, stream string) {
 		}
 	case "error":
 		p.Buffer.StdErr = append(p.Buffer.StdErr, o)
-		if p.File.Errors {
+		if p.Streams.FileErr {
 			f := p.Create(p.base, p.parent.Resources.Errors)
 			t := time.Now()
 			s := []string{t.Format("2006-01-02 15:04:05"), strings.ToUpper(p.Name), ":", o.Type, o.Text, o.Path, "\r\n"}
