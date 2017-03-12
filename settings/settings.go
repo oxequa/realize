@@ -1,7 +1,6 @@
 package settings
 
 import (
-	"gopkg.in/urfave/cli.v2"
 	"gopkg.in/yaml.v2"
 	"os"
 	"time"
@@ -17,8 +16,8 @@ type Settings struct {
 
 // Config defines structural options
 type Config struct {
-	Create bool   `yaml:"-" json:"-"`
-	Flimit uint64 `yaml:"flimit,omitempty" json:"flimit,omitempty"`
+	Create bool  `yaml:"-" json:"-"`
+	Flimit int64 `yaml:"flimit,omitempty" json:"flimit,omitempty"`
 	Legacy `yaml:"legacy,omitempty" json:"legacy,omitempty"`
 }
 
@@ -81,22 +80,4 @@ func (s *Settings) Remove() error {
 		return os.RemoveAll(".realize/")
 	}
 	return nil
-}
-
-// Init configuration for general settings
-func (s *Settings) Init(p *cli.Context) {
-	s.Config = Config{
-		Create: !p.Bool("no-config"),
-		Flimit: p.Uint64("flimit"),
-		Legacy: Legacy{
-			Status:   p.Bool("legacy"),
-			Interval: p.Duration("legacy-delay"),
-		},
-	}
-	s.Server = Server{
-		Status: !p.Bool("no-server"),
-		Open:   p.Bool("serv-open"),
-		Host:   p.String("serv-host"),
-		Port:   p.Int("serv-port"),
-	}
 }

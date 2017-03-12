@@ -24,7 +24,7 @@ func argsParam(params *cli.Context) []string {
 func duplicates(value Project, arr []Project) (Project, error) {
 	for _, val := range arr {
 		if value.Path == val.Path || value.Name == val.Name {
-			return val, errors.New("There is a duplicate of '" + val.Name + "'. Check your config file!")
+			return val, errors.New("There is already a project called '" + val.Name + "'. Check your config file!")
 		}
 	}
 	return Project{}, nil

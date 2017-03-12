@@ -50,7 +50,9 @@ func render(c echo.Context, path string, mime int) error {
 func (s *Server) Start(p *cli.Context) (err error) {
 	if s.Status {
 		e := echo.New()
-		e.Use(middleware.Gzip())
+		e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
+			Level: 5,
+		}))
 		e.Use(middleware.Recover())
 
 		// web panel

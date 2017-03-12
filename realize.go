@@ -3,11 +3,14 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/fatih/color"
+	i "github.com/tockins/interact"
 	s "github.com/tockins/realize/server"
 	c "github.com/tockins/realize/settings"
 	w "github.com/tockins/realize/watcher"
 	"gopkg.in/urfave/cli.v2"
 	"os"
+	"time"
 )
 
 const (
@@ -20,6 +23,7 @@ const (
 	logs        = "logs.log"
 	host        = "localhost"
 	port        = 5001
+	interval    = 200
 )
 
 var r realize
@@ -42,11 +46,20 @@ func init() {
 		Description: description,
 		Sync:        make(chan string),
 		Settings: c.Settings{
+			Config: c.Config{
+				Create: true,
+			},
 			Resources: c.Resources{
 				Config:  config,
 				Outputs: outputs,
 				Logs:    logs,
 				Errors:  errs,
+			},
+			Server: c.Server{
+				Status: true,
+				Open:   false,
+				Host:   host,
+				Port:   port,
 			},
 		},
 	}
@@ -72,8 +85,6 @@ func init() {
 
 // Before of every exec of a cli method
 func before() error {
-	fmt.Println(r.Blue.Bold(name) + " - " + r.Blue.Bold(version))
-	fmt.Println(r.Blue.Regular(description) + "\n")
 	gopath := os.Getenv("GOPATH")
 	if gopath == "" {
 		return handle(errors.New("$GOPATH isn't set up properly"))
@@ -92,7 +103,7 @@ func handle(err error) error {
 
 // Cli commands
 func main() {
-	c := &cli.App{
+	app := &cli.App{
 		Name:    r.Name,
 		Version: r.Version,
 		Authors: []*cli.Author{
@@ -110,28 +121,30 @@ func main() {
 			{
 				Name:    "run",
 				Aliases: []string{"r"},
-				Usage:   "Run a toolchain on a project. Can be personalized, used with a single project and without make a realize config file",
+				Usage:   "Run a toolchain on a project or a list of projects. If not exist a config file it creates a new one.",
 				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "path", Aliases: []string{"p"}, Value: "", Usage: "Project base path"},
-					&cli.IntFlag{Name: "flimit", Aliases: []string{"f"}, Usage: "Increase files limit"},
-					&cli.BoolFlag{Name: "legacy", Aliases: []string{"l"}, Value: false, Usage: "Enable legacy watch"},
-					&cli.IntFlag{Name: "legacy-delay", Aliases: []string{"ld"}, Usage: "Restarting delay for legacy watch"},
-					&cli.BoolFlag{Name: "build", Aliases: []string{"b"}, Value: false, Usage: "Enable go build"},
-					&cli.BoolFlag{Name: "test", Aliases: []string{"t"}, Value: false, Usage: "Enable go test"},
-					&cli.BoolFlag{Name: "generate", Aliases: []string{"g"}, Value: false, Usage: "Enable go generate"},
-					&cli.BoolFlag{Name: "preview", Aliases: []string{"prev"}, Value: false, Usage: "Print each watched file"},
-					&cli.BoolFlag{Name: "no-run", Aliases: []string{"nr"}, Usage: "Disable go run"},
-					&cli.BoolFlag{Name: "no-bin", Aliases: []string{"nb"}, Usage: "Disable go install"},
-					&cli.BoolFlag{Name: "no-fmt", Aliases: []string{"nf"}, Usage: "Disable go fmt"},
-					&cli.BoolFlag{Name: "no-config", Aliases: []string{"nc"}, Value: false, Usage: "Run ignoring an existing config file"},
-					&cli.BoolFlag{Name: "no-server", Aliases: []string{"ns"}, Value: false, Usage: "Disable web panel"},
-					&cli.BoolFlag{Name: "serv-open", Aliases: []string{"so"}, Value: false, Usage: "Open wen panel in a new browser tab"},
-					&cli.IntFlag{Name: "serv-port", Aliases: []string{"sp"}, Value: port, Usage: "Server port number"},
-					&cli.StringFlag{Name: "serv-host", Aliases: []string{"sh"}, Value: host, Usage: "Server host"},
+					&cli.StringFlag{Name: "path", Aliases: []string{"p"}, Value: "", Usage: "Project base path."},
+					&cli.BoolFlag{Name: "test", Aliases: []string{"t"}, Value: false, Usage: "Enable go test."},
+					&cli.BoolFlag{Name: "generate", Aliases: []string{"g"}, Value: false, Usage: "Enable go generate."},
+					&cli.BoolFlag{Name: "build", Aliases: []string{"b"}, Value: false, Usage: "Enable go build."},
+					&cli.BoolFlag{Name: "legacy", Aliases: []string{"l"}, Value: false, Usage: "Watch by polling instead of Watch by fsnotify."},
+					&cli.BoolFlag{Name: "server", Aliases: []string{"s"}, Value: false, Usage: "Enable server and open into the default browser."},
+					&cli.BoolFlag{Name: "no-run", Aliases: []string{"nr"}, Value: false, Usage: "Disable go run"},
+					&cli.BoolFlag{Name: "no-fmt", Aliases: []string{"nf"}, Value: false, Usage: "Disable go fmt."},
+					&cli.BoolFlag{Name: "no-install", Aliases: []string{"ni"}, Value: false, Usage: "Disable go install"},
+					&cli.BoolFlag{Name: "no-config", Aliases: []string{"nc"}, Value: false, Usage: "Ignore existing configurations."},
 				},
 				Action: func(p *cli.Context) error {
-					r.Settings.Init(p)
-					if r.Settings.Config.Create || len(r.Blueprint.Projects) <= 0 {
+					if p.Bool("legacy") {
+						r.Config.Legacy = c.Legacy{
+							Status:   p.Bool("legacy"),
+							Interval: interval,
+						}
+					}
+					if p.Bool("no-config") || len(r.Blueprint.Projects) <= 0 {
+						if p.Bool("no-config") {
+							r.Config.Create = false
+						}
 						r.Blueprint.Projects = []w.Project{}
 						handle(r.Blueprint.Add(p))
 					}
@@ -145,23 +158,25 @@ func main() {
 				},
 			},
 			{
-				Name:     "config",
+				Name:     "add",
 				Category: "Configuration",
-				Aliases:  []string{"c"},
-				Usage:    "Create/Edit a realize config",
+				Aliases:  []string{"a"},
+				Usage:    "Add a project to an existing config file or create a new one.",
 				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: r.Wdir(), Usage: "Project name"},
-					&cli.StringFlag{Name: "path", Aliases: []string{"p"}, Value: "", Usage: "Project base path"},
-					&cli.BoolFlag{Name: "build", Aliases: []string{"b"}, Value: false, Usage: "Enable go build"},
-					&cli.BoolFlag{Name: "test", Aliases: []string{"t"}, Value: false, Usage: "Enable go test"},
-					&cli.BoolFlag{Name: "generate", Aliases: []string{"g"}, Value: false, Usage: "Enable go generate"},
-					&cli.BoolFlag{Name: "preview", Aliases: []string{"prev"}, Value: false, Usage: "Print each watched file"},
-					&cli.BoolFlag{Name: "no-run", Aliases: []string{"nr"}, Usage: "Disable go run"},
-					&cli.BoolFlag{Name: "no-bin", Aliases: []string{"nb"}, Usage: "Disable go install"},
-					&cli.BoolFlag{Name: "no-fmt", Aliases: []string{"nf"}, Usage: "Disable go fmt"},
+					&cli.StringFlag{Name: "path", Aliases: []string{"p"}, Value: "", Usage: "Project base path."},
+					&cli.BoolFlag{Name: "test", Aliases: []string{"t"}, Value: false, Usage: "Enable go test."},
+					&cli.BoolFlag{Name: "generate", Aliases: []string{"g"}, Value: false, Usage: "Enable go generate."},
+					&cli.BoolFlag{Name: "build", Aliases: []string{"b"}, Value: false, Usage: "Enable go build."},
+					&cli.BoolFlag{Name: "legacy", Aliases: []string{"l"}, Value: false, Usage: "Watch by polling instead of Watch by fsnotify."},
+					&cli.BoolFlag{Name: "server", Aliases: []string{"s"}, Value: false, Usage: "Enable server and open into the default browser."},
+					&cli.BoolFlag{Name: "no-run", Aliases: []string{"nr"}, Value: false, Usage: "Disable go run"},
+					&cli.BoolFlag{Name: "no-fmt", Aliases: []string{"nf"}, Value: false, Usage: "Disable go fmt."},
+					&cli.BoolFlag{Name: "no-install", Aliases: []string{"ni"}, Value: false, Usage: "Disable go install"},
+					&cli.BoolFlag{Name: "no-config", Aliases: []string{"nc"}, Value: false, Usage: "Ignore existing configurations."},
 				},
 				Action: func(p *cli.Context) (err error) {
-					handle(r.Blueprint.Insert(p))
+					fmt.Println(p.String("path"))
+					handle(r.Blueprint.Add(p))
 					handle(r.Record(r))
 					fmt.Println(r.Green.Bold("Your project was successfully added."))
 					return nil
@@ -171,23 +186,566 @@ func main() {
 				},
 			},
 			{
-				Name:     "add",
+				Name:     "init",
 				Category: "Configuration",
 				Aliases:  []string{"a"},
-				Usage:    "Add a new project to an existing realize config file",
-				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: r.Wdir(), Usage: "Project name"},
-					&cli.StringFlag{Name: "path", Aliases: []string{"p"}, Value: "", Usage: "Project base path"},
-					&cli.BoolFlag{Name: "build", Aliases: []string{"b"}, Value: false, Usage: "Enable go build"},
-					&cli.BoolFlag{Name: "test", Aliases: []string{"t"}, Value: false, Usage: "Enable go test"},
-					&cli.BoolFlag{Name: "generate", Aliases: []string{"g"}, Value: false, Usage: "Enable go generate"},
-					&cli.BoolFlag{Name: "preview", Aliases: []string{"prev"}, Value: false, Usage: "Print each watched file"},
-					&cli.BoolFlag{Name: "no-run", Aliases: []string{"nr"}, Usage: "Disable go run"},
-					&cli.BoolFlag{Name: "no-bin", Aliases: []string{"nb"}, Usage: "Disable go install"},
-					&cli.BoolFlag{Name: "no-fmt", Aliases: []string{"nf"}, Usage: "Disable go fmt"},
-				},
+				Usage:    "Define a new config file with all options step by step",
 				Action: func(p *cli.Context) (err error) {
-					handle(r.Blueprint.Insert(p))
+					i.Run(&i.Interact{
+						Before: func(context i.Context) error {
+							r.Blueprint.Add(p)
+							context.SetErr(r.Red.Bold("INVALID INPUT"))
+							context.SetPrfx(color.Output, r.Yellow.Bold("[")+"REALIZE"+r.Yellow.Bold("]"))
+							return nil
+						},
+						Questions: []*i.Question{
+							{
+								Before: func(c i.Context) error {
+									if _, err := os.Stat(".realize/" + config); err != nil {
+										c.Skip()
+									}
+									return nil
+								},
+								Quest: i.Quest{
+									Options: r.Yellow.Regular("[y/n]"),
+									Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
+									Msg:     "Would you want overwrite the existing Realize config?",
+								},
+								Action: func(c i.Context) interface{} {
+									val, err := c.Ans().Bool()
+									if err != nil {
+										return c.Err()
+									} else if val {
+										err = r.Settings.Remove()
+										if err != nil {
+											return err
+										}
+									}
+									return nil
+								},
+							},
+							{
+								Quest: i.Quest{
+									Options: r.Yellow.Regular("[y/n]"),
+									Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
+									Msg:     "Would you want customize the general settings?",
+									Resolve: func(c i.Context) bool {
+										val, _ := c.Ans().Bool()
+										if val {
+											r.Blueprint.Add(p)
+										}
+										return val
+									},
+								},
+								Subs: []*i.Question{
+									{
+										Quest: i.Quest{
+											Options: r.Yellow.Regular("[int]"),
+											Default: i.Default{Value: 0, Preview: true, Text: r.Green.Regular("(os default)")},
+											Msg:     "Max number of open files (root required)",
+										},
+										Action: func(c i.Context) interface{} {
+											val, err := c.Ans().Int()
+											if err != nil {
+												return c.Err()
+											}
+											r.Config.Flimit = val
+											return nil
+										},
+									},
+									{
+										Quest: i.Quest{
+											Options: r.Yellow.Regular("[y/n]"),
+											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
+											Msg:     "Enable legacy watch by polling",
+											Resolve: func(c i.Context) bool {
+												val, _ := c.Ans().Bool()
+												return val
+											},
+										},
+										Subs: []*i.Question{
+											{
+												Quest: i.Quest{
+													Options: r.Yellow.Regular("[int]"),
+													Default: i.Default{Value: 1, Preview: true, Text: r.Green.Regular("(1s)")},
+													Msg:     "Set polling interval in seconds",
+												},
+												Action: func(c i.Context) interface{} {
+													val, err := c.Ans().Int()
+													if err != nil {
+														return c.Err()
+													}
+													r.Config.Legacy.Interval = time.Duration(val * 1000)
+													return nil
+												},
+											},
+										},
+										Action: func(c i.Context) interface{} {
+											val, err := c.Ans().Bool()
+											if err != nil {
+												return c.Err()
+											}
+											r.Config.Legacy.Status = val
+											return nil
+										},
+									},
+									{
+										Quest: i.Quest{
+											Options: r.Yellow.Regular("[string]"),
+											Default: i.Default{Value: r.Settings.Wdir(), Preview: true, Text: r.Green.Regular("(" + r.Settings.Wdir() + ")")},
+											Msg:     "Project name",
+										},
+										Action: func(c i.Context) interface{} {
+											val, err := c.Ans().String()
+											if err != nil {
+												return c.Err()
+											}
+											r.Blueprint.Projects[0].Name = val
+											return nil
+										},
+									},
+									{
+										Quest: i.Quest{
+											Options: r.Yellow.Regular("[string]"),
+											Default: i.Default{Value: "", Preview: true, Text: r.Green.Regular("(current wdir)")},
+											Msg:     "Project path",
+										},
+										Action: func(c i.Context) interface{} {
+											val, err := c.Ans().String()
+											if err != nil {
+												return c.Err()
+											}
+											r.Blueprint.Projects[0].Path = r.Settings.Path(val)
+											return nil
+										},
+									},
+									{
+										Quest: i.Quest{
+											Options: r.Yellow.Regular("[y/n]"),
+											Default: i.Default{Value: true, Preview: true, Text: r.Green.Regular("(y)")},
+											Msg:     "Enable go fmt",
+										},
+										Action: func(c i.Context) interface{} {
+											val, err := c.Ans().Bool()
+											if err != nil {
+												return c.Err()
+											}
+											r.Blueprint.Projects[0].Fmt = val
+											return nil
+										},
+									},
+									{
+										Quest: i.Quest{
+											Options: r.Yellow.Regular("[y/n]"),
+											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
+											Msg:     "Enable go test",
+										},
+										Action: func(c i.Context) interface{} {
+											val, err := c.Ans().Bool()
+											if err != nil {
+												return c.Err()
+											}
+											r.Blueprint.Projects[0].Test = val
+											return nil
+										},
+									},
+									{
+										Quest: i.Quest{
+											Options: r.Yellow.Regular("[y/n]"),
+											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
+											Msg:     "Enable go generate",
+										},
+										Action: func(c i.Context) interface{} {
+											val, err := c.Ans().Bool()
+											if err != nil {
+												return c.Err()
+											}
+											r.Blueprint.Projects[0].Generate = val
+											return nil
+										},
+									},
+									{
+										Quest: i.Quest{
+											Options: r.Yellow.Regular("[y/n]"),
+											Default: i.Default{Value: true, Preview: true, Text: r.Green.Regular("(y)")},
+											Msg:     "Enable go install",
+										},
+										Action: func(c i.Context) interface{} {
+											val, err := c.Ans().Bool()
+											if err != nil {
+												return c.Err()
+											}
+											r.Blueprint.Projects[0].Bin = val
+											return nil
+										},
+									},
+									{
+										Quest: i.Quest{
+											Options: r.Yellow.Regular("[y/n]"),
+											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
+											Msg:     "Enable go build",
+										},
+										Action: func(c i.Context) interface{} {
+											val, err := c.Ans().Bool()
+											if err != nil {
+												return c.Err()
+											}
+											r.Blueprint.Projects[0].Build = val
+											return nil
+										},
+									},
+									{
+										Quest: i.Quest{
+											Options: r.Yellow.Regular("[y/n]"),
+											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
+											Msg:     "Enable go run",
+										},
+										Action: func(c i.Context) interface{} {
+											val, err := c.Ans().Bool()
+											if err != nil {
+												return c.Err()
+											}
+											r.Blueprint.Projects[0].Run = val
+											return nil
+										},
+									},
+									{
+										Quest: i.Quest{
+											Options: r.Yellow.Regular("[y/n]"),
+											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
+											Msg:     "Would you want customize the watched paths?",
+											Resolve: func(c i.Context) bool {
+												val, _ := c.Ans().Bool()
+												if val {
+													r.Blueprint.Projects[0].Watcher.Paths = r.Blueprint.Projects[0].Watcher.Paths[:len(r.Blueprint.Projects[0].Watcher.Paths)-1]
+												}
+												return val
+											},
+										},
+										Subs: []*i.Question{
+											{
+												Quest: i.Quest{
+													Options: r.Yellow.Regular("[string]"),
+													Msg:     "Insert a path to watch (insert '!' to stop)",
+												},
+												Action: func(c i.Context) interface{} {
+													val, err := c.Ans().String()
+													if err != nil {
+														return c.Err()
+													}
+													if val == "!" {
+														return nil
+													} else {
+														r.Blueprint.Projects[0].Watcher.Paths = append(r.Blueprint.Projects[0].Watcher.Paths, val)
+														c.Reload()
+													}
+													return nil
+												},
+											},
+										},
+										Action: func(c i.Context) interface{} {
+											_, err := c.Ans().Bool()
+											if err != nil {
+												return c.Err()
+											}
+											return nil
+										},
+									},
+									{
+										Quest: i.Quest{
+											Options: r.Yellow.Regular("[y/n]"),
+											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
+											Msg:     "Would you want customize the ignored paths?",
+											Resolve: func(c i.Context) bool {
+												val, _ := c.Ans().Bool()
+												if val {
+													r.Blueprint.Projects[0].Watcher.Ignore = r.Blueprint.Projects[0].Watcher.Ignore[:len(r.Blueprint.Projects[0].Watcher.Ignore)-1]
+												}
+												return val
+											},
+										},
+										Subs: []*i.Question{
+											{
+												Quest: i.Quest{
+													Options: r.Yellow.Regular("[string]"),
+													Msg:     "Insert a path to ignore (insert '!' to stop)",
+												},
+												Action: func(c i.Context) interface{} {
+													val, err := c.Ans().String()
+													if err != nil {
+														return c.Err()
+													}
+													if val == "!" {
+														return nil
+													} else {
+														r.Blueprint.Projects[0].Watcher.Ignore = append(r.Blueprint.Projects[0].Watcher.Ignore, val)
+														c.Reload()
+													}
+													return nil
+												},
+											},
+										},
+										Action: func(c i.Context) interface{} {
+											_, err := c.Ans().Bool()
+											if err != nil {
+												return c.Err()
+											}
+											return nil
+										},
+									},
+									{
+										Quest: i.Quest{
+											Options: r.Yellow.Regular("[y/n]"),
+											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
+											Msg:     "Would you want add additional arguments?",
+											Resolve: func(c i.Context) bool {
+												val, _ := c.Ans().Bool()
+												return val
+											},
+										},
+										Subs: []*i.Question{
+											{
+												Quest: i.Quest{
+													Options: r.Yellow.Regular("[string]"),
+													Msg:     "Insert an argument (insert '!' to stop)",
+												},
+												Action: func(c i.Context) interface{} {
+													val, err := c.Ans().String()
+													if err != nil {
+														return c.Err()
+													}
+													if val == "!" {
+														return nil
+													} else {
+														r.Blueprint.Projects[0].Params = append(r.Blueprint.Projects[0].Params, val)
+														c.Reload()
+													}
+													return nil
+												},
+											},
+										},
+										Action: func(c i.Context) interface{} {
+											_, err := c.Ans().Bool()
+											if err != nil {
+												return c.Err()
+											}
+											return nil
+										},
+									},
+									{
+										Quest: i.Quest{
+											Options: r.Yellow.Regular("[y/n]"),
+											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
+											Msg:     "Would you want add 'before' custom commands?",
+											Resolve: func(c i.Context) bool {
+												val, _ := c.Ans().Bool()
+												return val
+											},
+										},
+										Subs: []*i.Question{
+											{
+												Quest: i.Quest{
+													Options: r.Yellow.Regular("[string]"),
+													Msg:     "Insert a command (insert '!' to stop)",
+												},
+												Action: func(c i.Context) interface{} {
+													val, err := c.Ans().String()
+													if err != nil {
+														return c.Err()
+													}
+													if val == "!" {
+														return nil
+													} else {
+														r.Blueprint.Projects[0].Watcher.Scripts = append(r.Blueprint.Projects[0].Watcher.Scripts, w.Command{Type: "before", Command: val})
+														c.Reload()
+													}
+													return nil
+												},
+											},
+										},
+										Action: func(c i.Context) interface{} {
+											_, err := c.Ans().Bool()
+											if err != nil {
+												return c.Err()
+											}
+											return nil
+										},
+									},
+									{
+										Quest: i.Quest{
+											Options: r.Yellow.Regular("[y/n]"),
+											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
+											Msg:     "Would you want add 'after' custom commands?",
+											Resolve: func(c i.Context) bool {
+												val, _ := c.Ans().Bool()
+												return val
+											},
+										},
+										Subs: []*i.Question{
+											{
+												Quest: i.Quest{
+													Options: r.Yellow.Regular("[string]"),
+													Msg:     "Insert a command (insert '!' to stop)",
+												},
+												Action: func(c i.Context) interface{} {
+													val, err := c.Ans().String()
+													if err != nil {
+														return c.Err()
+													}
+													if val == "!" {
+														return nil
+													} else {
+														r.Blueprint.Projects[0].Watcher.Scripts = append(r.Blueprint.Projects[0].Watcher.Scripts, w.Command{Type: "after", Command: val})
+														c.Reload()
+													}
+													return nil
+												},
+											},
+										},
+										Action: func(c i.Context) interface{} {
+											_, err := c.Ans().Bool()
+											if err != nil {
+												return c.Err()
+											}
+											return nil
+										},
+									},
+									{
+										Quest: i.Quest{
+											Options: r.Yellow.Regular("[y/n]"),
+											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
+											Msg:     "Enable watcher files preview",
+										},
+										Action: func(c i.Context) interface{} {
+											val, err := c.Ans().Bool()
+											if err != nil {
+												return c.Err()
+											}
+											r.Blueprint.Projects[0].Run = val
+											return nil
+										},
+									},
+									{
+										Quest: i.Quest{
+											Options: r.Yellow.Regular("[y/n]"),
+											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
+											Msg:     "Enable web server",
+											Resolve: func(c i.Context) bool {
+												val, _ := c.Ans().Bool()
+												return val
+											},
+										},
+										Subs: []*i.Question{
+											{
+												Quest: i.Quest{
+													Options: r.Yellow.Regular("[int]"),
+													Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(5001)")},
+													Msg:     "Server port",
+												},
+												Action: func(c i.Context) interface{} {
+													val, err := c.Ans().Int()
+													if err != nil {
+														return c.Err()
+													}
+													r.Server.Port = int(val)
+													return nil
+												},
+											},
+											{
+												Quest: i.Quest{
+													Options: r.Yellow.Regular("[string]"),
+													Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(localhost)")},
+													Msg:     "Server host",
+												},
+												Action: func(c i.Context) interface{} {
+													val, err := c.Ans().String()
+													if err != nil {
+														return c.Err()
+													}
+													r.Server.Host = val
+													return nil
+												},
+											},
+											{
+												Quest: i.Quest{
+													Options: r.Yellow.Regular("[y/n]"),
+													Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
+													Msg:     "Open in the current browser",
+												},
+												Action: func(c i.Context) interface{} {
+													val, err := c.Ans().Bool()
+													if err != nil {
+														return c.Err()
+													}
+													r.Server.Open = val
+													return nil
+												},
+											},
+										},
+										Action: func(c i.Context) interface{} {
+											val, err := c.Ans().Bool()
+											if err != nil {
+												return c.Err()
+											}
+											r.Server.Status = val
+											return nil
+										},
+									},
+									{
+										Quest: i.Quest{
+											Options: r.Yellow.Regular("[y/n]"),
+											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
+											Msg:     "Enable file output history",
+										},
+										Action: func(c i.Context) interface{} {
+											val, err := c.Ans().Bool()
+											if err != nil {
+												return c.Err()
+											}
+											r.Blueprint.Projects[0].Streams.FileOut = val
+											return nil
+										},
+									},
+									{
+										Quest: i.Quest{
+											Options: r.Yellow.Regular("[y/n]"),
+											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
+											Msg:     "Enable file logs history",
+										},
+										Action: func(c i.Context) interface{} {
+											val, err := c.Ans().Bool()
+											if err != nil {
+												return c.Err()
+											}
+											r.Blueprint.Projects[0].Streams.FileLog = val
+											return nil
+										},
+									},
+									{
+										Quest: i.Quest{
+											Options: r.Yellow.Regular("[y/n]"),
+											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
+											Msg:     "Enable file errors history",
+										},
+										Action: func(c i.Context) interface{} {
+											val, err := c.Ans().Bool()
+											if err != nil {
+												return c.Err()
+											}
+											r.Blueprint.Projects[0].Streams.FileErr = val
+											return nil
+										},
+									},
+								},
+								Action: func(c i.Context) interface{} {
+									if _, err := c.Ans().Bool(); err != nil {
+										return c.Err()
+									}
+									return nil
+								},
+							},
+						},
+					})
 					handle(r.Record(r))
 					fmt.Println(r.Green.Bold("Your project was successfully added."))
 					return nil
@@ -200,7 +758,7 @@ func main() {
 				Name:     "remove",
 				Category: "Configuration",
 				Aliases:  []string{"r"},
-				Usage:    "Remove a project from a config file",
+				Usage:    "Remove a project from a realize configuration.",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: ""},
 				},
@@ -218,7 +776,7 @@ func main() {
 				Name:     "list",
 				Category: "Configuration",
 				Aliases:  []string{"l"},
-				Usage:    "Projects list",
+				Usage:    "Print projects list.",
 				Action: func(p *cli.Context) error {
 					return handle(r.Blueprint.List())
 				},
@@ -230,7 +788,7 @@ func main() {
 				Name:     "clean",
 				Category: "Configuration",
 				Aliases:  []string{"c"},
-				Usage:    "Remove realize folder",
+				Usage:    "Remove realize folder.",
 				Action: func(p *cli.Context) error {
 					handle(r.Settings.Remove())
 					fmt.Println(r.Green.Bold("Realize folder successfully removed."))
@@ -242,5 +800,5 @@ func main() {
 			},
 		},
 	}
-	c.Run(os.Args)
+	app.Run(os.Args)
 }

@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // Wdir return the current working directory
@@ -28,4 +29,17 @@ func (s Settings) Fatal(err error, msg ...interface{}) {
 	} else if err != nil {
 		log.Fatalln(err.Error())
 	}
+}
+
+func (h Settings) Name(name string, path string) string {
+	if name == "" && path == "" {
+		return h.Wdir()
+	} else if path != "/" {
+		return filepath.Base(path)
+	}
+	return name
+}
+
+func (h Settings) Path(s string) string {
+	return strings.Replace(filepath.Clean(s), "\\", "/", -1)
 }

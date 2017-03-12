@@ -36,7 +36,8 @@ func (w *pollWatcher) isWatching(path string) bool {
 func (p *Project) watchByPolling() {
 	var wr sync.WaitGroup
 	var watcher = new(pollWatcher)
-	channel, exit := make(chan bool, 1), make(chan bool, 1)
+	channel, exit := make(chan bool, 1), make(chan os.Signal, 2)
+	signal.Notify(exit, os.Interrupt, syscall.SIGTERM)
 	defer func() {
 		p.cmd("after")
 		wg.Done()

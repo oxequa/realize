@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"gopkg.in/urfave/cli.v2"
-	"path/filepath"
 	"strings"
 )
 
@@ -32,8 +31,8 @@ func (h *Blueprint) Run() error {
 // Add a new project
 func (h *Blueprint) Add(p *cli.Context) error {
 	project := Project{
-		Name:     h.name(p),
-		Path:     strings.Replace(filepath.Clean(p.String("path")), "\\", "/", -1),
+		Name:     h.Name(p.String("name"), p.String("path")),
+		Path:     h.Path(p.String("path")),
 		Fmt:      !p.Bool("no-fmt"),
 		Generate: p.Bool("generate"),
 		Test:     p.Bool("test"),
@@ -71,12 +70,6 @@ func (h *Blueprint) Clean() {
 			break
 		}
 	}
-}
-
-// Insert a new project in projects list
-func (h *Blueprint) Insert(p *cli.Context) error {
-	err := h.Add(p)
-	return err
 }
 
 // Remove a project
@@ -149,17 +142,4 @@ func (h *Blueprint) check() error {
 		return nil
 	}
 	return errors.New("There are no projects. The config file is empty.")
-}
-
-// NameParam check the project name presence. If empty takes the working directory name
-func (h *Blueprint) name(p *cli.Context) string {
-	var name string
-	if p.String("name") == "" && p.String("path") == "" {
-		return h.Wdir()
-	} else if p.String("path") != "/" {
-		name = filepath.Base(p.String("path"))
-	} else {
-		name = p.String("name")
-	}
-	return name
 }
