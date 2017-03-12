@@ -51,7 +51,7 @@ func (s *Server) Start(p *cli.Context) (err error) {
 	if s.Status {
 		e := echo.New()
 		e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
-			Level: 5,
+			Level: 2,
 		}))
 		e.Use(middleware.Recover())
 
