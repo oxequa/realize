@@ -396,7 +396,7 @@ func main() {
 									{
 										Quest: i.Quest{
 											Options: r.Yellow.Regular("[y/n]"),
-											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
+											Default: i.Default{Value: true, Preview: true, Text: r.Green.Regular("(y)")},
 											Msg:     "Enable go run",
 										},
 										Action: func(c i.Context) interface{} {

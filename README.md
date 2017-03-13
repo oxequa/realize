@@ -98,6 +98,7 @@ $ realize add
 ##### Init 
 
 Like add, but with this command you can create a configuration step by step and customize each option. 
+
 **Init is the only command that supports a complete customization of all the options supported**
 
 ```
