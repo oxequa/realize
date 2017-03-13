@@ -17,111 +17,95 @@ A Go build system with file watchers, output streams and live reload. Run, build
 #### Features
 
 - Highly customizable
+- Config your project Step by Step
 - Build, Install, Test, Fmt, Generate and Run at the same time
 - Live reload on file changes (re-build, re-install...)
 - Watch custom paths and specific file extensions
+- Watch by FsNotify or by polling
 - Support for multiple projects
-- Output streams and error logs (Watch them in console or save them on a file)
-- Web Panel (Watch all projects, edit the config settings, download each type of log)
+- Output streams and error logs (support for save on a file)
+- Web Panel (projects list, config settings, logs)
 
-#### Installation and usage
+#### Wiki
 
-- Run this to get/install:
+- [Getting Started](#installation-and-usage)
+- [Run cmd](#run) - Run a project
+- [Add cmd](#add) - Add a new project
+- [Init cmd](#init) - Make a custom config step by step
+- [Remove cmd](#remove) - Remove a project 
+- [List cmd](#list) - List the projects
+- [Config sample](#config-sample)
 
-    ```
-    $ go get github.com/tockins/realize
-    ```
 
-- From project/projects root execute:
+##### Installation
+Run this to get/install:
+```
+$ go get github.com/tockins/realize
+```
+#### Commands
 
-    ```
-    $ realize add
-    ```
+##### Run
+From project/projects root execute:
+```
+$ realize run
+```
 
-    It will create a realize.yaml file if it doesn't exist already and adds the working directory as project.
+It will create a realize.yaml file if it doesn't exist already, adds the working directory as project and run the pipeline.
 
-    Otherwise if a config file already exists it adds the working project to the existing config file.
+The Run command supports the following custom parameters:
 
-    The Add command supports the following custom parameters:
+```
+--path="realize/server"     -> Custom Path, if not specified takes the working directory name    
+--build                     -> Enable go build   
+--no-run                    -> Disable go run
+--no-install                -> Disable go install
+--no-config                 -> Ignore an existing config / skip the creation of a new one
+--server                    -> Enable the web server
+--legacy                    -> Enable legacy watch instead of Fsnotify watch
+--generate                  -> Enable go generate
+--test                      -> Enable go test
+```
+Examples:
 
-    ```
-    --name="Project Name"   -> Name, if not specified takes the working directory name
-    --path="server"         -> Custom Path, if not specified takes the working directory name    
-    --build                 -> Enables the build   
-    --test                  -> Enables the tests  
-    --no-bin                -> Disables the installation
-    --no-run                -> Disables the run
-    --no-fmt                -> Disables the fmt (go fmt)
-    --no-server             -> Disables the web panel (default port 5001)
-    --open                  -> Open the web panel in a new browser window
-    ```
-    Examples:
+```
+$ realize run
+$ realize run --path="mypath"
+$ realize run --name="My Project" --build
+$ realize run --path="realize" --no-run --no-config
+$ realize run --path="/Users/alessio/go/src/github.com/tockins/realize-examples/coin/"
+```
 
-    ```
-    $ realize add
+If you want, you can specify additional arguments for your project.
 
-    $ realize add --path="mypath"
+ **The additional arguments must go after the params**
+ 
+ **Run can run a project from its working directory without make a config file (--no-config).**
 
-    $ realize add --name="My Project" --build
+```
+$ realize run --path="/print/printer" --no-run yourParams --yourFlags // right
+$ realize run yourParams --yourFlags --path="/print/printer" --no-run // wrong
+```
+##### Add 
 
-    $ realize add --name="My Project" --path="/projects/package" --build
+Add a project to an existing config file or create a new one without run the pipeline. 
 
-    $ realize add --name="My Project" --path="projects/package" --build --no-run
-    
-    $ realize add --path="/Users/alessio/go/src/github.com/tockins/realize-examples/coin/"
-    ```
+"Add" supports the same parameters of the "Run" command.
 
-    If you want, you can specify additional arguments for your project.
+```
+$ realize add
+```
 
-     **The additional arguments must go after the options of "Realize"**
+##### Remove
+Remove a project by its name
+```
+$ realize remove --name="myname"
+```
 
-    ```
-    $ realize add --path="/print/printer" --no-run yourParams --yourFlags // correct
-
-    $ realize add yourParams --yourFlags --path="/print/printer" --no-run // wrong
-    ```
-
-- Remove a project by its name
-
-    ```
-    $ realize remove --name="Project Name"
-    ```
-- Lists all projects
-
-    ```
-    $ realize list
-    ```
-- Build, Run and watch file changes. Realize will re-build and re-run your projects on each change.
-
-    ```
-    $ realize run
-    ```
-
-    Run can also launch a project from its working directory with or without make a config file (--no-config option).
-    It supports the following custom parameters:
-    
-    ```
-    --path="server"         -> Custom Path, if not specified takes the working directory name 
-    --build                 -> Enables the build   
-    --test                  -> Enables the tests   
-    --config                -> Take the defined settings if exist a config file  
-    --no-bin                -> Disables the installation
-    --no-run                -> Disables the run
-    --no-fmt                -> Disables the fmt (go fmt)
-    --no-server             -> Disables the web panel (port :5000)
-    --no-config             -> Doesn't create any configuration files
-    --open                  -> Open the web panel in a new browser window 
-    --port                  -> Sets the web panel port 
-    ```  
-    And additional arguments as the "add" command.
-    
-    ```
-    $ realize run --no-run yourParams --yourFlags // correct
-
-    $ realize run yourParams --yourFlags --no-run // wrong
-    
-    $ realize run --path="/Users/alessio/go/src/github.com/tockins/realize-examples/coin/"
-    ```  
+##### List
+Projects list in cli
+```
+$ realize list
+```
 
 #### Color reference
 
@@ -131,46 +115,53 @@ A Go build system with file watchers, output streams and live reload. Run, build
 - Green: successfully completed action
 
 
-#### Config file example
+#### Config sample
 
 - For more examples check [Realize Examples](https://github.com/tockins/realize-examples)
 
      ```
-     flimit: 15000                      // Alters the default maximum number of open files
-     server:
-       status: true                     // Disable/Enable the server
-       host: localhost                  // Defines the server address
-       port: 5001                       // Defines the server port   
-       open: true                       // Opens the server in a new browser tab
-     resources:
-        logs: logs.log                  // Save the logs on the defined file, disabled if removed
-        outputs: outputs.log            // Save the outputs on the defined file, disabled if removed
-        errors: errors.log              // Save the errors on the defined file, disabled if removed
+     settings:
+       legacy:                
+         status: true           // legacy watch status
+         interval: 10s          // polling interval
+       resources:               // files names related to streams
+         outputs: outputs.log   
+         logs: logs.log         
+         errors: errors.log
+       server:                  
+         status: true           // server status         
+         open: false            // auto open in browser on start
+         host: localhost        // server host  
+         port: 5001             // server port
      projects:
-     - name: realize                    // Project name
-       path: .                          // Project path
-       fmt: true                        // Disable/Enable go ftm
-       test: false                      // Disable/Enable go test
-       generate: false                  // Disable/Enable go generate       
-       bin: true                        // Disable/Enable go install
-       build: false                     // Disable/Enable go build
-       run: false                       // Disable/Enable go run
-       streams: true                    // Enable/Disable the output streams in cli
-       params: []                       // Run the project with defined additional params
+     - name: realize    
+       path: .                  // project path
+       fmt: true                
+       generate: false
+       test: false
+       bin: true
+       build: false
+       run: false
+       params:                  // additional params
+       - --myarg
        watcher:
-         preview: false                 // Enable/Disable the preview of the watched files     
-         paths:                         // Paths to watch, sub-paths included 
+         preview: false         // wached files preview
+         paths:                 // paths to watch
          - /
-         ignore_paths:                  // Paths ignored 
+         ignore_paths:          // paths to ignore
          - vendor
-         exts:                          // File extensions to watch
+         exts:                  // exts to watch
          - .go
-         commands:                      // Additional commands to run after and before
-         - before: go install           // Defines if after or before
-         - before: golint
-           watched: true                // Run the command with all watched paths
-           foreach: true                // Run the command at each reload
-         - after: cd server && gobindata
+         scripts:               // custom commands after/before
+         - type: after          // type after/before
+           command: go run mycmd after  // command
+           path: ""             //  run from a custom path or from the working dir
+       streams:                 // enable/disable streams 
+         cli_out: true
+         file_out: false
+         file_log: false
+         file_err: false
+
     ```                    
 
 #### Next features, in progress...
