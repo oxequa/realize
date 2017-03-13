@@ -95,6 +95,15 @@ Add a project to an existing config file or create a new one without run the pip
 $ realize add
 ```
 
+##### Init 
+
+Like add, but with this command you can create a configuration step by step and customize each option. 
+**Init is the only command that supports a complete customization of all the options supported**
+
+```
+$ realize init
+```
+
 ##### Remove
 Remove a project by its name
 ```
@@ -164,19 +173,9 @@ $ realize list
 
     ```                    
 
-#### Next features, in progress...
 
-- [ ] Web panel - edit settings (full support)
-- [ ] Web panel - logs download
-- [ ] Schedule - reload a project after a specific time
-- [ ] Easy dependencies - automatically resolve the project dependencies
-- [ ] Import license - retrieve the license for each imported library
-- [ ] Tests
-
-
-#### Contacts
+###### Support us and suggest an improvement
 
 - Chat with us [Gitter](https://gitter.im/tockins/realize)
-
 - [Alessio Pracchia](https://www.linkedin.com/in/alessio-pracchia-38a70673)
 - [Daniele Conventi](https://www.linkedin.com/in/conventi)
