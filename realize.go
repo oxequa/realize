@@ -130,7 +130,6 @@ func main() {
 					&cli.BoolFlag{Name: "legacy", Aliases: []string{"l"}, Value: false, Usage: "Watch by polling instead of Watch by fsnotify."},
 					&cli.BoolFlag{Name: "server", Aliases: []string{"s"}, Value: false, Usage: "Enable server and open into the default browser."},
 					&cli.BoolFlag{Name: "no-run", Aliases: []string{"nr"}, Value: false, Usage: "Disable go run"},
-					&cli.BoolFlag{Name: "no-fmt", Aliases: []string{"nf"}, Value: false, Usage: "Disable go fmt."},
 					&cli.BoolFlag{Name: "no-install", Aliases: []string{"ni"}, Value: false, Usage: "Disable go install"},
 					&cli.BoolFlag{Name: "no-config", Aliases: []string{"nc"}, Value: false, Usage: "Ignore existing configurations."},
 				},
@@ -275,7 +274,7 @@ func main() {
 													if err != nil {
 														return c.Err()
 													}
-													r.Config.Legacy.Interval = time.Duration(val * 1000)
+													r.Config.Legacy.Interval = time.Duration(val * 1000000000)
 													return nil
 												},
 											},
@@ -639,7 +638,7 @@ func main() {
 											{
 												Quest: i.Quest{
 													Options: r.Yellow.Regular("[int]"),
-													Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(5001)")},
+													Default: i.Default{Value: 5001, Preview: true, Text: r.Green.Regular("(5001)")},
 													Msg:     "Server port",
 												},
 												Action: func(c i.Context) interface{} {
@@ -654,7 +653,7 @@ func main() {
 											{
 												Quest: i.Quest{
 													Options: r.Yellow.Regular("[string]"),
-													Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(localhost)")},
+													Default: i.Default{Value: "localhost", Preview: true, Text: r.Green.Regular("(localhost)")},
 													Msg:     "Server host",
 												},
 												Action: func(c i.Context) interface{} {
