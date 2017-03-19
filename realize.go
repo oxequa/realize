@@ -192,44 +192,205 @@ func main() {
 				Action: func(p *cli.Context) (err error) {
 					i.Run(&i.Interact{
 						Before: func(context i.Context) error {
-							r.Blueprint.Add(p)
 							context.SetErr(r.Red.Bold("INVALID INPUT"))
 							context.SetPrfx(color.Output, r.Yellow.Bold("[")+"REALIZE"+r.Yellow.Bold("]"))
 							return nil
 						},
 						Questions: []*i.Question{
 							{
-								Before: func(c i.Context) error {
+								Before: func(d i.Context) error {
 									if _, err := os.Stat(".realize/" + config); err != nil {
-										c.Skip()
+										d.Skip()
 									}
+									d.SetDef(false, r.Green.Regular("(n)"))
 									return nil
 								},
 								Quest: i.Quest{
 									Options: r.Yellow.Regular("[y/n]"),
-									Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
-									Msg:     "Would you want overwrite the existing Realize config?",
+									Msg:     "Would you want to overwrite the existing " + r.Colors.Magenta.Bold("Realize") + " config?",
 								},
-								Action: func(c i.Context) interface{} {
-									val, err := c.Ans().Bool()
+								Action: func(d i.Context) interface{} {
+									val, err := d.Ans().Bool()
 									if err != nil {
-										return c.Err()
+										return d.Err()
 									} else if val {
-										err = r.Settings.Remove()
-										if err != nil {
-											return err
-										}
+										r.Blueprint.Projects = r.Blueprint.Projects[len(r.Blueprint.Projects):]
 									}
 									return nil
 								},
 							},
 							{
+								Before: func(d i.Context) error {
+									d.SetDef(true, r.Green.Regular("(y)"))
+									return nil
+								},
 								Quest: i.Quest{
 									Options: r.Yellow.Regular("[y/n]"),
-									Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
-									Msg:     "Would you want customize the general settings?",
-									Resolve: func(c i.Context) bool {
-										val, _ := c.Ans().Bool()
+									Msg:     "Would you want to customize the " + r.Colors.Magenta.Bold("settings") + " ?",
+									Resolve: func(d i.Context) bool {
+										val, _ := d.Ans().Bool()
+										return val
+									},
+								},
+								Subs: []*i.Question{
+									{
+										Before: func(d i.Context) error {
+											d.SetDef(0, r.Green.Regular("(os default)"))
+											return nil
+										},
+										Quest: i.Quest{
+											Options: r.Yellow.Regular("[int]"),
+											Msg:     "Max number of open files (root required)",
+										},
+										Action: func(d i.Context) interface{} {
+											val, err := d.Ans().Int()
+											if err != nil {
+												return d.Err()
+											}
+											r.Config.Flimit = val
+											return nil
+										},
+									},
+									{
+										Before: func(d i.Context) error {
+											d.SetDef(false, r.Green.Regular("(n)"))
+											return nil
+										},
+										Quest: i.Quest{
+											Options: r.Yellow.Regular("[y/n]"),
+											Msg:     "Enable legacy watch by polling",
+											Resolve: func(d i.Context) bool {
+												val, _ := d.Ans().Bool()
+												return val
+											},
+										},
+										Subs: []*i.Question{
+											{
+												Before: func(d i.Context) error {
+													d.SetDef(1, r.Green.Regular("(1s)"))
+													return nil
+												},
+												Quest: i.Quest{
+													Options: r.Yellow.Regular("[int]"),
+													Msg:     "Set polling interval in seconds",
+												},
+												Action: func(d i.Context) interface{} {
+													val, err := d.Ans().Int()
+													if err != nil {
+														return d.Err()
+													}
+													r.Config.Legacy.Interval = time.Duration(val * 1000000000)
+													return nil
+												},
+											},
+										},
+										Action: func(d i.Context) interface{} {
+											val, err := d.Ans().Bool()
+											if err != nil {
+												return d.Err()
+											}
+											r.Config.Legacy.Status = val
+											return nil
+										},
+									},
+									{
+										Before: func(d i.Context) error {
+											d.SetDef(false, r.Green.Regular("(n)"))
+											return nil
+										},
+										Quest: i.Quest{
+											Options: r.Yellow.Regular("[y/n]"),
+											Msg:     "Enable web server",
+											Resolve: func(d i.Context) bool {
+												val, _ := d.Ans().Bool()
+												return val
+											},
+										},
+										Subs: []*i.Question{
+											{
+												Before: func(d i.Context) error {
+													d.SetDef(5001, r.Green.Regular("(5001)"))
+													return nil
+												},
+												Quest: i.Quest{
+													Options: r.Yellow.Regular("[int]"),
+													Msg:     "Server port",
+												},
+												Action: func(d i.Context) interface{} {
+													val, err := d.Ans().Int()
+													if err != nil {
+														return d.Err()
+													}
+													r.Server.Port = int(val)
+													return nil
+												},
+											},
+											{
+												Before: func(d i.Context) error {
+													d.SetDef("localhost", r.Green.Regular("(localhost)"))
+													return nil
+												},
+												Quest: i.Quest{
+													Options: r.Yellow.Regular("[string]"),
+													Msg:     "Server host",
+												},
+												Action: func(d i.Context) interface{} {
+													val, err := d.Ans().String()
+													if err != nil {
+														return d.Err()
+													}
+													r.Server.Host = val
+													return nil
+												},
+											},
+											{
+												Before: func(d i.Context) error {
+													d.SetDef(false, r.Green.Regular("(n)"))
+													return nil
+												},
+												Quest: i.Quest{
+													Options: r.Yellow.Regular("[y/n]"),
+													Msg:     "Open in the current browser",
+												},
+												Action: func(d i.Context) interface{} {
+													val, err := d.Ans().Bool()
+													if err != nil {
+														return d.Err()
+													}
+													r.Server.Open = val
+													return nil
+												},
+											},
+										},
+										Action: func(d i.Context) interface{} {
+											val, err := d.Ans().Bool()
+											if err != nil {
+												return d.Err()
+											}
+											r.Server.Status = val
+											return nil
+										},
+									},
+								},
+								Action: func(d i.Context) interface{} {
+									_, err := d.Ans().Bool()
+									if err != nil {
+										return d.Err()
+									}
+									return nil
+								},
+							},
+							{
+								Before: func(d i.Context) error {
+									d.SetDef(true, r.Green.Regular("(y)"))
+									d.SetEnd("!done")
+									return nil
+								},
+								Quest: i.Quest{
+									Options: r.Yellow.Regular("[y/n]"),
+									Msg:     "Would you want to " + r.Colors.Magenta.Regular("add a new project") + " ?",
+									Resolve: func(d i.Context) bool {
+										val, _ := d.Ans().Bool()
 										if val {
 											r.Blueprint.Add(p)
 										}
@@ -238,511 +399,457 @@ func main() {
 								},
 								Subs: []*i.Question{
 									{
-										Quest: i.Quest{
-											Options: r.Yellow.Regular("[int]"),
-											Default: i.Default{Value: 0, Preview: true, Text: r.Green.Regular("(os default)")},
-											Msg:     "Max number of open files (root required)",
-										},
-										Action: func(c i.Context) interface{} {
-											val, err := c.Ans().Int()
-											if err != nil {
-												return c.Err()
-											}
-											r.Config.Flimit = val
+										Before: func(d i.Context) error {
+											d.SetDef(r.Settings.Wdir(), r.Green.Regular("("+r.Settings.Wdir()+")"))
 											return nil
 										},
-									},
-									{
-										Quest: i.Quest{
-											Options: r.Yellow.Regular("[y/n]"),
-											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
-											Msg:     "Enable legacy watch by polling",
-											Resolve: func(c i.Context) bool {
-												val, _ := c.Ans().Bool()
-												return val
-											},
-										},
-										Subs: []*i.Question{
-											{
-												Quest: i.Quest{
-													Options: r.Yellow.Regular("[int]"),
-													Default: i.Default{Value: 1, Preview: true, Text: r.Green.Regular("(1s)")},
-													Msg:     "Set polling interval in seconds",
-												},
-												Action: func(c i.Context) interface{} {
-													val, err := c.Ans().Int()
-													if err != nil {
-														return c.Err()
-													}
-													r.Config.Legacy.Interval = time.Duration(val * 1000000000)
-													return nil
-												},
-											},
-										},
-										Action: func(c i.Context) interface{} {
-											val, err := c.Ans().Bool()
-											if err != nil {
-												return c.Err()
-											}
-											r.Config.Legacy.Status = val
-											return nil
-										},
-									},
-									{
 										Quest: i.Quest{
 											Options: r.Yellow.Regular("[string]"),
-											Default: i.Default{Value: r.Settings.Wdir(), Preview: true, Text: r.Green.Regular("(" + r.Settings.Wdir() + ")")},
 											Msg:     "Project name",
 										},
-										Action: func(c i.Context) interface{} {
-											val, err := c.Ans().String()
+										Action: func(d i.Context) interface{} {
+											val, err := d.Ans().String()
 											if err != nil {
-												return c.Err()
+												return d.Err()
 											}
-											r.Blueprint.Projects[0].Name = val
+											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Name = val
 											return nil
 										},
 									},
 									{
+										Before: func(d i.Context) error {
+											dir, _ := os.Getwd()
+											d.SetDef(dir, r.Green.Regular("("+dir+")"))
+											return nil
+										},
 										Quest: i.Quest{
 											Options: r.Yellow.Regular("[string]"),
-											Default: i.Default{Value: "", Preview: true, Text: r.Green.Regular("(current wdir)")},
 											Msg:     "Project path",
 										},
-										Action: func(c i.Context) interface{} {
-											val, err := c.Ans().String()
+										Action: func(d i.Context) interface{} {
+											val, err := d.Ans().String()
 											if err != nil {
-												return c.Err()
+												return d.Err()
 											}
-											r.Blueprint.Projects[0].Path = r.Settings.Path(val)
+											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Path = r.Settings.Path(val)
 											return nil
 										},
 									},
 									{
+										Before: func(d i.Context) error {
+											d.SetDef(true, r.Green.Regular("(y)"))
+											return nil
+										},
 										Quest: i.Quest{
 											Options: r.Yellow.Regular("[y/n]"),
-											Default: i.Default{Value: true, Preview: true, Text: r.Green.Regular("(y)")},
 											Msg:     "Enable go fmt",
 										},
-										Action: func(c i.Context) interface{} {
-											val, err := c.Ans().Bool()
+										Action: func(d i.Context) interface{} {
+											val, err := d.Ans().Bool()
 											if err != nil {
-												return c.Err()
+												return d.Err()
 											}
-											r.Blueprint.Projects[0].Fmt = val
+											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Fmt = val
 											return nil
 										},
 									},
 									{
+										Before: func(d i.Context) error {
+											d.SetDef(false, r.Green.Regular("(n)"))
+											return nil
+										},
 										Quest: i.Quest{
 											Options: r.Yellow.Regular("[y/n]"),
-											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
 											Msg:     "Enable go test",
 										},
-										Action: func(c i.Context) interface{} {
-											val, err := c.Ans().Bool()
+										Action: func(d i.Context) interface{} {
+											val, err := d.Ans().Bool()
 											if err != nil {
-												return c.Err()
+												return d.Err()
 											}
-											r.Blueprint.Projects[0].Test = val
+											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Test = val
 											return nil
 										},
 									},
 									{
+										Before: func(d i.Context) error {
+											d.SetDef(false, r.Green.Regular("(n)"))
+											return nil
+										},
 										Quest: i.Quest{
 											Options: r.Yellow.Regular("[y/n]"),
-											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
 											Msg:     "Enable go generate",
 										},
-										Action: func(c i.Context) interface{} {
-											val, err := c.Ans().Bool()
+										Action: func(d i.Context) interface{} {
+											val, err := d.Ans().Bool()
 											if err != nil {
-												return c.Err()
+												return d.Err()
 											}
-											r.Blueprint.Projects[0].Generate = val
+											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Generate = val
 											return nil
 										},
 									},
 									{
+										Before: func(d i.Context) error {
+											d.SetDef(true, r.Green.Regular("(y)"))
+											return nil
+										},
 										Quest: i.Quest{
 											Options: r.Yellow.Regular("[y/n]"),
-											Default: i.Default{Value: true, Preview: true, Text: r.Green.Regular("(y)")},
 											Msg:     "Enable go install",
 										},
-										Action: func(c i.Context) interface{} {
-											val, err := c.Ans().Bool()
+										Action: func(d i.Context) interface{} {
+											val, err := d.Ans().Bool()
 											if err != nil {
-												return c.Err()
+												return d.Err()
 											}
-											r.Blueprint.Projects[0].Bin = val
+											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Bin = val
 											return nil
 										},
 									},
 									{
+										Before: func(d i.Context) error {
+											d.SetDef(false, r.Green.Regular("(n)"))
+											return nil
+										},
 										Quest: i.Quest{
 											Options: r.Yellow.Regular("[y/n]"),
-											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
 											Msg:     "Enable go build",
 										},
-										Action: func(c i.Context) interface{} {
-											val, err := c.Ans().Bool()
+										Action: func(d i.Context) interface{} {
+											val, err := d.Ans().Bool()
 											if err != nil {
-												return c.Err()
+												return d.Err()
 											}
-											r.Blueprint.Projects[0].Build = val
+											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Build = val
 											return nil
 										},
 									},
 									{
+										Before: func(d i.Context) error {
+											d.SetDef(true, r.Green.Regular("(y)"))
+											return nil
+										},
 										Quest: i.Quest{
 											Options: r.Yellow.Regular("[y/n]"),
-											Default: i.Default{Value: true, Preview: true, Text: r.Green.Regular("(y)")},
 											Msg:     "Enable go run",
 										},
-										Action: func(c i.Context) interface{} {
-											val, err := c.Ans().Bool()
+										Action: func(d i.Context) interface{} {
+											val, err := d.Ans().Bool()
 											if err != nil {
-												return c.Err()
+												return d.Err()
 											}
-											r.Blueprint.Projects[0].Run = val
+											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Bin = val
 											return nil
 										},
 									},
 									{
+										Before: func(d i.Context) error {
+											d.SetDef(false, r.Green.Regular("(n)"))
+											return nil
+										},
 										Quest: i.Quest{
 											Options: r.Yellow.Regular("[y/n]"),
-											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
-											Msg:     "Would you want customize the watched paths?",
-											Resolve: func(c i.Context) bool {
-												val, _ := c.Ans().Bool()
+											Msg:     "Customize the watched paths",
+											Resolve: func(d i.Context) bool {
+												val, _ := d.Ans().Bool()
 												if val {
-													r.Blueprint.Projects[0].Watcher.Paths = r.Blueprint.Projects[0].Watcher.Paths[:len(r.Blueprint.Projects[0].Watcher.Paths)-1]
+													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Paths = r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Paths[:len(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Paths)-1]
 												}
 												return val
 											},
 										},
 										Subs: []*i.Question{
 											{
+												Before: func(d i.Context) error {
+													d.SetEnd("!")
+													return nil
+												},
 												Quest: i.Quest{
 													Options: r.Yellow.Regular("[string]"),
 													Msg:     "Insert a path to watch (insert '!' to stop)",
 												},
-												Action: func(c i.Context) interface{} {
-													val, err := c.Ans().String()
+												Action: func(d i.Context) interface{} {
+													val, err := d.Ans().String()
 													if err != nil {
-														return c.Err()
+														return d.Err()
 													}
-													if val == "!" {
-														return nil
-													} else {
-														r.Blueprint.Projects[0].Watcher.Paths = append(r.Blueprint.Projects[0].Watcher.Paths, val)
-														c.Reload()
-													}
+													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Paths = append(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Paths, val)
+													d.Reload()
 													return nil
 												},
 											},
 										},
-										Action: func(c i.Context) interface{} {
-											_, err := c.Ans().Bool()
+										Action: func(d i.Context) interface{} {
+											_, err := d.Ans().Bool()
 											if err != nil {
-												return c.Err()
+												return d.Err()
 											}
 											return nil
 										},
 									},
 									{
+										Before: func(d i.Context) error {
+											d.SetDef(false, r.Green.Regular("(n)"))
+											return nil
+										},
 										Quest: i.Quest{
 											Options: r.Yellow.Regular("[y/n]"),
-											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
-											Msg:     "Would you want customize the ignored paths?",
-											Resolve: func(c i.Context) bool {
-												val, _ := c.Ans().Bool()
+											Msg:     "Customize the ignored paths",
+											Resolve: func(d i.Context) bool {
+												val, _ := d.Ans().Bool()
 												if val {
-													r.Blueprint.Projects[0].Watcher.Ignore = r.Blueprint.Projects[0].Watcher.Ignore[:len(r.Blueprint.Projects[0].Watcher.Ignore)-1]
+													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Ignore = r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Ignore[:len(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Ignore)-1]
 												}
 												return val
 											},
 										},
 										Subs: []*i.Question{
 											{
+												Before: func(d i.Context) error {
+													d.SetEnd("!")
+													return nil
+												},
 												Quest: i.Quest{
 													Options: r.Yellow.Regular("[string]"),
 													Msg:     "Insert a path to ignore (insert '!' to stop)",
 												},
-												Action: func(c i.Context) interface{} {
-													val, err := c.Ans().String()
+												Action: func(d i.Context) interface{} {
+													val, err := d.Ans().String()
 													if err != nil {
-														return c.Err()
+														return d.Err()
 													}
-													if val == "!" {
-														return nil
-													} else {
-														r.Blueprint.Projects[0].Watcher.Ignore = append(r.Blueprint.Projects[0].Watcher.Ignore, val)
-														c.Reload()
-													}
+													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Ignore = append(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Ignore, val)
+													d.Reload()
 													return nil
 												},
 											},
 										},
-										Action: func(c i.Context) interface{} {
-											_, err := c.Ans().Bool()
+										Action: func(d i.Context) interface{} {
+											_, err := d.Ans().Bool()
 											if err != nil {
-												return c.Err()
+												return d.Err()
 											}
 											return nil
 										},
 									},
 									{
+										Before: func(d i.Context) error {
+											d.SetDef(false, r.Green.Regular("(n)"))
+											return nil
+										},
 										Quest: i.Quest{
 											Options: r.Yellow.Regular("[y/n]"),
-											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
-											Msg:     "Would you want add additional arguments?",
-											Resolve: func(c i.Context) bool {
-												val, _ := c.Ans().Bool()
+											Msg:     "Add additionals arguments",
+											Resolve: func(d i.Context) bool {
+												val, _ := d.Ans().Bool()
 												return val
 											},
 										},
 										Subs: []*i.Question{
 											{
+												Before: func(d i.Context) error {
+													d.SetEnd("!")
+													return nil
+												},
 												Quest: i.Quest{
 													Options: r.Yellow.Regular("[string]"),
 													Msg:     "Insert an argument (insert '!' to stop)",
 												},
-												Action: func(c i.Context) interface{} {
-													val, err := c.Ans().String()
+												Action: func(d i.Context) interface{} {
+													val, err := d.Ans().String()
 													if err != nil {
-														return c.Err()
+														return d.Err()
 													}
-													if val == "!" {
-														return nil
-													} else {
-														r.Blueprint.Projects[0].Params = append(r.Blueprint.Projects[0].Params, val)
-														c.Reload()
-													}
+													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Params = append(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Params, val)
+													d.Reload()
 													return nil
 												},
 											},
 										},
-										Action: func(c i.Context) interface{} {
-											_, err := c.Ans().Bool()
+										Action: func(d i.Context) interface{} {
+											_, err := d.Ans().Bool()
 											if err != nil {
-												return c.Err()
+												return d.Err()
 											}
 											return nil
 										},
 									},
 									{
+										Before: func(d i.Context) error {
+											d.SetDef(false, r.Green.Regular("(n)"))
+											return nil
+										},
 										Quest: i.Quest{
 											Options: r.Yellow.Regular("[y/n]"),
-											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
-											Msg:     "Would you want add 'before' custom commands?",
-											Resolve: func(c i.Context) bool {
-												val, _ := c.Ans().Bool()
+											Msg:     "Add 'before' custom commands",
+											Resolve: func(d i.Context) bool {
+												val, _ := d.Ans().Bool()
 												return val
 											},
 										},
 										Subs: []*i.Question{
 											{
+												Before: func(d i.Context) error {
+													d.SetEnd("!")
+													return nil
+												},
 												Quest: i.Quest{
 													Options: r.Yellow.Regular("[string]"),
 													Msg:     "Insert a command (insert '!' to stop)",
 												},
-												Action: func(c i.Context) interface{} {
-													val, err := c.Ans().String()
+												Action: func(d i.Context) interface{} {
+													val, err := d.Ans().String()
 													if err != nil {
-														return c.Err()
+														return d.Err()
 													}
-													if val == "!" {
-														return nil
-													} else {
-														r.Blueprint.Projects[0].Watcher.Scripts = append(r.Blueprint.Projects[0].Watcher.Scripts, w.Command{Type: "before", Command: val})
-														c.Reload()
-													}
+													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts = append(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts, w.Command{Type: "before", Command: val})
+													d.Reload()
 													return nil
 												},
 											},
 										},
-										Action: func(c i.Context) interface{} {
-											_, err := c.Ans().Bool()
+										Action: func(d i.Context) interface{} {
+											_, err := d.Ans().Bool()
 											if err != nil {
-												return c.Err()
+												return d.Err()
 											}
 											return nil
 										},
 									},
 									{
+										Before: func(d i.Context) error {
+											d.SetDef(false, r.Green.Regular("(n)"))
+											return nil
+										},
 										Quest: i.Quest{
 											Options: r.Yellow.Regular("[y/n]"),
-											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
-											Msg:     "Would you want add 'after' custom commands?",
-											Resolve: func(c i.Context) bool {
-												val, _ := c.Ans().Bool()
+											Msg:     "Add 'after' custom commands",
+											Resolve: func(d i.Context) bool {
+												val, _ := d.Ans().Bool()
 												return val
 											},
 										},
 										Subs: []*i.Question{
 											{
+												Before: func(d i.Context) error {
+													d.SetEnd("!")
+													return nil
+												},
 												Quest: i.Quest{
 													Options: r.Yellow.Regular("[string]"),
 													Msg:     "Insert a command (insert '!' to stop)",
 												},
-												Action: func(c i.Context) interface{} {
-													val, err := c.Ans().String()
+												Action: func(d i.Context) interface{} {
+													val, err := d.Ans().String()
 													if err != nil {
-														return c.Err()
+														return d.Err()
 													}
-													if val == "!" {
-														return nil
-													} else {
-														r.Blueprint.Projects[0].Watcher.Scripts = append(r.Blueprint.Projects[0].Watcher.Scripts, w.Command{Type: "after", Command: val})
-														c.Reload()
-													}
+													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts = append(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts, w.Command{Type: "after", Command: val})
+													d.Reload()
 													return nil
 												},
 											},
 										},
-										Action: func(c i.Context) interface{} {
-											_, err := c.Ans().Bool()
+										Action: func(d i.Context) interface{} {
+											_, err := d.Ans().Bool()
 											if err != nil {
-												return c.Err()
+												return d.Err()
 											}
 											return nil
 										},
 									},
 									{
+										Before: func(d i.Context) error {
+											d.SetDef(false, r.Green.Regular("(n)"))
+											return nil
+										},
 										Quest: i.Quest{
 											Options: r.Yellow.Regular("[y/n]"),
-											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
 											Msg:     "Enable watcher files preview",
 										},
-										Action: func(c i.Context) interface{} {
-											val, err := c.Ans().Bool()
+										Action: func(d i.Context) interface{} {
+											val, err := d.Ans().Bool()
 											if err != nil {
-												return c.Err()
+												return d.Err()
 											}
-											r.Blueprint.Projects[0].Run = val
+											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Run = val
 											return nil
 										},
 									},
 									{
-										Quest: i.Quest{
-											Options: r.Yellow.Regular("[y/n]"),
-											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
-											Msg:     "Enable web server",
-											Resolve: func(c i.Context) bool {
-												val, _ := c.Ans().Bool()
-												return val
-											},
-										},
-										Subs: []*i.Question{
-											{
-												Quest: i.Quest{
-													Options: r.Yellow.Regular("[int]"),
-													Default: i.Default{Value: 5001, Preview: true, Text: r.Green.Regular("(5001)")},
-													Msg:     "Server port",
-												},
-												Action: func(c i.Context) interface{} {
-													val, err := c.Ans().Int()
-													if err != nil {
-														return c.Err()
-													}
-													r.Server.Port = int(val)
-													return nil
-												},
-											},
-											{
-												Quest: i.Quest{
-													Options: r.Yellow.Regular("[string]"),
-													Default: i.Default{Value: "localhost", Preview: true, Text: r.Green.Regular("(localhost)")},
-													Msg:     "Server host",
-												},
-												Action: func(c i.Context) interface{} {
-													val, err := c.Ans().String()
-													if err != nil {
-														return c.Err()
-													}
-													r.Server.Host = val
-													return nil
-												},
-											},
-											{
-												Quest: i.Quest{
-													Options: r.Yellow.Regular("[y/n]"),
-													Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
-													Msg:     "Open in the current browser",
-												},
-												Action: func(c i.Context) interface{} {
-													val, err := c.Ans().Bool()
-													if err != nil {
-														return c.Err()
-													}
-													r.Server.Open = val
-													return nil
-												},
-											},
-										},
-										Action: func(c i.Context) interface{} {
-											val, err := c.Ans().Bool()
-											if err != nil {
-												return c.Err()
-											}
-											r.Server.Status = val
+										Before: func(d i.Context) error {
+											d.SetDef(false, r.Green.Regular("(n)"))
 											return nil
 										},
-									},
-									{
 										Quest: i.Quest{
 											Options: r.Yellow.Regular("[y/n]"),
-											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
 											Msg:     "Enable file output history",
 										},
-										Action: func(c i.Context) interface{} {
-											val, err := c.Ans().Bool()
+										Action: func(d i.Context) interface{} {
+											val, err := d.Ans().Bool()
 											if err != nil {
-												return c.Err()
+												return d.Err()
 											}
-											r.Blueprint.Projects[0].Streams.FileOut = val
+											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Streams.FileOut = val
 											return nil
 										},
 									},
 									{
+										Before: func(d i.Context) error {
+											d.SetDef(false, r.Green.Regular("(n)"))
+											return nil
+										},
 										Quest: i.Quest{
 											Options: r.Yellow.Regular("[y/n]"),
-											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
 											Msg:     "Enable file logs history",
 										},
-										Action: func(c i.Context) interface{} {
-											val, err := c.Ans().Bool()
+										Action: func(d i.Context) interface{} {
+											val, err := d.Ans().Bool()
 											if err != nil {
-												return c.Err()
+												return d.Err()
 											}
-											r.Blueprint.Projects[0].Streams.FileLog = val
+											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Streams.FileLog = val
 											return nil
 										},
 									},
 									{
+										Before: func(d i.Context) error {
+											d.SetDef(false, r.Green.Regular("(n)"))
+											return nil
+										},
 										Quest: i.Quest{
 											Options: r.Yellow.Regular("[y/n]"),
-											Default: i.Default{Value: false, Preview: true, Text: r.Green.Regular("(n)")},
 											Msg:     "Enable file errors history",
 										},
-										Action: func(c i.Context) interface{} {
-											val, err := c.Ans().Bool()
+										Action: func(d i.Context) interface{} {
+											val, err := d.Ans().Bool()
 											if err != nil {
-												return c.Err()
+												return d.Err()
 											}
-											r.Blueprint.Projects[0].Streams.FileErr = val
+											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Streams.FileErr = val
 											return nil
 										},
 									},
 								},
-								Action: func(c i.Context) interface{} {
-									if _, err := c.Ans().Bool(); err != nil {
-										return c.Err()
+								Action: func(d i.Context) interface{} {
+									if val, err := d.Ans().Bool(); err != nil {
+										return d.Err()
+									} else if val {
+										d.Reload()
 									}
 									return nil
 								},
 							},
+						},
+						After: func(d i.Context) error {
+							if val, _ := d.Qns().Get(0).Ans().Bool(); val {
+								err = r.Settings.Remove()
+								if err != nil {
+									return err
+								}
+							}
+							return nil
 						},
 					})
 					handle(r.Record(r))
