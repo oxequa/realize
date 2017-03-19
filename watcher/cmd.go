@@ -88,47 +88,49 @@ func (h *Blueprint) List() error {
 	err := h.check()
 	if err == nil {
 		for _, val := range h.Projects {
-			fmt.Println(h.Blue.Bold("|"), h.Blue.Bold(strings.ToUpper(val.Name)))
-			fmt.Println(h.Magenta.Regular("|"), "\t", h.Yellow.Regular("Base Path"), ":", h.Magenta.Regular(val.Path))
-			fmt.Println(h.Magenta.Regular("|"), "\t", h.Yellow.Regular("Fmt"), ":", h.Magenta.Regular(val.Fmt))
-			fmt.Println(h.Magenta.Regular("|"), "\t", h.Yellow.Regular("Generate"), ":", h.Magenta.Regular(val.Generate))
-			fmt.Println(h.Magenta.Regular("|"), "\t", h.Yellow.Regular("Test"), ":", h.Magenta.Regular(val.Test))
-			fmt.Println(h.Magenta.Regular("|"), "\t", h.Yellow.Regular("Install"), ":", h.Magenta.Regular(val.Bin))
-			fmt.Println(h.Magenta.Regular("|"), "\t", h.Yellow.Regular("Build"), ":", h.Magenta.Regular(val.Build))
-			fmt.Println(h.Magenta.Regular("|"), "\t", h.Yellow.Regular("Run"), ":", h.Magenta.Regular(val.Run))
+			fmt.Println(h.Blue.Bold("[") + strings.ToUpper(val.Name) + h.Blue.Bold("]"))
+			name := h.Magenta.Bold("[") + strings.ToUpper(val.Name) + h.Magenta.Bold("]")
+
+			fmt.Println(name, h.Yellow.Regular("Base Path"), ":", h.Magenta.Regular(val.Path))
+			fmt.Println(name, h.Yellow.Regular("Fmt"), ":", h.Magenta.Regular(val.Fmt))
+			fmt.Println(name, h.Yellow.Regular("Generate"), ":", h.Magenta.Regular(val.Generate))
+			fmt.Println(name, h.Yellow.Regular("Test"), ":", h.Magenta.Regular(val.Test))
+			fmt.Println(name, h.Yellow.Regular("Install"), ":", h.Magenta.Regular(val.Bin))
+			fmt.Println(name, h.Yellow.Regular("Build"), ":", h.Magenta.Regular(val.Build))
+			fmt.Println(name, h.Yellow.Regular("Run"), ":", h.Magenta.Regular(val.Run))
 			if len(val.Params) > 0 {
-				fmt.Println(h.Magenta.Regular("|"), "\t", h.Yellow.Regular("Params"), ":", h.Magenta.Regular(val.Params))
+				fmt.Println(name, h.Yellow.Regular("Params"), ":", h.Magenta.Regular(val.Params))
 			}
-			fmt.Println(h.Magenta.Regular("|"), "\t", h.Yellow.Regular("Watcher"), ":")
-			fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("Preview"), ":", h.Magenta.Regular(val.Watcher.Preview))
+			fmt.Println(name, h.Yellow.Regular("Watcher"), ":")
+			fmt.Println(name, "\t", h.Yellow.Regular("Preview"), ":", h.Magenta.Regular(val.Watcher.Preview))
 			if len(val.Watcher.Exts) > 0 {
-				fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("Extensions"), ":", h.Magenta.Regular(val.Watcher.Exts))
+				fmt.Println(name, "\t", h.Yellow.Regular("Extensions"), ":", h.Magenta.Regular(val.Watcher.Exts))
 			}
 			if len(val.Watcher.Paths) > 0 {
-				fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("Paths"), ":", h.Magenta.Regular(val.Watcher.Paths))
+				fmt.Println(name, "\t", h.Yellow.Regular("Paths"), ":", h.Magenta.Regular(val.Watcher.Paths))
 			}
 			if len(val.Watcher.Ignore) > 0 {
-				fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("Ignored paths"), ":", h.Magenta.Regular(val.Watcher.Ignore))
+				fmt.Println(name, "\t", h.Yellow.Regular("Ignored paths"), ":", h.Magenta.Regular(val.Watcher.Ignore))
 			}
 			if len(val.Watcher.Scripts) > 0 {
-				fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("Scripts"), ":")
+				fmt.Println(name, "\t", h.Yellow.Regular("Scripts"), ":")
 				for _, v := range val.Watcher.Scripts {
 					if v.Command != "" {
-						fmt.Println(h.Magenta.Regular("|"), "\t\t\t", h.Magenta.Regular("-"), h.Yellow.Regular("Command"), ":", h.Magenta.Regular(v.Command))
+						fmt.Println(name, "\t\t", h.Magenta.Regular("-"), h.Yellow.Regular("Command"), ":", h.Magenta.Regular(v.Command))
 						if v.Path != "" {
-							fmt.Println(h.Magenta.Regular("|"), "\t\t\t", h.Yellow.Regular("Path"), ":", h.Magenta.Regular(v.Path))
+							fmt.Println(name, "\t\t", h.Yellow.Regular("Path"), ":", h.Magenta.Regular(v.Path))
 						}
 						if v.Type != "" {
-							fmt.Println(h.Magenta.Regular("|"), "\t\t\t", h.Yellow.Regular("Type"), ":", h.Magenta.Regular(v.Type))
+							fmt.Println(name, "\t\t", h.Yellow.Regular("Type"), ":", h.Magenta.Regular(v.Type))
 						}
 					}
 				}
 			}
-			fmt.Println(h.Magenta.Regular("|"), "\t", h.Yellow.Regular("Streams"), ":")
-			fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("Cli Out"), ":", h.Magenta.Regular(val.Streams.CliOut))
-			fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("File Out"), ":", h.Magenta.Regular(val.Streams.FileOut))
-			fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("File Log"), ":", h.Magenta.Regular(val.Streams.FileLog))
-			fmt.Println(h.Magenta.Regular("|"), "\t\t", h.Yellow.Regular("File Err"), ":", h.Magenta.Regular(val.Streams.FileErr))
+			fmt.Println(name, h.Yellow.Regular("Streams"), ":")
+			fmt.Println(name, "\t", h.Yellow.Regular("Cli Out"), ":", h.Magenta.Regular(val.Streams.CliOut))
+			fmt.Println(name, "\t", h.Yellow.Regular("File Out"), ":", h.Magenta.Regular(val.Streams.FileOut))
+			fmt.Println(name, "\t", h.Yellow.Regular("File Log"), ":", h.Magenta.Regular(val.Streams.FileLog))
+			fmt.Println(name, "\t", h.Yellow.Regular("File Err"), ":", h.Magenta.Regular(val.Streams.FileErr))
 		}
 		return nil
 	}

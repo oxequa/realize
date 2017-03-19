@@ -177,7 +177,7 @@ func main() {
 					fmt.Println(p.String("path"))
 					handle(r.Blueprint.Add(p))
 					handle(r.Record(r))
-					fmt.Println(r.Green.Bold("Your project was successfully added."))
+					fmt.Println(r.Yellow.Bold("[")+"REALIZE"+r.Yellow.Bold("]"), r.Green.Bold("Your project was successfully added."))
 					return nil
 				},
 				Before: func(c *cli.Context) error {
@@ -853,7 +853,7 @@ func main() {
 						},
 					})
 					handle(r.Record(r))
-					fmt.Println(r.Green.Bold("Your project was successfully added."))
+					fmt.Println(r.Yellow.Bold("[")+"REALIZE"+r.Yellow.Bold("]"), r.Green.Bold("Your project was successfully added."))
 					return nil
 				},
 				Before: func(c *cli.Context) error {
@@ -871,7 +871,7 @@ func main() {
 				Action: func(p *cli.Context) error {
 					handle(r.Blueprint.Remove(p))
 					handle(r.Record(r))
-					fmt.Println(r.Green.Bold("Your project was successfully removed."))
+					fmt.Println(r.Yellow.Bold("[")+"REALIZE"+r.Yellow.Bold("]"), r.Green.Bold("Your project was successfully removed."))
 					return nil
 				},
 				Before: func(c *cli.Context) error {
@@ -897,7 +897,7 @@ func main() {
 				Usage:    "Remove realize folder.",
 				Action: func(p *cli.Context) error {
 					handle(r.Settings.Remove())
-					fmt.Println(r.Green.Bold("Realize folder successfully removed."))
+					fmt.Println(r.Yellow.Bold("[")+"REALIZE"+r.Yellow.Bold("]"), r.Green.Bold("Realize folder successfully removed."))
 					return nil
 				},
 				Before: func(c *cli.Context) error {
