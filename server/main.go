@@ -48,7 +48,7 @@ func render(c echo.Context, path string, mime int) error {
 
 // Start the web server
 func (s *Server) Start(p *cli.Context) (err error) {
-	if s.Status {
+	if s.Server.Status || p.Bool("server") {
 		e := echo.New()
 		e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
 			Level: 2,
