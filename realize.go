@@ -829,7 +829,6 @@ func main() {
 												return d.Err()
 											}
 											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Streams.FileErr = val
-											fmt.Println(r.Blueprint.Projects[0])
 											return nil
 										},
 									},
