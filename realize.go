@@ -221,7 +221,7 @@ func main() {
 							},
 							{
 								Before: func(d i.Context) error {
-									d.SetDef(true, r.Green.Regular("(y)"))
+									d.SetDef(false, r.Green.Regular("(n)"))
 									return nil
 								},
 								Quest: i.Quest{
@@ -540,7 +540,7 @@ func main() {
 											if err != nil {
 												return d.Err()
 											}
-											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Bin = val
+											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Run = val
 											return nil
 										},
 									},
@@ -774,7 +774,7 @@ func main() {
 											if err != nil {
 												return d.Err()
 											}
-											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Run = val
+											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Preview = val
 											return nil
 										},
 									},
@@ -829,6 +829,7 @@ func main() {
 												return d.Err()
 											}
 											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Streams.FileErr = val
+											fmt.Println(r.Blueprint.Projects[0])
 											return nil
 										},
 									},
