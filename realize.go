@@ -56,7 +56,7 @@ func init() {
 				Errors:  errs,
 			},
 			Server: c.Server{
-				Status: true,
+				Status: false,
 				Open:   false,
 				Host:   host,
 				Port:   port,
@@ -261,6 +261,7 @@ func main() {
 											Msg:     "Enable legacy watch by polling",
 											Resolve: func(d i.Context) bool {
 												val, _ := d.Ans().Bool()
+												fmt.Println(val)
 												return val
 											},
 										},
