@@ -12,7 +12,7 @@ import (
 
 const (
 	name        = "Realize"
-	version     = "1.2.1"
+	version     = "1.2.2"
 	description = "A Go build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths"
 	config      = "realize.yaml"
 	streams     = "streams.log"
