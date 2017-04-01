@@ -48,12 +48,11 @@ func render(c echo.Context, path string, mime int) error {
 
 // Start the web server
 func (s *Server) Start(p *cli.Context) (err error) {
-	if p.Int("port") != 0 {
-		s.Settings.Server.Port = p.Int("port")
-	}
-	if !p.Bool("no-server") && s.Enabled {
+	if s.Server.Status || p.Bool("server") {
 		e := echo.New()
-		e.Use(middleware.Gzip())
+		e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
+			Level: 2,
+		}))
 		e.Use(middleware.Recover())
 
 		// web panel
@@ -95,8 +94,6 @@ func (s *Server) Start(p *cli.Context) (err error) {
 				return err
 			}
 		}
-	} else {
-		s.Server.Enabled = false
 	}
 	return nil
 }

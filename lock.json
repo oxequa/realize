@@ -1,0 +1,140 @@
+{
+    "memo": "0dae7877c338a668c3b0b2c64112895cd2076b90c0792ca2a0edf22fb10d14d2",
+    "projects": [
+        {
+            "name": "github.com/dgrijalva/jwt-go",
+            "version": "v3.0.0",
+            "revision": "d2709f9f1f31ebcda9651b03077758c1f3a0018c",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/fatih/color",
+            "version": "v1.4.1",
+            "revision": "9131ab34cf20d2f6d83fdc67168a5430d1c7dc23",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/fsnotify/fsnotify",
+            "branch": "master",
+            "revision": "4da3e2cfbabc9f751898f250b49f2439785783a1",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/labstack/echo",
+            "version": "v3.0.3",
+            "revision": "8d504c1b699c757b267255c53b3e5219f9974abc",
+            "packages": [
+                ".",
+                "middleware"
+            ]
+        },
+        {
+            "name": "github.com/labstack/gommon",
+            "version": "v0.2.0",
+            "revision": "9cedb429ffbe71a32a3ae7c65fd109cb7ae07804",
+            "packages": [
+                "bytes",
+                "color",
+                "log",
+                "random"
+            ]
+        },
+        {
+            "name": "github.com/mattn/go-colorable",
+            "version": "v0.0.7",
+            "revision": "d228849504861217f796da67fae4f6e347643f15",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/mattn/go-isatty",
+            "version": "v0.0.2",
+            "revision": "fc9e8d8ef48496124e79ae0df75490096eccf6fe",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/tockins/interact",
+            "branch": "master",
+            "revision": "7dfb115b4849a7d87b2b8368a076959c2bf56e35",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/tylerb/graceful",
+            "version": "v1.2.15",
+            "revision": "4654dfbb6ad53cb5e27f37d99b02e16c1872fbbb",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/valyala/bytebufferpool",
+            "branch": "master",
+            "revision": "e746df99fe4a3986f4d4f79e13c1e0117ce9c2f7",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/valyala/fasttemplate",
+            "branch": "master",
+            "revision": "dcecefd839c4193db0d35b88ec65b4c12d360ab0",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "golang.org/x/crypto",
+            "branch": "master",
+            "revision": "3cb07270c9455e8ad27956a70891c962d121a228",
+            "packages": [
+                "acme",
+                "acme/autocert"
+            ]
+        },
+        {
+            "name": "golang.org/x/net",
+            "branch": "master",
+            "revision": "ffcf1bedda3b04ebb15a168a59800a73d6dc0f4d",
+            "packages": [
+                "context",
+                "context/ctxhttp",
+                "websocket"
+            ]
+        },
+        {
+            "name": "golang.org/x/sys",
+            "branch": "master",
+            "revision": "9a7256cb28ed514b4e1e5f68959914c4c28a92e0",
+            "packages": [
+                "unix"
+            ]
+        },
+        {
+            "name": "gopkg.in/urfave/cli.v2",
+            "branch": "v2",
+            "revision": "04b2f4ff79cf1fd71e138bafc67df8bbdb5b81c2",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "gopkg.in/yaml.v2",
+            "branch": "v2",
+            "revision": "a3f3340b5840cee44f372bddb5880fcbc419b46a",
+            "packages": [
+                "."
+            ]
+        }
+    ]
+}
