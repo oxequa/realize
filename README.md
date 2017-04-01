@@ -172,6 +172,49 @@ $ realize list
          file_log: false
          file_err: false
 
+    ```                      
+- This is the configuration used for develop realize   
+
+    ```
+    settings:
+      resources:
+        outputs: outputs.log
+        logs: logs.log
+        errors: errors.log
+      server:
+        status: false
+        open: false
+        host: localhost
+        port: 5001
+    projects:
+    - name: realize
+      path: /Users/alessio/go/src/github.com/tockins/realize
+      fmt: true
+      generate: false
+      test: false
+      bin: true
+      build: false
+      run: false
+      watcher:
+        preview: false
+        paths:
+        - /
+        ignore_paths:
+        - server/assets
+        exts:
+        - .go
+        scripts:
+        - type: before
+          command: go-bindata -pkg="server" assets/...
+          path: server
+        - type: after
+          command: go-bindata -pkg="server" assets/...
+          path: server
+      streams:
+        cli_out: true
+        file_out: false
+        file_log: false
+        file_err: false
     ```                    
 
 
