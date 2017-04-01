@@ -44,7 +44,7 @@ $ go get github.com/tockins/realize
 ```
 #### Commands
 
-##### Run
+- ##### Run
 From project/projects root execute:
 ```
 $ realize run
@@ -85,7 +85,7 @@ If you want, you can specify additional arguments for your project.
 $ realize run --path="/print/printer" --no-run yourParams --yourFlags // right
 $ realize run yourParams --yourFlags --path="/print/printer" --no-run // wrong
 ```
-##### Add 
+- ##### Add 
 
 Add a project to an existing config file or create a new one without run the pipeline. 
 
@@ -95,7 +95,7 @@ Add a project to an existing config file or create a new one without run the pip
 $ realize add
 ```
 
-##### Init 
+- ##### Init 
 
 Like add, but with this command you can create a configuration step by step and customize each option. 
 
@@ -105,19 +105,19 @@ Like add, but with this command you can create a configuration step by step and 
 $ realize init
 ```
 
-##### Remove
+- ##### Remove
 Remove a project by its name
 ```
 $ realize remove --name="myname"
 ```
 
-##### List
+- ##### List
 Projects list in cli
 ```
 $ realize list
 ```
 
-#### Color reference
+- #### Color reference
 
 - Blue: outputs of the project
 - Red: errors
@@ -125,9 +125,9 @@ $ realize list
 - Green: successfully completed action
 
 
-#### Config sample
+- #### Config sample
 
-- For more examples check [Realize Examples](https://github.com/tockins/realize-examples)
+For more examples check [Realize Examples](https://github.com/tockins/realize-examples)
 
      ```
      settings:
