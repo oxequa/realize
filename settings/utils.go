@@ -31,15 +31,17 @@ func (s Settings) Fatal(err error, msg ...interface{}) {
 	}
 }
 
-func (h Settings) Name(name string, path string) string {
+// Name return the project name or the path of the working dir
+func (s Settings) Name(name string, path string) string {
 	if name == "" && path == "" {
-		return h.Wdir()
+		return s.Wdir()
 	} else if path != "/" {
 		return filepath.Base(path)
 	}
 	return name
 }
 
-func (h Settings) Path(s string) string {
-	return strings.Replace(filepath.Clean(s), "\\", "/", -1)
+// Path cleaner
+func (s Settings) Path(path string) string {
+	return strings.Replace(filepath.Clean(path), "\\", "/", -1)
 }

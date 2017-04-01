@@ -68,7 +68,7 @@ type Command struct {
 	Path    string `yaml:"path" json:"path"`
 }
 
-// File determinates the status of each log files (streams, logs, errors)
+// Streams is a collection of names and values for the logs functionality
 type Streams struct {
 	CliOut  bool `yaml:"cli_out" json:"cli_out"`
 	FileOut bool `yaml:"file_out" json:"file_out"`

@@ -21,7 +21,7 @@ type Config struct {
 	Legacy `yaml:"legacy,omitempty" json:"legacy,omitempty"`
 }
 
-// Polling configuration
+// Legacy configuration
 type Legacy struct {
 	Status   bool          `yaml:"status" json:"status"`
 	Interval time.Duration `yaml:"interval" json:"interval"`
