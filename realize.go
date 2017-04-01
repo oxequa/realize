@@ -228,7 +228,7 @@ func main() {
 								},
 								Quest: i.Quest{
 									Options: r.Yellow.Regular("[y/n]"),
-									Msg:     "Would you want to customize the " + r.Colors.Magenta.Bold("settings") + " ?",
+									Msg:     "Would you want to customize the " + r.Colors.Magenta.Bold("settings") + "?",
 									Resolve: func(d i.Context) bool {
 										val, _ := d.Ans().Bool()
 										return val
@@ -263,7 +263,6 @@ func main() {
 											Msg:     "Enable legacy watch by polling",
 											Resolve: func(d i.Context) bool {
 												val, _ := d.Ans().Bool()
-												fmt.Println(val)
 												return val
 											},
 										},
@@ -274,7 +273,7 @@ func main() {
 													return nil
 												},
 												Quest: i.Quest{
-													Options: r.Yellow.Regular("[int]"),
+													Options: r.Yellow.Regular("[seconds]"),
 													Msg:     "Set polling interval in seconds",
 												},
 												Action: func(d i.Context) interface{} {
@@ -856,7 +855,7 @@ func main() {
 						},
 					})
 					handle(r.Record(r))
-					fmt.Println(r.Yellow.Bold("[")+"REALIZE"+r.Yellow.Bold("]"), r.Green.Bold("Your project was successfully added."))
+					fmt.Println(r.Yellow.Bold("[")+"REALIZE"+r.Yellow.Bold("]"), r.Green.Bold("Your configuration was successful."))
 					return nil
 				},
 				Before: func(c *cli.Context) error {
