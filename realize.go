@@ -109,11 +109,11 @@ func main() {
 		Authors: []*cli.Author{
 			{
 				Name:  "Alessio Pracchia",
-				Email: "pracchia@hastegit",
+				Email: "pracchia@hastega.it",
 			},
 			{
 				Name:  "Daniele Conventi",
-				Email: "conventi@hastegit",
+				Email: "conventi@hastega.it",
 			},
 		},
 		Usage: r.Description,
@@ -216,6 +216,23 @@ func main() {
 									if err != nil {
 										return d.Err()
 									} else if val {
+										r.Settings = c.Settings{
+											Config: c.Config{
+												Create: true,
+											},
+											Resources: c.Resources{
+												Config:  config,
+												Outputs: outputs,
+												Logs:    logs,
+												Errors:  errs,
+											},
+											Server: c.Server{
+												Status: false,
+												Open:   false,
+												Host:   host,
+												Port:   port,
+											},
+										}
 										r.Blueprint.Projects = r.Blueprint.Projects[len(r.Blueprint.Projects):]
 									}
 									return nil
@@ -385,12 +402,12 @@ func main() {
 							{
 								Before: func(d i.Context) error {
 									d.SetDef(true, r.Green.Regular("(y)"))
-									d.SetEnd("!done")
+									d.SetEnd("!")
 									return nil
 								},
 								Quest: i.Quest{
 									Options: r.Yellow.Regular("[y/n]"),
-									Msg:     "Would you want to " + r.Colors.Magenta.Regular("add a new project") + " ?",
+									Msg:     "Would you want to " + r.Colors.Magenta.Regular("add a new project") + "? (insert '!' to stop)",
 									Resolve: func(d i.Context) bool {
 										val, _ := d.Ans().Bool()
 										if val {
