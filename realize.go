@@ -147,9 +147,7 @@ func main() {
 						r.Blueprint.Projects = []w.Project{}
 						handle(r.Blueprint.Add(p))
 					}
-					if p.Bool("server") {
-						handle(r.Server.Start(p))
-					}
+					handle(r.Server.Start(p))
 					handle(r.Blueprint.Run())
 					handle(r.Record(r))
 					return nil
