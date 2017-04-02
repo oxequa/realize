@@ -28,12 +28,12 @@ A Go build system with file watchers, output streams and live reload. Run, build
 
 v 1.4
 
-- [ ] Ignore path and files in gititnore
 - [ ] Watch dependencies options
 - [ ] Input redirection (wait for an input and redirect)
 - [ ] Web panel full support
 - [ ] Multiple configurations
-- [ ] GoMobile support
+- [ ] GoMobile support ?
+- [ ] Ignore path and files in gititnore ?
 
 #### Wiki
 
