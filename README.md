@@ -32,6 +32,8 @@ v 1.4
 - [ ] Watch dependencies options
 - [ ] Input redirection (wait for an input and redirect)
 - [ ] Web panel full support
+- [ ] Multiple configurations
+- [ ] GoMobile support
 
 #### Wiki
 
