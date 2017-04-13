@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/tockins/realize/style"
 	cli "gopkg.in/urfave/cli.v2"
 )
 
@@ -43,5 +44,5 @@ func inArray(str string, list []string) bool {
 
 // Rewrite the layout of the log timestamp
 func (w logWriter) Write(bytes []byte) (int, error) {
-	return fmt.Print(w.Yellow.Regular("[") + time.Now().Format("15:04:05") + w.Yellow.Regular("]") + string(bytes))
+	return fmt.Print(style.Yellow.Regular("[") + time.Now().Format("15:04:05") + style.Yellow.Regular("]") + string(bytes))
 }

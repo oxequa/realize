@@ -9,7 +9,6 @@ import (
 
 // Settings defines a group of general settings
 type Settings struct {
-	Colors    `yaml:"-"`
 	Config    `yaml:",inline" json:"config"`
 	Resources `yaml:"resources" json:"resources"`
 	Server    `yaml:"server,omitempty" json:"server,omitempty"`

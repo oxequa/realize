@@ -22,7 +22,6 @@ type pollWatcher struct {
 
 // Log struct
 type logWriter struct {
-	settings.Colors
 }
 
 // Blueprint struct contains a projects list
