@@ -16,37 +16,32 @@ import (
 )
 
 const (
-	name        = "Realize"
-	version     = "1.3"
-	description = "A Go build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths"
-	config      = "realize.yaml"
-	outputs     = "outputs.log"
-	errs        = "errors.log"
-	logs        = "logs.log"
-	host        = "localhost"
-	port        = 5001
-	interval    = 200
+	appVersion = "1.3"
+
+	config   = "realize.yaml"
+	outputs  = "outputs.log"
+	errs     = "errors.log"
+	logs     = "logs.log"
+	host     = "localhost"
+	port     = 5001
+	interval = 200
 )
 
 var r realize
 
 // Realize struct contains the general app informations
 type realize struct {
-	settings.Settings                               `yaml:"settings,omitempty"`
-	Name, Description, Author, Email, Host, Version string             `yaml:"-"`
-	Sync                                            chan string        `yaml:"-"`
-	Blueprint                                       watcher.Blueprint  `yaml:"-"`
-	Server                                          server.Server      `yaml:"-"`
-	Projects                                        *[]watcher.Project `yaml:"projects" json:"projects"`
+	settings.Settings `yaml:"settings,omitempty"`
+	Sync              chan string        `yaml:"-"`
+	Blueprint         watcher.Blueprint  `yaml:"-"`
+	Server            server.Server      `yaml:"-"`
+	Projects          *[]watcher.Project `yaml:"projects" json:"projects"`
 }
 
 // Realize struct initialization
 func init() {
 	r = realize{
-		Name:        name,
-		Version:     version,
-		Description: description,
-		Sync:        make(chan string),
+		Sync: make(chan string),
 		Settings: settings.Settings{
 			Config: settings.Config{
 				Create: true,
@@ -106,8 +101,8 @@ func handle(err error) error {
 // Cli commands
 func main() {
 	app := &cli.App{
-		Name:    r.Name,
-		Version: r.Version,
+		Name:    "Realize",
+		Version: appVersion,
 		Authors: []*cli.Author{
 			{
 				Name:  "Alessio Pracchia",
@@ -118,12 +113,12 @@ func main() {
 				Email: "conventi@hastega.it",
 			},
 		},
-		Usage: r.Description,
+		Description: "A Go build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths",
 		Commands: []*cli.Command{
 			{
-				Name:    "run",
-				Aliases: []string{"r"},
-				Usage:   "Run a toolchain on a project or a list of projects. If not exist a config file it creates a new one.",
+				Name:        "run",
+				Aliases:     []string{"r"},
+				Description: "Run a toolchain on a project or a list of projects. If not exist a config file it creates a new one",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "path", Aliases: []string{"p"}, Value: "", Usage: "Project base path."},
 					&cli.BoolFlag{Name: "test", Aliases: []string{"t"}, Value: false, Usage: "Enable go test."},
@@ -159,10 +154,10 @@ func main() {
 				},
 			},
 			{
-				Name:     "add",
-				Category: "Configuration",
-				Aliases:  []string{"a"},
-				Usage:    "Add a project to an existing config file or create a new one.",
+				Name:        "add",
+				Category:    "Configuration",
+				Aliases:     []string{"a"},
+				Description: "Add a project to an existing config file or create a new one.",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "path", Aliases: []string{"p"}, Value: "", Usage: "Project base path."},
 					&cli.BoolFlag{Name: "test", Aliases: []string{"t"}, Value: false, Usage: "Enable go test."},
@@ -187,10 +182,10 @@ func main() {
 				},
 			},
 			{
-				Name:     "init",
-				Category: "Configuration",
-				Aliases:  []string{"a"},
-				Usage:    "Define a new config file with all options step by step",
+				Name:        "init",
+				Category:    "Configuration",
+				Aliases:     []string{"a"},
+				Description: "Define a new config file with all options step by step",
 				Action: func(p *cli.Context) (actErr error) {
 					interact.Run(&interact.Interact{
 						Before: func(context interact.Context) error {
@@ -880,10 +875,10 @@ func main() {
 				},
 			},
 			{
-				Name:     "remove",
-				Category: "Configuration",
-				Aliases:  []string{"r"},
-				Usage:    "Remove a project from a realize configuration.",
+				Name:        "remove",
+				Category:    "Configuration",
+				Aliases:     []string{"r"},
+				Description: "Remove a project from a realize configuration.",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: ""},
 				},
@@ -898,10 +893,10 @@ func main() {
 				},
 			},
 			{
-				Name:     "list",
-				Category: "Configuration",
-				Aliases:  []string{"l"},
-				Usage:    "Print projects list.",
+				Name:        "list",
+				Category:    "Configuration",
+				Aliases:     []string{"l"},
+				Description: "Print projects list.",
 				Action: func(p *cli.Context) error {
 					return handle(r.Blueprint.List())
 				},
@@ -910,10 +905,10 @@ func main() {
 				},
 			},
 			{
-				Name:     "clean",
-				Category: "Configuration",
-				Aliases:  []string{"c"},
-				Usage:    "Remove realize folder.",
+				Name:        "clean",
+				Category:    "Configuration",
+				Aliases:     []string{"c"},
+				Description: "Remove realize folder.",
 				Action: func(p *cli.Context) error {
 					handle(r.Settings.Remove())
 					fmt.Println(style.Yellow.Bold("[")+"REALIZE"+style.Yellow.Bold("]"), style.Green.Bold("Realize folder successfully removed."))
