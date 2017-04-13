@@ -81,7 +81,7 @@ func (h *Blueprint) Remove(p *cli.Context) error {
 			return nil
 		}
 	}
-	return errors.New("No project found.")
+	return errors.New("no project found")
 }
 
 // List of all the projects
@@ -144,5 +144,5 @@ func (h *Blueprint) check() error {
 		h.Clean()
 		return nil
 	}
-	return errors.New("There are no projects. The config file is empty.")
+	return errors.New("there are no projects")
 }
