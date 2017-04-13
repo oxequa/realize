@@ -1,9 +1,8 @@
-package cli
+package watcher
 
 import (
 	"errors"
 	"fmt"
-	"github.com/fsnotify/fsnotify"
 	"log"
 	"math/big"
 	"os"
@@ -14,6 +13,8 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/fsnotify/fsnotify"
 )
 
 var msg string

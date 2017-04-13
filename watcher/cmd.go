@@ -1,10 +1,11 @@
-package cli
+package watcher
 
 import (
 	"errors"
 	"fmt"
-	"gopkg.in/urfave/cli.v2"
 	"strings"
+
+	cli "gopkg.in/urfave/cli.v2"
 )
 
 // Run launches the toolchain for each project

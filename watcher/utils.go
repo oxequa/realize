@@ -1,10 +1,11 @@
-package cli
+package watcher
 
 import (
 	"errors"
 	"fmt"
-	"gopkg.in/urfave/cli.v2"
 	"time"
+
+	cli "gopkg.in/urfave/cli.v2"
 )
 
 // Argsparam parse one by one the given argumentes
