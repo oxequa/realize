@@ -190,7 +190,7 @@ func main() {
 				Category: "Configuration",
 				Aliases:  []string{"a"},
 				Usage:    "Define a new config file with all options step by step",
-				Action: func(p *cli.Context) (err error) {
+				Action: func(p *cli.Context) (actErr error) {
 					interact.Run(&interact.Interact{
 						Before: func(context interact.Context) error {
 							context.SetErr(r.Red.Bold("INVALID INPUT"))
@@ -862,9 +862,9 @@ func main() {
 						},
 						After: func(d interact.Context) error {
 							if val, _ := d.Qns().Get(0).Ans().Bool(); val {
-								err = r.Settings.Remove()
-								if err != nil {
-									return err
+								actErr = r.Settings.Remove()
+								if actErr != nil {
+									return actErr
 								}
 							}
 							return nil
