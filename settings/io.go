@@ -9,12 +9,12 @@ import (
 // Stream return a byte stream of a given file
 func (s Settings) Stream(file string) ([]byte, error) {
 	_, err := os.Stat(file)
-	if err == nil {
-		content, err := ioutil.ReadFile(file)
-		s.Validate(err)
-		return content, err
+	if err != nil {
+		return nil, err
 	}
-	return nil, err
+	content, err := ioutil.ReadFile(file)
+	s.Validate(err)
+	return content, err
 }
 
 // Write a file given a name and a byte stream
