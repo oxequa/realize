@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/tockins/realize/style"
 )
 
 // Wdir return the current working directory
@@ -25,7 +27,7 @@ func (s Settings) Validate(err error) error {
 // Fatal prints a fatal error with its additional messages
 func (s Settings) Fatal(err error, msg ...interface{}) {
 	if len(msg) > 0 && err != nil {
-		log.Fatalln(s.Red.Regular(msg...), err.Error())
+		log.Fatalln(style.Red.Regular(msg...), err.Error())
 	} else if err != nil {
 		log.Fatalln(err.Error())
 	}

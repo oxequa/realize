@@ -2,7 +2,7 @@ package server
 
 import (
 	"bytes"
-	"errors"
+	"fmt"
 	"io"
 	"os/exec"
 	"runtime"
@@ -22,9 +22,10 @@ func init() {
 
 // Open a url in the default browser
 func Open(url string) (io.Writer, error) {
-	open, err := cmd[runtime.GOOS]
+	goos := runtime.GOOS
+	open, err := cmd[goos]
 	if !err {
-		return nil, errors.New("This operating system is not supported.")
+		return nil, fmt.Errorf("operating system %q is not supported", goos)
 	}
 	cmd := exec.Command(open, url)
 	cmd.Stderr = &stderr

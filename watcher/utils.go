@@ -1,10 +1,12 @@
-package cli
+package watcher
 
 import (
 	"errors"
 	"fmt"
-	"gopkg.in/urfave/cli.v2"
 	"time"
+
+	"github.com/tockins/realize/style"
+	cli "gopkg.in/urfave/cli.v2"
 )
 
 // Argsparam parse one by one the given argumentes
@@ -23,7 +25,7 @@ func argsParam(params *cli.Context) []string {
 // Duplicates check projects with same name or same combinations of main/path
 func duplicates(value Project, arr []Project) (Project, error) {
 	for _, val := range arr {
-		if value.Path == val.Path {
+		if value.Path == val.Path && val.Name == value.Name {
 			return val, errors.New("There is already a project for '" + val.Path + "'. Check your config file!")
 		}
 	}
@@ -42,5 +44,5 @@ func inArray(str string, list []string) bool {
 
 // Rewrite the layout of the log timestamp
 func (w logWriter) Write(bytes []byte) (int, error) {
-	return fmt.Print(w.Yellow.Regular("[") + time.Now().Format("15:04:05") + w.Yellow.Regular("]") + string(bytes))
+	return fmt.Print(style.Yellow.Regular("[") + time.Now().Format("15:04:05") + style.Yellow.Regular("]") + string(bytes))
 }

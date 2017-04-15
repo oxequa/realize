@@ -2,21 +2,22 @@ package server
 
 import (
 	"encoding/json"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
-	c "github.com/tockins/realize/settings"
-	w "github.com/tockins/realize/watcher"
-	"golang.org/x/net/websocket"
-	"gopkg.in/urfave/cli.v2"
 	"net/http"
 	"strconv"
+
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
+	"github.com/tockins/realize/settings"
+	"github.com/tockins/realize/watcher"
+	"golang.org/x/net/websocket"
+	"gopkg.in/urfave/cli.v2"
 )
 
 // Server settings
 type Server struct {
-	*c.Settings  `yaml:"-"`
-	*w.Blueprint `yaml:"-"`
-	Sync         chan string `yaml:"-"`
+	*settings.Settings `yaml:"-"`
+	*watcher.Blueprint `yaml:"-"`
+	Sync               chan string `yaml:"-"`
 }
 
 // Render return a web pages defined in bindata

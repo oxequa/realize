@@ -1,4 +1,4 @@
-package cli
+package watcher
 
 import (
 	"bufio"
@@ -11,6 +11,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/tockins/realize/style"
 )
 
 // GoRun  is an implementation of the bin execution
@@ -46,7 +48,7 @@ func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 			p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Failed to stop: " + err.Error()})
 			p.Fatal(err, "Failed to stop", ":")
 		}
-		msg := fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Regular("Ended"))
+		msg := fmt.Sprintln(p.pname(p.Name, 2), ":", style.Red.Regular("Ended"))
 		out := BufferOut{Time: time.Now(), Text: "Ended", Type: "Go Run"}
 		p.print("log", out, msg, "")
 		wr.Done()
@@ -55,11 +57,11 @@ func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 	stdout, err := build.StdoutPipe()
 	stderr, err := build.StderrPipe()
 	if err != nil {
-		log.Println(p.Red.Bold(err.Error()))
+		log.Println(style.Red.Bold(err.Error()))
 		return err
 	}
 	if err := build.Start(); err != nil {
-		log.Println(p.Red.Bold(err.Error()))
+		log.Println(style.Red.Bold(err.Error()))
 		return err
 	}
 	close(runner)
@@ -70,7 +72,7 @@ func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 		for output.Scan() {
 			select {
 			default:
-				msg := fmt.Sprintln(p.pname(p.Name, 3), ":", p.Blue.Regular(output.Text()))
+				msg := fmt.Sprintln(p.pname(p.Name, 3), ":", style.Blue.Regular(output.Text()))
 				if isError {
 					out := BufferOut{Time: time.Now(), Text: output.Text(), Type: "Go Run"}
 					p.print("error", out, msg, "")

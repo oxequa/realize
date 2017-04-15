@@ -1,14 +1,14 @@
 package settings
 
 import (
-	"gopkg.in/yaml.v2"
 	"os"
 	"time"
+
+	yaml "gopkg.in/yaml.v2"
 )
 
 // Settings defines a group of general settings
 type Settings struct {
-	Colors    `yaml:"-"`
 	Config    `yaml:",inline" json:"config"`
 	Resources `yaml:"resources" json:"resources"`
 	Server    `yaml:"server,omitempty" json:"server,omitempty"`
