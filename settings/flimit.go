@@ -5,12 +5,13 @@ package settings
 import "syscall"
 
 // Flimit defines the max number of watched files
-func (s *Settings) Flimit() {
+func (s *Settings) Flimit() error {
 	var rLimit syscall.Rlimit
 	rLimit.Max = uint64(s.Config.Flimit)
 	rLimit.Cur = uint64(s.Config.Flimit)
-	err := syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit)
-	if err != nil {
-		s.Fatal(err, "Error setting rlimit")
+
+	if err := syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit); err != nil {
+		return err
 	}
+	return nil
 }

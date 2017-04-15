@@ -26,6 +26,15 @@ A Go build system with file watchers, output streams and live reload. Run, build
 - Output streams and error logs (support for save on a file)
 - Web Panel (projects list, config settings, logs)
 
+v 1.4
+
+- [ ] Watch dependencies options
+- [ ] Input redirection (wait for an input and redirect)
+- [ ] Web panel full support
+- [ ] Multiple configurations
+- [ ] GoMobile support ?
+- [ ] Ignore path and files in gititnore ?
+
 #### Wiki
 
 - [Getting Started](#installation-and-usage)

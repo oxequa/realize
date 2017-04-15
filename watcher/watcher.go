@@ -1,9 +1,8 @@
-package cli
+package watcher
 
 import (
 	"errors"
 	"fmt"
-	"github.com/fsnotify/fsnotify"
 	"log"
 	"math/big"
 	"os"
@@ -14,6 +13,9 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/fsnotify/fsnotify"
+	"github.com/tockins/realize/style"
 )
 
 var msg string
@@ -71,7 +73,7 @@ func (p *Project) watchByPolling() {
 			}
 			p.LastChangedOn = time.Now().Truncate(time.Second)
 			// repeat the initial cycle
-			msg = fmt.Sprintln(p.pname(p.Name, 4), ":", p.Magenta.Bold(strings.ToUpper(ext[1:])+" changed"), p.Magenta.Bold(file))
+			msg = fmt.Sprintln(p.pname(p.Name, 4), ":", style.Magenta.Bold(strings.ToUpper(ext[1:])+" changed"), style.Magenta.Bold(file))
 			out = BufferOut{Time: time.Now(), Text: strings.ToUpper(ext[1:]) + " changed " + file}
 			p.print("log", out, msg, "")
 
@@ -88,7 +90,7 @@ func (p *Project) watchByPolling() {
 			base := filepath.Join(p.base, dir)
 			if _, err := os.Stat(base); err == nil {
 				if err := filepath.Walk(base, walk); err != nil {
-					msg = fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Regular(err.Error()))
+					msg = fmt.Sprintln(p.pname(p.Name, 2), ":", style.Red.Regular(err.Error()))
 					out = BufferOut{Time: time.Now(), Text: err.Error()}
 					p.print("error", out, msg, "")
 				}
@@ -147,7 +149,7 @@ func (p *Project) watchByNotify() {
 						}
 						p.LastChangedOn = time.Now().Truncate(time.Second)
 						// repeat the initial cycle
-						msg = fmt.Sprintln(p.pname(p.Name, 4), ":", p.Magenta.Bold(strings.ToUpper(ext[1:])+" changed"), p.Magenta.Bold(file))
+						msg = fmt.Sprintln(p.pname(p.Name, 4), ":", style.Magenta.Bold(strings.ToUpper(ext[1:])+" changed"), style.Magenta.Bold(file))
 						out = BufferOut{Time: time.Now(), Text: strings.ToUpper(ext[1:]) + " changed " + file}
 						p.print("log", out, msg, "")
 
@@ -160,7 +162,7 @@ func (p *Project) watchByNotify() {
 				}
 			}
 		case err := <-watcher.Errors:
-			msg = fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Regular(err.Error()))
+			msg = fmt.Sprintln(p.pname(p.Name, 2), ":", style.Red.Regular(err.Error()))
 			out = BufferOut{Time: time.Now(), Text: err.Error()}
 			p.print("error", out, msg, "")
 		case <-exit:
@@ -206,13 +208,13 @@ func (p *Project) watch(watcher watcher) error {
 		base := filepath.Join(p.base, dir)
 		if _, err := os.Stat(base); err == nil {
 			if err := filepath.Walk(base, walk); err != nil {
-				log.Println(p.Red.Bold(err.Error()))
+				log.Println(style.Red.Bold(err.Error()))
 			}
 		} else {
 			return errors.New(base + " path doesn't exist")
 		}
 	}
-	msg = fmt.Sprintln(p.pname(p.Name, 1), ":", p.Blue.Bold("Watching"), p.Magenta.Bold(files), "file/s", p.Magenta.Bold(folders), "folder/s")
+	msg = fmt.Sprintln(p.pname(p.Name, 1), ":", style.Blue.Bold("Watching"), style.Magenta.Bold(files), "file/s", style.Magenta.Bold(folders), "folder/s")
 	out = BufferOut{Time: time.Now(), Text: "Watching " + strconv.FormatInt(files, 10) + " files/s " + strconv.FormatInt(folders, 10) + " folder/s"}
 	p.print("log", out, msg, "")
 	return nil
@@ -225,11 +227,11 @@ func (p *Project) install() error {
 		log.Println(p.pname(p.Name, 1), ":", "Installing..")
 		stream, err := p.goInstall()
 		if err != nil {
-			msg = fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Install"), p.Red.Regular(err.Error()))
+			msg = fmt.Sprintln(p.pname(p.Name, 2), ":", style.Red.Bold("Go Install"), style.Red.Regular(err.Error()))
 			out = BufferOut{Time: time.Now(), Text: err.Error(), Type: "Go Install", Stream: stream}
 			p.print("error", out, msg, stream)
 		} else {
-			msg = fmt.Sprintln(p.pname(p.Name, 5), ":", p.Green.Regular("Installed")+" after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
+			msg = fmt.Sprintln(p.pname(p.Name, 5), ":", style.Green.Regular("Installed")+" after", style.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
 			out = BufferOut{Time: time.Now(), Text: "Installed after " + big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3) + " s"}
 			p.print("log", out, msg, stream)
 		}
@@ -248,7 +250,7 @@ func (p *Project) run(channel chan bool, wr *sync.WaitGroup) {
 		for {
 			select {
 			case <-runner:
-				msg = fmt.Sprintln(p.pname(p.Name, 5), ":", p.Green.Regular("Has been run")+" after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
+				msg = fmt.Sprintln(p.pname(p.Name, 5), ":", style.Green.Regular("Has been run")+" after", style.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
 				out = BufferOut{Time: time.Now(), Text: "Has been run after " + big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3) + " s"}
 				p.print("log", out, msg, "")
 				return
@@ -264,11 +266,11 @@ func (p *Project) build() error {
 		log.Println(p.pname(p.Name, 1), ":", "Building..")
 		stream, err := p.goBuild()
 		if err != nil {
-			msg = fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Build"), p.Red.Regular(err.Error()))
+			msg = fmt.Sprintln(p.pname(p.Name, 2), ":", style.Red.Bold("Go Build"), style.Red.Regular(err.Error()))
 			out = BufferOut{Time: time.Now(), Text: err.Error(), Type: "Go Build", Stream: stream}
 			p.print("error", out, msg, stream)
 		} else {
-			msg = fmt.Sprintln(p.pname(p.Name, 5), ":", p.Green.Regular("Builded")+" after", p.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
+			msg = fmt.Sprintln(p.pname(p.Name, 5), ":", style.Green.Regular("Builded")+" after", style.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
 			out = BufferOut{Time: time.Now(), Text: "Builded after " + big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3) + " s"}
 			p.print("log", out, msg, stream)
 		}
@@ -281,7 +283,7 @@ func (p *Project) build() error {
 func (p *Project) fmt(path string) error {
 	if p.Fmt && strings.HasSuffix(path, ".go") {
 		if stream, err := p.goTools(p.base, "gofmt", "-s", "-w", "-e", path); err != nil {
-			msg = fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Fmt"), p.Red.Regular("there are some errors in"), ":", p.Magenta.Bold(path))
+			msg = fmt.Sprintln(p.pname(p.Name, 2), ":", style.Red.Bold("Go Fmt"), style.Red.Regular("there are some errors in"), ":", style.Magenta.Bold(path))
 			out = BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Fmt", Stream: stream}
 			p.print("error", out, msg, stream)
 			return err
@@ -294,7 +296,7 @@ func (p *Project) fmt(path string) error {
 func (p *Project) generate(path string) error {
 	if p.Generate {
 		if stream, err := p.goTools(path, "go", "generate"); err != nil {
-			msg = fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Generate"), p.Red.Regular("there are some errors in"), ":", p.Magenta.Bold(path))
+			msg = fmt.Sprintln(p.pname(p.Name, 2), ":", style.Red.Bold("Go Generate"), style.Red.Regular("there are some errors in"), ":", style.Magenta.Bold(path))
 			out = BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Generate", Stream: stream}
 			p.print("error", out, msg, stream)
 			return err
@@ -307,7 +309,7 @@ func (p *Project) generate(path string) error {
 func (p *Project) test(path string) error {
 	if p.Test {
 		if stream, err := p.goTools(path, "go", "test"); err != nil {
-			msg = fmt.Sprintln(p.pname(p.Name, 2), ":", p.Red.Bold("Go Test"), p.Red.Regular("there are some errors in "), ":", p.Magenta.Bold(path))
+			msg = fmt.Sprintln(p.pname(p.Name, 2), ":", style.Red.Bold("Go Test"), style.Red.Regular("there are some errors in "), ":", style.Magenta.Bold(path))
 			out = BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Test", Stream: stream}
 			p.print("error", out, msg, stream)
 			return err
@@ -321,7 +323,7 @@ func (p *Project) cmd(flag string) {
 	for _, cmd := range p.Watcher.Scripts {
 		if strings.ToLower(cmd.Type) == flag {
 			errors, logs := p.command(cmd)
-			msg = fmt.Sprintln(p.pname(p.Name, 5), ":", p.Green.Bold("Command"), p.Green.Bold("\"")+cmd.Command+p.Green.Bold("\""))
+			msg = fmt.Sprintln(p.pname(p.Name, 5), ":", style.Green.Bold("Command"), style.Green.Bold("\"")+cmd.Command+style.Green.Bold("\""))
 			out = BufferOut{Time: time.Now(), Text: cmd.Command, Type: flag}
 			if logs != "" {
 				p.print("log", out, msg, "")
@@ -335,7 +337,7 @@ func (p *Project) cmd(flag string) {
 				p.print("log", out, "", msg)
 			}
 			if errors != "" {
-				msg = fmt.Sprintln(p.Red.Regular(errors))
+				msg = fmt.Sprintln(style.Red.Regular(errors))
 				out = BufferOut{Time: time.Now(), Text: errors, Type: flag}
 				p.print("error", out, "", msg)
 			}
@@ -368,19 +370,19 @@ func (p *Project) routines(channel chan bool, wr *sync.WaitGroup) {
 func (p *Project) pname(name string, color int) string {
 	switch color {
 	case 1:
-		name = p.Yellow.Regular("[") + strings.ToUpper(name) + p.Yellow.Regular("]")
+		name = style.Yellow.Regular("[") + strings.ToUpper(name) + style.Yellow.Regular("]")
 		break
 	case 2:
-		name = p.Yellow.Regular("[") + p.Red.Bold(strings.ToUpper(name)) + p.Yellow.Regular("]")
+		name = style.Yellow.Regular("[") + style.Red.Bold(strings.ToUpper(name)) + style.Yellow.Regular("]")
 		break
 	case 3:
-		name = p.Yellow.Regular("[") + p.Blue.Bold(strings.ToUpper(name)) + p.Yellow.Regular("]")
+		name = style.Yellow.Regular("[") + style.Blue.Bold(strings.ToUpper(name)) + style.Yellow.Regular("]")
 		break
 	case 4:
-		name = p.Yellow.Regular("[") + p.Magenta.Bold(strings.ToUpper(name)) + p.Yellow.Regular("]")
+		name = style.Yellow.Regular("[") + style.Magenta.Bold(strings.ToUpper(name)) + style.Yellow.Regular("]")
 		break
 	case 5:
-		name = p.Yellow.Regular("[") + p.Green.Bold(strings.ToUpper(name)) + p.Yellow.Regular("]")
+		name = style.Yellow.Regular("[") + style.Green.Bold(strings.ToUpper(name)) + style.Yellow.Regular("]")
 		break
 	}
 	return name
