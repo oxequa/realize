@@ -43,7 +43,7 @@ func main() {
 	before := func(*cli.Context) error {
 		gopath := os.Getenv("GOPATH")
 		if gopath == "" {
-			return errors.New("$GOPATH isn't set up properly")
+			return errors.New("$GOPATH isn't set properly")
 		}
 
 		r = realize{
@@ -563,7 +563,7 @@ func main() {
 										},
 										Quest: interact.Quest{
 											Options: style.Yellow.Regular("[y/n]"),
-											Msg:     "Customize the watched paths",
+											Msg:     "Customize watched paths",
 											Resolve: func(d interact.Context) bool {
 												val, _ := d.Ans().Bool()
 												if val {
@@ -608,7 +608,7 @@ func main() {
 										},
 										Quest: interact.Quest{
 											Options: style.Yellow.Regular("[y/n]"),
-											Msg:     "Customize the ignored paths",
+											Msg:     "Customize ignored paths",
 											Resolve: func(d interact.Context) bool {
 												val, _ := d.Ans().Bool()
 												if val {

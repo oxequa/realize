@@ -54,7 +54,7 @@ func (s *Settings) Read(out interface{}) error {
 		err = yaml.Unmarshal(content, out)
 		return err
 	}
-	return err
+	return nil
 }
 
 // Record create and unmarshal the yaml config file
