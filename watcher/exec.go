@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"github.com/tockins/realize/style"
 	"log"
 	"os"
 	"os/exec"
@@ -11,18 +12,16 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/tockins/realize/style"
 )
 
 // GoRun  is an implementation of the bin execution
 func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup) error {
 	var build *exec.Cmd
-	var params []string
+	var args []string
 	var path = ""
-	for _, param := range p.Params {
-		arr := strings.Fields(param)
-		params = append(params, arr...)
+	for _, arg := range p.Args {
+		arr := strings.Fields(arg)
+		args = append(args, arr...)
 	}
 	if _, err := os.Stat(filepath.Join(p.base, p.path)); err == nil {
 		path = filepath.Join(p.base, p.path)
@@ -32,12 +31,12 @@ func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 	}
 
 	if path != "" {
-		build = exec.Command(path, params...)
+		build = exec.Command(path, args...)
 	} else {
 		if _, err := os.Stat(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.path))); err == nil {
-			build = exec.Command(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.path)), params...)
+			build = exec.Command(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.path)), args...)
 		} else if _, err := os.Stat(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.path)) + ".exe"); err == nil {
-			build = exec.Command(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.path))+".exe", params...)
+			build = exec.Command(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.path))+".exe", args...)
 		} else {
 			p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Can't run a not compiled project"})
 			p.Fatal(err, "Can't run a not compiled project", ":")
@@ -102,7 +101,12 @@ func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 func (p *Project) goBuild() (string, error) {
 	var out bytes.Buffer
 	var stderr bytes.Buffer
-	build := exec.Command("go", "build")
+	args := []string{"build"}
+	for _, arg := range p.Cmds.Build.Args {
+		arr := strings.Fields(arg)
+		args = append(args, arr...)
+	}
+	build := exec.Command("go", args...)
 	build.Dir = p.base
 	build.Stdout = &out
 	build.Stderr = &stderr
@@ -120,7 +124,12 @@ func (p *Project) goInstall() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	build := exec.Command("go", "install")
+	args := []string{"install"}
+	for _, arg := range p.Cmds.Bin.Args {
+		arr := strings.Fields(arg)
+		args = append(args, arr...)
+	}
+	build := exec.Command("go", args...)
 	build.Dir = p.base
 	build.Stdout = &out
 	build.Stderr = &stderr
