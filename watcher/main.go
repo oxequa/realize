@@ -33,23 +33,24 @@ type Blueprint struct {
 
 // Project defines the informations of a single project
 type Project struct {
-	settings.Settings `yaml:"-"`
-	LastChangedOn     time.Time `yaml:"-" json:"-"`
-	base              string
-	Name              string   `yaml:"name" json:"name"`
-	Path              string   `yaml:"path" json:"path"`
-	Fmt               bool     `yaml:"fmt" json:"fmt"`
-	Generate          bool     `yaml:"generate" json:"generate"`
-	Test              bool     `yaml:"test" json:"test"`
-	Bin               bool     `yaml:"bin" json:"bin"`
-	Build             bool     `yaml:"build" json:"build"`
-	Run               bool     `yaml:"run" json:"run"`
-	Params            []string `yaml:"params,omitempty" json:"params,omitempty"`
-	Watcher           Watcher  `yaml:"watcher" json:"watcher"`
-	Streams           Streams  `yaml:"streams" json:"streams"`
-	Buffer            Buffer   `yaml:"-" json:"buffer"`
-	parent            *Blueprint
-	path              string
+	settings.Settings  `yaml:"-"`
+	LastChangedOn      time.Time `yaml:"-" json:"-"`
+	base               string
+	Name               string   `yaml:"name" json:"name"`
+	Path               string   `yaml:"path" json:"path"`
+	Fmt                bool     `yaml:"fmt" json:"fmt"`
+	Generate           bool     `yaml:"generate" json:"generate"`
+	Test               bool     `yaml:"test" json:"test"`
+	Bin                bool     `yaml:"bin" json:"bin"`
+	Build              bool     `yaml:"build" json:"build"`
+	Run                bool     `yaml:"run" json:"run"`
+	Params             []string `yaml:"params,omitempty" json:"params,omitempty"`
+	Watcher            Watcher  `yaml:"watcher" json:"watcher"`
+	Streams            Streams  `yaml:"streams" json:"streams"`
+	ErrorOutputPattern string   `yaml:"errorOutputPattern" json:"errorOutputPattern"`
+	Buffer             Buffer   `yaml:"-" json:"buffer"`
+	parent             *Blueprint
+	path               string
 }
 
 // Watcher struct defines the livereload's logic
