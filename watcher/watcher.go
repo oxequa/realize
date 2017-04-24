@@ -148,7 +148,6 @@ func (p *Project) watchByNotify() {
 							close(channel)
 							channel = make(chan bool)
 						}
-						p.LastChangedOn = time.Now().Truncate(time.Second)
 						// repeat the initial cycle
 						msg = fmt.Sprintln(p.pname(p.Name, 4), ":", style.Magenta.Bold(strings.ToUpper(ext[1:])+" changed"), style.Magenta.Bold(file))
 						out = BufferOut{Time: time.Now(), Text: strings.ToUpper(ext[1:]) + " changed " + file}
@@ -160,6 +159,7 @@ func (p *Project) watchByNotify() {
 						p.tool(path, p.tools.Test)
 						p.tool(path, p.tools.Generate)
 						go p.routines(channel, &wr)
+						p.LastChangedOn = time.Now().Truncate(time.Second)
 					}
 				}
 			}
