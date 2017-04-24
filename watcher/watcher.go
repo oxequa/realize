@@ -3,19 +3,19 @@ package watcher
 import (
 	"errors"
 	"fmt"
-	"github.com/fsnotify/fsnotify"
-	"github.com/tockins/realize/style"
 	"log"
 	"math/big"
 	"os"
 	"os/signal"
 	"path/filepath"
-	"reflect"
 	"strconv"
 	"strings"
 	"sync"
 	"syscall"
 	"time"
+	"reflect"
+	"github.com/fsnotify/fsnotify"
+	"github.com/tockins/realize/style"
 )
 
 var msg string
@@ -79,7 +79,7 @@ func (p *Project) watchByPolling() {
 
 			p.cmd("change")
 			p.tool(file, p.tools.Fmt)
-			p.tool(path, p.tools.Vet)
+			p.tool(file, p.tools.Vet)
 			p.tool(path, p.tools.Test)
 			p.tool(path, p.tools.Generate)
 			go p.routines(channel, &wr)
@@ -285,9 +285,8 @@ func (p *Project) build() error {
 func (p *Project) tool(path string, tool tool) error {
 	if tool.status != nil {
 		v := reflect.ValueOf(tool.status).Elem()
-		if v.Interface().(bool) && strings.HasSuffix(path, ".go") {
-			options := append(tool.options, path)
-			if stream, err := p.goTools(p.base, tool.cmd, options...); err != nil {
+		if v.Interface().(bool) && (strings.HasSuffix(path, ".go") || strings.HasSuffix(path, ""))  {
+			if stream, err := p.goTools(path, tool.cmd, tool.options...); err != nil {
 				msg = fmt.Sprintln(p.pname(p.Name, 2), ":", style.Red.Bold(tool.name), style.Red.Regular("there are some errors in"), ":", style.Magenta.Bold(path))
 				out = BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: tool.name, Stream: stream}
 				p.print("error", out, msg, stream)

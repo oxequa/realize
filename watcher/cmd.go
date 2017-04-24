@@ -44,8 +44,8 @@ func (h *Blueprint) Run() error {
 				tools.Vet = tool{
 					status:  &h.Projects[k].Cmds.Vet,
 					cmd:     "go",
-					options: []string{"test"},
-					name:    "Go Test",
+					options: []string{"vet"},
+					name:    "Go Vet",
 				}
 			}
 			h.Projects[k].tools = tools
