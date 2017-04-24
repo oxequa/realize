@@ -17,14 +17,13 @@ import (
 
 const (
 	appVersion = "1.3"
-
-	config   = "realize.yaml"
-	outputs  = "outputs.log"
-	errs     = "errors.log"
-	logs     = "logs.log"
-	host     = "localhost"
-	port     = 5001
-	interval = 200
+	config     = "realize.yaml"
+	outputs    = "outputs.log"
+	errs       = "errors.log"
+	logs       = "logs.log"
+	host       = "localhost"
+	port       = 5001
+	interval   = 200
 )
 
 // Cli commands
@@ -195,7 +194,7 @@ func main() {
 						Questions: []*interact.Question{
 							{
 								Before: func(d interact.Context) error {
-									if _, err := os.Stat(".realize/" + config); err != nil {
+									if _, err := os.Stat(settings.Dir + config); err != nil {
 										d.Skip()
 									}
 									d.SetDef(false, style.Green.Regular("(n)"))
@@ -462,7 +461,25 @@ func main() {
 											if err != nil {
 												return d.Err()
 											}
-											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Fmt = val
+											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Fmt = val
+											return nil
+										},
+									},
+									{
+										Before: func(d interact.Context) error {
+											d.SetDef(true, style.Green.Regular("(y)"))
+											return nil
+										},
+										Quest: interact.Quest{
+											Options: style.Yellow.Regular("[y/n]"),
+											Msg:     "Enable go vet",
+										},
+										Action: func(d interact.Context) interface{} {
+											val, err := d.Ans().Bool()
+											if err != nil {
+												return d.Err()
+											}
+											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Vet = val
 											return nil
 										},
 									},
@@ -480,7 +497,7 @@ func main() {
 											if err != nil {
 												return d.Err()
 											}
-											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Test = val
+											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Test = val
 											return nil
 										},
 									},
@@ -498,7 +515,7 @@ func main() {
 											if err != nil {
 												return d.Err()
 											}
-											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Generate = val
+											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Generate = val
 											return nil
 										},
 									},
@@ -516,7 +533,7 @@ func main() {
 											if err != nil {
 												return d.Err()
 											}
-											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Bin = val
+											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Bin.Status = val
 											return nil
 										},
 									},
@@ -534,7 +551,7 @@ func main() {
 											if err != nil {
 												return d.Err()
 											}
-											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Build = val
+											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Build.Status = val
 											return nil
 										},
 									},
@@ -552,7 +569,7 @@ func main() {
 											if err != nil {
 												return d.Err()
 											}
-											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Run = val
+											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Run = val
 											return nil
 										},
 									},
@@ -674,7 +691,7 @@ func main() {
 													if err != nil {
 														return d.Err()
 													}
-													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Params = append(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Params, val)
+													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Args = append(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Args, val)
 													d.Reload()
 													return nil
 												},

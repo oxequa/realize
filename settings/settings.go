@@ -7,6 +7,8 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
+var Dir = ".realize/"
+
 // Settings defines a group of general settings
 type Settings struct {
 	Config    `yaml:",inline" json:"config"`
@@ -46,8 +48,8 @@ type Resources struct {
 // Read from config file
 func (s *Settings) Read(out interface{}) error {
 	localConfigPath := s.Resources.Config
-	if _, err := os.Stat(".realize/" + s.Resources.Config); err == nil {
-		localConfigPath = ".realize/" + s.Resources.Config
+	if _, err := os.Stat(Dir + s.Resources.Config); err == nil {
+		localConfigPath = Dir + s.Resources.Config
 	}
 	content, err := s.Stream(localConfigPath)
 	if err == nil {
@@ -64,20 +66,20 @@ func (s *Settings) Record(out interface{}) error {
 		if err != nil {
 			return err
 		}
-		if _, err := os.Stat(".realize/"); os.IsNotExist(err) {
-			if err = os.Mkdir(".realize/", 0770); err != nil {
+		if _, err := os.Stat(Dir); os.IsNotExist(err) {
+			if err = os.Mkdir(Dir, 0770); err != nil {
 				return s.Write(s.Resources.Config, y)
 			}
 		}
-		return s.Write(".realize/"+s.Resources.Config, y)
+		return s.Write(Dir+s.Resources.Config, y)
 	}
 	return nil
 }
 
 // Remove realize folder
 func (s *Settings) Remove() error {
-	if _, err := os.Stat(".realize/"); !os.IsNotExist(err) {
-		return os.RemoveAll(".realize/")
+	if _, err := os.Stat(Dir); !os.IsNotExist(err) {
+		return os.RemoveAll(Dir)
 	}
 	return nil
 }

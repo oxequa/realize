@@ -26,8 +26,8 @@ func (s Settings) Write(name string, data []byte) error {
 // Create a new file and return its pointer
 func (s Settings) Create(path string, name string) *os.File {
 	var file string
-	if _, err := os.Stat(".realize/"); err == nil {
-		file = filepath.Join(path, ".realize/", name)
+	if _, err := os.Stat(Dir); err == nil {
+		file = filepath.Join(path, Dir, name)
 	} else {
 		file = filepath.Join(path, name)
 	}
