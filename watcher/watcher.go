@@ -286,6 +286,10 @@ func (p *Project) tool(path string, tool tool) error {
 	if tool.status != nil {
 		v := reflect.ValueOf(tool.status).Elem()
 		if v.Interface().(bool) && (strings.HasSuffix(path, ".go") || strings.HasSuffix(path, ""))  {
+			if strings.HasSuffix(path, ".go"){
+				tool.options = append(tool.options, path)
+				path = p.base
+			}
 			if stream, err := p.goTools(path, tool.cmd, tool.options...); err != nil {
 				msg = fmt.Sprintln(p.pname(p.Name, 2), ":", style.Red.Bold(tool.name), style.Red.Regular("there are some errors in"), ":", style.Magenta.Bold(path))
 				out = BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: tool.name, Stream: stream}
