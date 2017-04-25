@@ -41,6 +41,7 @@ type Project struct {
 	Watcher           Watcher  `yaml:"watcher" json:"watcher"`
 	Streams           Streams  `yaml:"streams" json:"streams"`
 	Buffer            Buffer   `yaml:"-" json:"buffer"`
+	ErrorOutputPattern string   `yaml:"errorOutputPattern" json:"errorOutputPattern"`
 	parent            *Blueprint
 	path              string
 	tools             tools
