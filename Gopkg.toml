@@ -1,0 +1,28 @@
+
+[[dependencies]]
+  branch = "master"
+  name = "github.com/fatih/color"
+
+[[dependencies]]
+  branch = "master"
+  name = "github.com/fsnotify/fsnotify"
+
+[[dependencies]]
+  branch = "master"
+  name = "github.com/labstack/echo"
+
+[[dependencies]]
+  branch = "master"
+  name = "github.com/tockins/interact"
+
+[[dependencies]]
+  branch = "master"
+  name = "golang.org/x/net"
+
+[[dependencies]]
+  branch = "v2"
+  name = "gopkg.in/urfave/cli.v2"
+
+[[dependencies]]
+  branch = "v2"
+  name = "gopkg.in/yaml.v2"
