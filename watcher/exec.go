@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -19,6 +20,19 @@ func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 	var build *exec.Cmd
 	var args []string
 	var path = ""
+	isErrorText := func(string) bool {
+		return false
+	}
+	errRegexp, err := regexp.Compile(p.ErrorOutputPattern)
+	if err != nil {
+		msg := fmt.Sprintln(p.pname(p.Name, 3), ":", style.Blue.Regular(err.Error()))
+		out := BufferOut{Time: time.Now(), Text: err.Error(), Type: "Go Run"}
+		p.print("error", out, msg, "")
+	} else {
+		isErrorText = func(t string) bool {
+			return errRegexp.MatchString(t)
+		}
+	}
 	for _, arg := range p.Args {
 		arr := strings.Fields(arg)
 		args = append(args, arr...)
@@ -69,16 +83,14 @@ func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 	stopOutput, stopError := make(chan bool, 1), make(chan bool, 1)
 	scanner := func(stop chan bool, output *bufio.Scanner, isError bool) {
 		for output.Scan() {
-			select {
-			default:
-				msg := fmt.Sprintln(p.pname(p.Name, 3), ":", style.Blue.Regular(output.Text()))
-				if isError {
-					out := BufferOut{Time: time.Now(), Text: output.Text(), Type: "Go Run"}
-					p.print("error", out, msg, "")
-				} else {
-					out := BufferOut{Time: time.Now(), Text: output.Text()}
-					p.print("out", out, msg, "")
-				}
+			text := output.Text()
+			msg := fmt.Sprintln(p.pname(p.Name, 3), ":", style.Blue.Regular(text))
+			if isError || isErrorText(text) {
+				out := BufferOut{Time: time.Now(), Text: text, Type: "Go Run"}
+				p.print("error", out, msg, "")
+			} else {
+				out := BufferOut{Time: time.Now(), Text: text}
+				p.print("out", out, msg, "")
 			}
 		}
 		close(stop)
