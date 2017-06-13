@@ -250,8 +250,8 @@ func (p *Project) run(channel chan bool, wr *sync.WaitGroup) {
 		for {
 			select {
 			case <-runner:
-				msg = fmt.Sprintln(p.pname(p.Name, 5), ":", style.Green.Regular("Has been run")+" after", style.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
-				out = BufferOut{Time: time.Now(), Text: "Has been run after " + big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3) + " s"}
+				msg = fmt.Sprintln(p.pname(p.Name, 5), ":", style.Green.Regular("Started")+" after", style.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
+				out = BufferOut{Time: time.Now(), Text: "Started after " + big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3) + " s"}
 				p.print("log", out, msg, "")
 				return
 			}
