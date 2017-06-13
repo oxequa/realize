@@ -270,8 +270,8 @@ func (p *Project) build() error {
 			out = BufferOut{Time: time.Now(), Text: err.Error(), Type: "Go Build", Stream: stream}
 			p.print("error", out, msg, stream)
 		} else {
-			msg = fmt.Sprintln(p.pname(p.Name, 5), ":", style.Green.Regular("Builded")+" after", style.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
-			out = BufferOut{Time: time.Now(), Text: "Builded after " + big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3) + " s"}
+			msg = fmt.Sprintln(p.pname(p.Name, 5), ":", style.Green.Regular("Built")+" after", style.Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
+			out = BufferOut{Time: time.Now(), Text: "Built after " + big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3) + " s"}
 			p.print("log", out, msg, stream)
 		}
 		return err
