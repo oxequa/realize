@@ -39,9 +39,9 @@ type Project struct {
 	Cmds               Cmds     `yaml:"commands" json:"commands"`
 	Args               []string `yaml:"args,omitempty" json:"args,omitempty"`
 	Watcher            Watcher  `yaml:"watcher" json:"watcher"`
-	Streams            Streams  `yaml:"streams" json:"streams"`
+	Streams            Streams  `yaml:"streams,omitempty" json:"streams,omitempty"`
 	Buffer             Buffer   `yaml:"-" json:"buffer"`
-	ErrorOutputPattern string   `yaml:"errorOutputPattern" json:"errorOutputPattern"`
+	ErrorOutputPattern string   `yaml:"errorOutputPattern,omitempty" json:"errorOutputPattern,omitempty"`
 	parent             *Blueprint
 	path               string
 	tools              tools
@@ -92,7 +92,6 @@ type Command struct {
 
 // Streams is a collection of names and values for the logs functionality
 type Streams struct {
-	CliOut  bool `yaml:"cli_out" json:"cli_out"`
 	FileOut bool `yaml:"file_out" json:"file_out"`
 	FileLog bool `yaml:"file_log" json:"file_log"`
 	FileErr bool `yaml:"file_err" json:"file_err"`

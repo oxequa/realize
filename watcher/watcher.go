@@ -384,9 +384,6 @@ func (p *Project) print(t string, o BufferOut, msg string, stream string) {
 				p.Fatal(err, "")
 			}
 		}
-		if msg != "" && p.Streams.CliOut {
-			log.Print(msg)
-		}
 	case "log":
 		p.Buffer.StdLog = append(p.Buffer.StdLog, o)
 		if p.Streams.FileLog {

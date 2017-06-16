@@ -91,7 +91,6 @@ func (h *Blueprint) Add(p *cli.Context) error {
 			Scripts: []Command{},
 		},
 		Streams: Streams{
-			CliOut:  true,
 			FileOut: false,
 			FileLog: false,
 			FileErr: false,
@@ -170,7 +169,6 @@ func (h *Blueprint) List() error {
 				}
 			}
 			fmt.Println(name, style.Yellow.Regular("Streams"), ":")
-			fmt.Println(name, "\t", style.Yellow.Regular("Cli Out"), ":", style.Magenta.Regular(val.Streams.CliOut))
 			fmt.Println(name, "\t", style.Yellow.Regular("File Out"), ":", style.Magenta.Regular(val.Streams.FileOut))
 			fmt.Println(name, "\t", style.Yellow.Regular("File Log"), ":", style.Magenta.Regular(val.Streams.FileLog))
 			fmt.Println(name, "\t", style.Yellow.Regular("File Err"), ":", style.Magenta.Regular(val.Streams.FileErr))

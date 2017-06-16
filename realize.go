@@ -869,6 +869,24 @@ func main() {
 											return nil
 										},
 									},
+									{
+										Before: func(d interact.Context) error {
+											d.SetDef("", style.Green.Regular("(none)"))
+											return nil
+										},
+										Quest: interact.Quest{
+											Options: style.Yellow.Regular("[string]"),
+											Msg:     "Set an error output pattern",
+										},
+										Action: func(d interact.Context) interface{} {
+											val, err := d.Ans().String()
+											if err != nil {
+												return d.Err()
+											}
+											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].ErrorOutputPattern = val
+											return nil
+										},
+									},
 								},
 								Action: func(d interact.Context) interface{} {
 									if val, err := d.Ans().Bool(); err != nil {
