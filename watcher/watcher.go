@@ -3,19 +3,19 @@ package watcher
 import (
 	"errors"
 	"fmt"
+	"github.com/fsnotify/fsnotify"
+	"github.com/tockins/realize/style"
 	"log"
 	"math/big"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 	"sync"
 	"syscall"
 	"time"
-	"reflect"
-	"github.com/fsnotify/fsnotify"
-	"github.com/tockins/realize/style"
 )
 
 var msg string
@@ -285,8 +285,8 @@ func (p *Project) build() error {
 func (p *Project) tool(path string, tool tool) error {
 	if tool.status != nil {
 		v := reflect.ValueOf(tool.status).Elem()
-		if v.Interface().(bool) && (strings.HasSuffix(path, ".go") || strings.HasSuffix(path, ""))  {
-			if strings.HasSuffix(path, ".go"){
+		if v.Interface().(bool) && (strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "")) {
+			if strings.HasSuffix(path, ".go") {
 				tool.options = append(tool.options, path)
 				path = p.base
 			}

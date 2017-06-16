@@ -31,20 +31,20 @@ type Blueprint struct {
 
 // Project defines the informations of a single project
 type Project struct {
-	settings.Settings `yaml:"-"`
-	LastChangedOn     time.Time `yaml:"-" json:"-"`
-	base              string
-	Name              string   `yaml:"name" json:"name"`
-	Path              string   `yaml:"path" json:"path"`
-	Cmds              Cmds     `yaml:"cmds" json:"cmds"`
-	Args              []string `yaml:"args,omitempty" json:"args,omitempty"`
-	Watcher           Watcher  `yaml:"watcher" json:"watcher"`
-	Streams           Streams  `yaml:"streams" json:"streams"`
-	Buffer            Buffer   `yaml:"-" json:"buffer"`
+	settings.Settings  `yaml:"-"`
+	LastChangedOn      time.Time `yaml:"-" json:"-"`
+	base               string
+	Name               string   `yaml:"name" json:"name"`
+	Path               string   `yaml:"path" json:"path"`
+	Cmds               Cmds     `yaml:"commands" json:"commands"`
+	Args               []string `yaml:"args,omitempty" json:"args,omitempty"`
+	Watcher            Watcher  `yaml:"watcher" json:"watcher"`
+	Streams            Streams  `yaml:"streams" json:"streams"`
+	Buffer             Buffer   `yaml:"-" json:"buffer"`
 	ErrorOutputPattern string   `yaml:"errorOutputPattern" json:"errorOutputPattern"`
-	parent            *Blueprint
-	path              string
-	tools             tools
+	parent             *Blueprint
+	path               string
+	tools              tools
 }
 
 type tools struct {

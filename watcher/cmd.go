@@ -9,14 +9,14 @@ import (
 )
 
 // Run launches the toolchain for each project
-func (h *Blueprint) Run() error {
+func (h *Blueprint) Run(p *cli.Context) error {
 	err := h.check()
 	if err == nil {
 		// loop projects
 		wg.Add(len(h.Projects))
 		for k, element := range h.Projects {
 			tools := tools{}
-			if element.Cmds.Fmt {
+			if element.Cmds.Fmt{
 				tools.Fmt = tool{
 					status:  &h.Projects[k].Cmds.Fmt,
 					cmd:     "gofmt",
@@ -24,7 +24,7 @@ func (h *Blueprint) Run() error {
 					name:    "Go Fmt",
 				}
 			}
-			if element.Cmds.Generate {
+			if element.Cmds.Generate{
 				tools.Generate = tool{
 					status:  &h.Projects[k].Cmds.Generate,
 					cmd:     "go",
@@ -32,7 +32,7 @@ func (h *Blueprint) Run() error {
 					name:    "Go Generate",
 				}
 			}
-			if element.Cmds.Test {
+			if element.Cmds.Test{
 				tools.Test = tool{
 					status:  &h.Projects[k].Cmds.Test,
 					cmd:     "go",

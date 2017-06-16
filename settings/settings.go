@@ -3,7 +3,6 @@ package settings
 import (
 	"os"
 	"time"
-
 	yaml "gopkg.in/yaml.v2"
 )
 

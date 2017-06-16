@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"github.com/tockins/realize/style"
 	"log"
 	"os"
 	"os/exec"
@@ -12,7 +13,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"github.com/tockins/realize/style"
 )
 
 // GoRun  is an implementation of the bin execution

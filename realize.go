@@ -80,7 +80,6 @@ func main() {
 		if err := r.Read(&r); err != nil {
 			return err
 		}
-
 		// increase the file limit
 		if r.Config.Flimit != 0 {
 			if err := r.Flimit(); err != nil {
@@ -111,6 +110,7 @@ func main() {
 				Description: "Run a toolchain on a project or a list of projects. If not exist a config file it creates a new one",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "path", Aliases: []string{"p"}, Value: "", Usage: "Project base path."},
+					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "", Usage: "Run a project by its name."},
 					&cli.BoolFlag{Name: "test", Aliases: []string{"t"}, Value: false, Usage: "Enable go test."},
 					&cli.BoolFlag{Name: "generate", Aliases: []string{"g"}, Value: false, Usage: "Enable go generate."},
 					&cli.BoolFlag{Name: "build", Aliases: []string{"b"}, Value: false, Usage: "Enable go build."},
@@ -121,6 +121,14 @@ func main() {
 					&cli.BoolFlag{Name: "no-config", Aliases: []string{"nc"}, Value: false, Usage: "Ignore existing configurations."},
 				},
 				Action: func(p *cli.Context) error {
+					c := r
+					if p.String("name") != ""{
+						for index, project := range r.Blueprint.Projects{
+							if project.Name == p.String("name"){
+								c.Blueprint.Projects = []watcher.Project{r.Blueprint.Projects[index]}
+							}
+						}
+					}
 					if p.Bool("legacy") {
 						r.Config.Legacy = settings.Legacy{
 							Status:   p.Bool("legacy"),
@@ -136,13 +144,13 @@ func main() {
 							return err
 						}
 					}
-					if err := r.Server.Start(p); err != nil {
+					if err := c.Server.Start(p); err != nil {
 						return err
 					}
-					if err := r.Blueprint.Run(); err != nil {
+					if err := c.Blueprint.Run(p); err != nil {
 						return err
 					}
-					if err := r.Record(r); err != nil {
+					if err := r.Record(c); err != nil {
 						return err
 					}
 					return nil
