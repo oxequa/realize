@@ -88,6 +88,7 @@ type Command struct {
 	Type    string `yaml:"type" json:"type"`
 	Command string `yaml:"command" json:"command"`
 	Path    string `yaml:"path" json:"path"`
+	Changed bool   `yaml:"refresh" json:"refresh"`
 }
 
 // Streams is a collection of names and values for the logs functionality

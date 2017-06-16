@@ -88,12 +88,6 @@ func (h *Blueprint) Add(p *cli.Context) error {
 			Ignore:  []string{"vendor"},
 			Exts:    []string{".go"},
 			Preview: p.Bool("preview"),
-			Scripts: []Command{},
-		},
-		Streams: Streams{
-			FileOut: false,
-			FileLog: false,
-			FileErr: false,
 		},
 	}
 	if _, err := duplicates(project, h.Projects); err != nil {

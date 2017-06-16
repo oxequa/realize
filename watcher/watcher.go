@@ -21,6 +21,7 @@ import (
 var msg string
 var out BufferOut
 
+// Add a path to paths list
 func (w *pollWatcher) Add(path string) error {
 	if w.paths == nil {
 		w.paths = map[string]bool{}
@@ -29,6 +30,7 @@ func (w *pollWatcher) Add(path string) error {
 	return nil
 }
 
+// Check if is watching
 func (w *pollWatcher) isWatching(path string) bool {
 	a, b := w.paths[path]
 	return a && b
@@ -41,13 +43,9 @@ func (p *Project) watchByPolling() {
 	channel, exit := make(chan bool, 1), make(chan os.Signal, 2)
 	signal.Notify(exit, os.Interrupt, syscall.SIGTERM)
 	defer func() {
-		p.cmd("after")
 		wg.Done()
 	}()
-
-	p.cmd("before")
-	p.Fatal(p.watch(watcher))
-	go p.routines(channel, &wr)
+	go p.routines(&wr, channel, watcher, "")
 	p.LastChangedOn = time.Now().Truncate(time.Second)
 	walk := func(changed string, info os.FileInfo, err error) error {
 		var ext string
@@ -65,7 +63,6 @@ func (p *Project) watchByPolling() {
 		}
 		i := strings.Index(changed, filepath.Ext(changed))
 		file := changed[:i] + ext
-		path := filepath.Dir(changed[:i])
 		if changed[:i] != "" && inArray(ext, p.Watcher.Exts) {
 			if p.Cmds.Run {
 				close(channel)
@@ -76,13 +73,7 @@ func (p *Project) watchByPolling() {
 			msg = fmt.Sprintln(p.pname(p.Name, 4), ":", style.Magenta.Bold(strings.ToUpper(ext[1:])+" changed"), style.Magenta.Bold(file))
 			out = BufferOut{Time: time.Now(), Text: strings.ToUpper(ext[1:]) + " changed " + file}
 			p.print("log", out, msg, "")
-
-			p.cmd("change")
-			p.tool(file, p.tools.Fmt)
-			p.tool(file, p.tools.Vet)
-			p.tool(path, p.tools.Test)
-			p.tool(path, p.tools.Generate)
-			go p.routines(channel, &wr)
+			go p.routines(&wr, channel, watcher, file)
 		}
 		return nil
 	}
@@ -118,13 +109,9 @@ func (p *Project) watchByNotify() {
 	watcher, err := fsnotify.NewWatcher()
 	p.Fatal(err)
 	defer func() {
-		p.cmd("after")
 		wg.Done()
 	}()
-
-	p.cmd("before")
-	p.Fatal(p.watch(watcher))
-	go p.routines(channel, &wr)
+	go p.routines(&wr, channel, watcher, "")
 	p.LastChangedOn = time.Now().Truncate(time.Second)
 	for {
 		select {
@@ -142,7 +129,6 @@ func (p *Project) watchByNotify() {
 					}
 					i := strings.Index(event.Name, filepath.Ext(event.Name))
 					file := event.Name[:i] + ext
-					path := filepath.Dir(event.Name[:i])
 					if event.Name[:i] != "" && inArray(ext, p.Watcher.Exts) {
 						if p.Cmds.Run {
 							close(channel)
@@ -152,13 +138,7 @@ func (p *Project) watchByNotify() {
 						msg = fmt.Sprintln(p.pname(p.Name, 4), ":", style.Magenta.Bold(strings.ToUpper(ext[1:])+" changed"), style.Magenta.Bold(file))
 						out = BufferOut{Time: time.Now(), Text: strings.ToUpper(ext[1:]) + " changed " + file}
 						p.print("log", out, msg, "")
-
-						p.cmd("change")
-						p.tool(file, p.tools.Fmt)
-						p.tool(path, p.tools.Vet)
-						p.tool(path, p.tools.Test)
-						p.tool(path, p.tools.Generate)
-						go p.routines(channel, &wr)
+						go p.routines(&wr, channel, watcher, file)
 						p.LastChangedOn = time.Now().Truncate(time.Second)
 					}
 				}
@@ -302,9 +282,9 @@ func (p *Project) tool(path string, tool tool) error {
 }
 
 // Cmd calls an wrapper for execute the commands after/before
-func (p *Project) cmd(flag string) {
+func (p *Project) cmd(flag string, changed bool) {
 	for _, cmd := range p.Watcher.Scripts {
-		if strings.ToLower(cmd.Type) == flag {
+		if strings.ToLower(cmd.Type) == flag && changed == cmd.Changed {
 			errors, logs := p.command(cmd)
 			msg = fmt.Sprintln(p.pname(p.Name, 5), ":", style.Green.Bold("Command"), style.Green.Bold("\"")+cmd.Command+style.Green.Bold("\""))
 			out = BufferOut{Time: time.Now(), Text: cmd.Command, Type: flag}
@@ -339,7 +319,18 @@ func (p *Project) ignore(str string) bool {
 }
 
 // Routines launches the toolchain run, build, install
-func (p *Project) routines(channel chan bool, wr *sync.WaitGroup) {
+func (p *Project) routines(wr *sync.WaitGroup,channel chan bool, watcher watcher, file string) {
+	if len(file) > 0{
+		p.cmd("before", true)
+		path := filepath.Dir(file)
+		p.tool(file, p.tools.Fmt)
+		p.tool(path, p.tools.Vet)
+		p.tool(path, p.tools.Test)
+		p.tool(path, p.tools.Generate)
+	}else{
+		p.cmd("before", false)
+		p.Fatal(p.watch(watcher))
+	}
 	install := p.install()
 	build := p.build()
 	wr.Add(1)
@@ -347,6 +338,11 @@ func (p *Project) routines(channel chan bool, wr *sync.WaitGroup) {
 		go p.run(channel, wr)
 	}
 	wr.Wait()
+	if len(file) > 0 {
+		p.cmd("after", true)
+	}else{
+		p.cmd("after", false)
+	}
 }
 
 // Defines the colors scheme for the project name
