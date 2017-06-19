@@ -48,9 +48,9 @@ func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 		build = exec.Command(path, args...)
 	} else {
 		if _, err := os.Stat(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.path))); err == nil {
-			build = exec.Command(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.path)), params...)
+			build = exec.Command(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.path)), args...)
 		} else if _, err := os.Stat(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.path)) + ".exe"); err == nil {
-			build = exec.Command(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.path))+".exe", params...)
+			build = exec.Command(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.path))+".exe", args...)
 		} else {
 			p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Can't run a not compiled project"})
 			p.Fatal(err, "Can't run a not compiled project", ":")
