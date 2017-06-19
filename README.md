@@ -178,7 +178,7 @@ $ go get github.com/tockins/realize
             - type: before         // type 
               command: ./ls -l     // command
               changed: true        // relaunch when a file changes 
-              startuo: true        // launch at start
+              startup: true        // launch at start
             - type: after
               command: ./ls
               changed: true
