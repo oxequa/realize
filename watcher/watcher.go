@@ -3,19 +3,19 @@ package watcher
 import (
 	"errors"
 	"fmt"
+	"github.com/fsnotify/fsnotify"
+	"github.com/tockins/realize/style"
 	"log"
 	"math/big"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 	"sync"
 	"syscall"
 	"time"
-
-	"github.com/fsnotify/fsnotify"
-	"github.com/tockins/realize/style"
 )
 
 var msg string
@@ -67,7 +67,7 @@ func (p *Project) watchByPolling() {
 		file := changed[:i] + ext
 		path := filepath.Dir(changed[:i])
 		if changed[:i] != "" && inArray(ext, p.Watcher.Exts) {
-			if p.Run {
+			if p.Cmds.Run {
 				close(channel)
 				channel = make(chan bool)
 			}
@@ -78,9 +78,10 @@ func (p *Project) watchByPolling() {
 			p.print("log", out, msg, "")
 
 			p.cmd("change")
-			p.fmt(file)
-			p.test(path)
-			p.generate(path)
+			p.tool(file, p.tools.Fmt)
+			p.tool(file, p.tools.Vet)
+			p.tool(path, p.tools.Test)
+			p.tool(path, p.tools.Generate)
 			go p.routines(channel, &wr)
 		}
 		return nil
@@ -143,21 +144,22 @@ func (p *Project) watchByNotify() {
 					file := event.Name[:i] + ext
 					path := filepath.Dir(event.Name[:i])
 					if event.Name[:i] != "" && inArray(ext, p.Watcher.Exts) {
-						if p.Run {
+						if p.Cmds.Run {
 							close(channel)
 							channel = make(chan bool)
 						}
-						p.LastChangedOn = time.Now().Truncate(time.Second)
 						// repeat the initial cycle
 						msg = fmt.Sprintln(p.pname(p.Name, 4), ":", style.Magenta.Bold(strings.ToUpper(ext[1:])+" changed"), style.Magenta.Bold(file))
 						out = BufferOut{Time: time.Now(), Text: strings.ToUpper(ext[1:]) + " changed " + file}
 						p.print("log", out, msg, "")
 
 						p.cmd("change")
-						p.fmt(file)
-						p.test(path)
-						p.generate(path)
+						p.tool(file, p.tools.Fmt)
+						p.tool(path, p.tools.Vet)
+						p.tool(path, p.tools.Test)
+						p.tool(path, p.tools.Generate)
 						go p.routines(channel, &wr)
+						p.LastChangedOn = time.Now().Truncate(time.Second)
 					}
 				}
 			}
@@ -186,11 +188,12 @@ func (p *Project) watch(watcher watcher) error {
 				}
 				if inArray(filepath.Ext(path), p.Watcher.Exts) {
 					files++
-					p.fmt(path)
+					p.tool(path, p.tools.Fmt)
 				} else {
 					folders++
-					p.generate(path)
-					p.test(path)
+					p.tool(path, p.tools.Vet)
+					p.tool(path, p.tools.Test)
+					p.tool(path, p.tools.Generate)
 				}
 			}
 		}
@@ -222,7 +225,7 @@ func (p *Project) watch(watcher watcher) error {
 
 // Install calls an implementation of "go install"
 func (p *Project) install() error {
-	if p.Bin {
+	if p.Cmds.Bin.Status {
 		start := time.Now()
 		log.Println(p.pname(p.Name, 1), ":", "Installing..")
 		stream, err := p.goInstall()
@@ -242,7 +245,7 @@ func (p *Project) install() error {
 
 // Install calls an implementation of "go run"
 func (p *Project) run(channel chan bool, wr *sync.WaitGroup) {
-	if p.Run {
+	if p.Cmds.Run {
 		start := time.Now()
 		runner := make(chan bool, 1)
 		log.Println(p.pname(p.Name, 1), ":", "Running..")
@@ -261,7 +264,7 @@ func (p *Project) run(channel chan bool, wr *sync.WaitGroup) {
 
 // Build calls an implementation of the "go build"
 func (p *Project) build() error {
-	if p.Build {
+	if p.Cmds.Build.Status {
 		start := time.Now()
 		log.Println(p.pname(p.Name, 1), ":", "Building..")
 		stream, err := p.goBuild()
@@ -279,40 +282,20 @@ func (p *Project) build() error {
 	return nil
 }
 
-// Fmt calls an implementation of the "go fmt"
-func (p *Project) fmt(path string) error {
-	if p.Fmt && strings.HasSuffix(path, ".go") {
-		if stream, err := p.goTools(p.base, "gofmt", "-s", "-w", "-e", path); err != nil {
-			msg = fmt.Sprintln(p.pname(p.Name, 2), ":", style.Red.Bold("Go Fmt"), style.Red.Regular("there are some errors in"), ":", style.Magenta.Bold(path))
-			out = BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Fmt", Stream: stream}
-			p.print("error", out, msg, stream)
-			return err
-		}
-	}
-	return nil
-}
-
-// Generate calls an implementation of the "go generate"
-func (p *Project) generate(path string) error {
-	if p.Generate {
-		if stream, err := p.goTools(path, "go", "generate"); err != nil {
-			msg = fmt.Sprintln(p.pname(p.Name, 2), ":", style.Red.Bold("Go Generate"), style.Red.Regular("there are some errors in"), ":", style.Magenta.Bold(path))
-			out = BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Generate", Stream: stream}
-			p.print("error", out, msg, stream)
-			return err
-		}
-	}
-	return nil
-}
-
-// Test calls an implementation of the "go test"
-func (p *Project) test(path string) error {
-	if p.Test {
-		if stream, err := p.goTools(path, "go", "test"); err != nil {
-			msg = fmt.Sprintln(p.pname(p.Name, 2), ":", style.Red.Bold("Go Test"), style.Red.Regular("there are some errors in "), ":", style.Magenta.Bold(path))
-			out = BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: "Go Test", Stream: stream}
-			p.print("error", out, msg, stream)
-			return err
+func (p *Project) tool(path string, tool tool) error {
+	if tool.status != nil {
+		v := reflect.ValueOf(tool.status).Elem()
+		if v.Interface().(bool) && (strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "")) {
+			if strings.HasSuffix(path, ".go") {
+				tool.options = append(tool.options, path)
+				path = p.base
+			}
+			if stream, err := p.goTools(path, tool.cmd, tool.options...); err != nil {
+				msg = fmt.Sprintln(p.pname(p.Name, 2), ":", style.Red.Bold(tool.name), style.Red.Regular("there are some errors in"), ":", style.Magenta.Bold(path))
+				out = BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: tool.name, Stream: stream}
+				p.print("error", out, msg, stream)
+				return err
+			}
 		}
 	}
 	return nil
