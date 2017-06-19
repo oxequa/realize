@@ -65,6 +65,7 @@ $ go get github.com/tockins/realize
     The Run command supports the following custom parameters:
     
     ```
+    --name="name"               -> Run by name on existing configuration
     --path="realize/server"     -> Custom Path, if not specified takes the working directory name    
     --build                     -> Enable go build   
     --no-run                    -> Disable go run
@@ -135,52 +136,6 @@ $ go get github.com/tockins/realize
 - #### Config sample
     
     For more examples check [Realize Examples](https://github.com/tockins/realize-examples)
-    
-         ```
-         settings:
-           legacy:                
-             status: true           // legacy watch status
-             interval: 10s          // polling interval
-           resources:               // files names related to streams
-             outputs: outputs.log   
-             logs: logs.log         
-             errors: errors.log
-           server:                  
-             status: true           // server status         
-             open: false            // auto open in browser on start
-             host: localhost        // server host  
-             port: 5001             // server port
-         projects:
-         - name: realize    
-           path: .                  // project path
-           fmt: true                
-           generate: false
-           test: false
-           bin: true
-           build: false
-           run: false
-           params:                  // additional params
-           - --myarg
-           watcher:
-             preview: false         // wached files preview
-             paths:                 // paths to watch
-             - /
-             ignore_paths:          // paths to ignore
-             - vendor
-             exts:                  // exts to watch
-             - .go
-             scripts:               // custom commands after/before
-             - type: after          // type after/before
-               command: go run mycmd after  // command
-               path: ""             //  run from a custom path or from the working dir
-           streams:                 // enable/disable streams 
-             cli_out: true
-             file_out: false
-             file_log: false
-             file_err: false
-    
-        ```                      
-    This is the configuration used for develop realize   
     
         ```
         settings:
