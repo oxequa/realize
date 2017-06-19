@@ -3,6 +3,8 @@ package watcher
 import (
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/tockins/realize/style"
@@ -45,4 +47,14 @@ func inArray(str string, list []string) bool {
 // Rewrite the layout of the log timestamp
 func (w logWriter) Write(bytes []byte) (int, error) {
 	return fmt.Print(style.Yellow.Regular("[") + time.Now().Format("15:04:05") + style.Yellow.Regular("]") + string(bytes))
+}
+
+// getEnvPath returns the first path found in env or empty string
+func getEnvPath(env string) string {
+	path := filepath.SplitList(os.Getenv(env))
+	if len(path) == 0 {
+		return ""
+	} else {
+		return path[0]
+	}
 }

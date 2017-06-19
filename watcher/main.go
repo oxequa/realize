@@ -1,11 +1,10 @@
 package watcher
 
 import (
+	"github.com/tockins/realize/settings"
 	"log"
 	"sync"
 	"time"
-
-	"github.com/tockins/realize/settings"
 )
 
 var wg sync.WaitGroup
@@ -21,8 +20,7 @@ type pollWatcher struct {
 }
 
 // Log struct
-type logWriter struct {
-}
+type logWriter struct{}
 
 // Blueprint struct contains a projects list
 type Blueprint struct {
@@ -33,23 +31,47 @@ type Blueprint struct {
 
 // Project defines the informations of a single project
 type Project struct {
-	settings.Settings `yaml:"-"`
-	LastChangedOn     time.Time `yaml:"-" json:"-"`
-	base              string
-	Name              string   `yaml:"name" json:"name"`
-	Path              string   `yaml:"path" json:"path"`
-	Fmt               bool     `yaml:"fmt" json:"fmt"`
-	Generate          bool     `yaml:"generate" json:"generate"`
-	Test              bool     `yaml:"test" json:"test"`
-	Bin               bool     `yaml:"bin" json:"bin"`
-	Build             bool     `yaml:"build" json:"build"`
-	Run               bool     `yaml:"run" json:"run"`
-	Params            []string `yaml:"params,omitempty" json:"params,omitempty"`
-	Watcher           Watcher  `yaml:"watcher" json:"watcher"`
-	Streams           Streams  `yaml:"streams" json:"streams"`
-	Buffer            Buffer   `yaml:"-" json:"buffer"`
-	parent            *Blueprint
-	path              string
+	settings.Settings  `yaml:"-"`
+	LastChangedOn      time.Time `yaml:"-" json:"-"`
+	base               string
+	Name               string   `yaml:"name" json:"name"`
+	Path               string   `yaml:"path" json:"path"`
+	Cmds               Cmds     `yaml:"commands" json:"commands"`
+	Args               []string `yaml:"args,omitempty" json:"args,omitempty"`
+	Watcher            Watcher  `yaml:"watcher" json:"watcher"`
+	Streams            Streams  `yaml:"streams,omitempty" json:"streams,omitempty"`
+	Buffer             Buffer   `yaml:"-" json:"buffer"`
+	ErrorOutputPattern string   `yaml:"errorOutputPattern,omitempty" json:"errorOutputPattern,omitempty"`
+	parent             *Blueprint
+	path               string
+	tools              tools
+}
+
+type tools struct {
+	Fmt, Test, Generate, Vet tool
+}
+
+type tool struct {
+	status  *bool
+	cmd     string
+	options []string
+	name    string
+}
+
+type Cmds struct {
+	Vet      bool `yaml:"vet" json:"vet"`
+	Fmt      bool `yaml:"fmt" json:"fmt"`
+	Test     bool `yaml:"test" json:"test"`
+	Generate bool `yaml:"generate" json:"generate"`
+	Bin      Cmd  `yaml:"bin" json:"bin"`
+	Build    Cmd  `yaml:"build" json:"build"`
+	Run      bool `yaml:"run" json:"run"`
+}
+
+// Buildmode options
+type Cmd struct {
+	Status bool     `yaml:"status" json:"status"`
+	Args   []string `yaml:"args,omitempty" json:"args,omitempty"`
 }
 
 // Watcher struct defines the livereload's logic
@@ -65,12 +87,13 @@ type Watcher struct {
 type Command struct {
 	Type    string `yaml:"type" json:"type"`
 	Command string `yaml:"command" json:"command"`
-	Path    string `yaml:"path" json:"path"`
+	Path    string `yaml:"path,omitempty" json:"path,omitempty"`
+	Changed bool   `yaml:"changed,omitempty" json:"changed,omitempty"`
+	Startup bool   `yaml:"startup,omitempty" json:"startup,omitempty"`
 }
 
 // Streams is a collection of names and values for the logs functionality
 type Streams struct {
-	CliOut  bool `yaml:"cli_out" json:"cli_out"`
 	FileOut bool `yaml:"file_out" json:"file_out"`
 	FileLog bool `yaml:"file_log" json:"file_log"`
 	FileErr bool `yaml:"file_err" json:"file_err"`

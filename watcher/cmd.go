@@ -3,19 +3,52 @@ package watcher
 import (
 	"errors"
 	"fmt"
-	"strings"
-
 	"github.com/tockins/realize/style"
 	cli "gopkg.in/urfave/cli.v2"
+	"strings"
 )
 
 // Run launches the toolchain for each project
-func (h *Blueprint) Run() error {
+func (h *Blueprint) Run(p *cli.Context) error {
 	err := h.check()
 	if err == nil {
 		// loop projects
 		wg.Add(len(h.Projects))
-		for k := range h.Projects {
+		for k, element := range h.Projects {
+			tools := tools{}
+			if element.Cmds.Fmt{
+				tools.Fmt = tool{
+					status:  &h.Projects[k].Cmds.Fmt,
+					cmd:     "gofmt",
+					options: []string{"-s", "-w", "-e"},
+					name:    "Go Fmt",
+				}
+			}
+			if element.Cmds.Generate{
+				tools.Generate = tool{
+					status:  &h.Projects[k].Cmds.Generate,
+					cmd:     "go",
+					options: []string{"generate"},
+					name:    "Go Generate",
+				}
+			}
+			if element.Cmds.Test{
+				tools.Test = tool{
+					status:  &h.Projects[k].Cmds.Test,
+					cmd:     "go",
+					options: []string{"test"},
+					name:    "Go Test",
+				}
+			}
+			if element.Cmds.Vet {
+				tools.Vet = tool{
+					status:  &h.Projects[k].Cmds.Vet,
+					cmd:     "go",
+					options: []string{"vet"},
+					name:    "Go Vet",
+				}
+			}
+			h.Projects[k].tools = tools
 			h.Projects[k].parent = h
 			h.Projects[k].path = h.Projects[k].Path
 			if h.Legacy.Status {
@@ -33,27 +66,28 @@ func (h *Blueprint) Run() error {
 // Add a new project
 func (h *Blueprint) Add(p *cli.Context) error {
 	project := Project{
-		Name:     h.Name(p.String("name"), p.String("path")),
-		Path:     h.Path(p.String("path")),
-		Fmt:      !p.Bool("no-fmt"),
-		Generate: p.Bool("generate"),
-		Test:     p.Bool("test"),
-		Build:    p.Bool("build"),
-		Bin:      !p.Bool("no-bin"),
-		Run:      !p.Bool("no-run"),
-		Params:   argsParam(p),
+		Name: h.Name(p.String("name"), p.String("path")),
+		Path: h.Path(p.String("path")),
+		Cmds: Cmds{
+
+			Vet:      p.Bool("vet"),
+			Fmt:      !p.Bool("no-fmt"),
+			Test:     p.Bool("test"),
+			Generate: p.Bool("generate"),
+			Build: Cmd{
+				Status: p.Bool("build"),
+			},
+			Bin: Cmd{
+				Status: !p.Bool("no-bin"),
+			},
+			Run: !p.Bool("no-run"),
+		},
+		Args: argsParam(p),
 		Watcher: Watcher{
 			Paths:   []string{"/"},
 			Ignore:  []string{"vendor"},
 			Exts:    []string{".go"},
 			Preview: p.Bool("preview"),
-			Scripts: []Command{},
-		},
-		Streams: Streams{
-			CliOut:  true,
-			FileOut: false,
-			FileLog: false,
-			FileErr: false,
 		},
 	}
 	if _, err := duplicates(project, h.Projects); err != nil {
@@ -94,14 +128,14 @@ func (h *Blueprint) List() error {
 			name := style.Magenta.Bold("[") + strings.ToUpper(val.Name) + style.Magenta.Bold("]")
 
 			fmt.Println(name, style.Yellow.Regular("Base Path"), ":", style.Magenta.Regular(val.Path))
-			fmt.Println(name, style.Yellow.Regular("Fmt"), ":", style.Magenta.Regular(val.Fmt))
-			fmt.Println(name, style.Yellow.Regular("Generate"), ":", style.Magenta.Regular(val.Generate))
-			fmt.Println(name, style.Yellow.Regular("Test"), ":", style.Magenta.Regular(val.Test))
-			fmt.Println(name, style.Yellow.Regular("Install"), ":", style.Magenta.Regular(val.Bin))
-			fmt.Println(name, style.Yellow.Regular("Build"), ":", style.Magenta.Regular(val.Build))
-			fmt.Println(name, style.Yellow.Regular("Run"), ":", style.Magenta.Regular(val.Run))
-			if len(val.Params) > 0 {
-				fmt.Println(name, style.Yellow.Regular("Params"), ":", style.Magenta.Regular(val.Params))
+			fmt.Println(name, style.Yellow.Regular("Fmt"), ":", style.Magenta.Regular(val.Cmds.Fmt))
+			fmt.Println(name, style.Yellow.Regular("Generate"), ":", style.Magenta.Regular(val.Cmds.Generate))
+			fmt.Println(name, style.Yellow.Regular("Test"), ":", style.Magenta.Regular(val.Cmds.Test))
+			fmt.Println(name, style.Yellow.Regular("Install"), ":", style.Magenta.Regular(val.Cmds.Bin))
+			fmt.Println(name, style.Yellow.Regular("Build"), ":", style.Magenta.Regular(val.Cmds.Build))
+			fmt.Println(name, style.Yellow.Regular("Run"), ":", style.Magenta.Regular(val.Cmds.Run))
+			if len(val.Args) > 0 {
+				fmt.Println(name, style.Yellow.Regular("Params"), ":", style.Magenta.Regular(val.Args))
 			}
 			fmt.Println(name, style.Yellow.Regular("Watcher"), ":")
 			fmt.Println(name, "\t", style.Yellow.Regular("Preview"), ":", style.Magenta.Regular(val.Watcher.Preview))
@@ -129,7 +163,6 @@ func (h *Blueprint) List() error {
 				}
 			}
 			fmt.Println(name, style.Yellow.Regular("Streams"), ":")
-			fmt.Println(name, "\t", style.Yellow.Regular("Cli Out"), ":", style.Magenta.Regular(val.Streams.CliOut))
 			fmt.Println(name, "\t", style.Yellow.Regular("File Out"), ":", style.Magenta.Regular(val.Streams.FileOut))
 			fmt.Println(name, "\t", style.Yellow.Regular("File Log"), ":", style.Magenta.Regular(val.Streams.FileLog))
 			fmt.Println(name, "\t", style.Yellow.Regular("File Err"), ":", style.Magenta.Regular(val.Streams.FileErr))
