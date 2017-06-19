@@ -34,10 +34,10 @@ func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 	if path != "" {
 		build = exec.Command(path, params...)
 	} else {
-		if _, err := os.Stat(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.path))); err == nil {
-			build = exec.Command(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.path)), params...)
-		} else if _, err := os.Stat(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.path)) + ".exe"); err == nil {
-			build = exec.Command(filepath.Join(os.Getenv("GOBIN"), filepath.Base(p.path))+".exe", params...)
+		if _, err := os.Stat(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.path))); err == nil {
+			build = exec.Command(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.path)), params...)
+		} else if _, err := os.Stat(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.path)) + ".exe"); err == nil {
+			build = exec.Command(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.path))+".exe", params...)
 		} else {
 			p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Can't run a not compiled project"})
 			p.Fatal(err, "Can't run a not compiled project", ":")
@@ -116,7 +116,7 @@ func (p *Project) goBuild() (string, error) {
 func (p *Project) goInstall() (string, error) {
 	var out bytes.Buffer
 	var stderr bytes.Buffer
-	err := os.Setenv("GOBIN", filepath.Join(os.Getenv("GOPATH"), "bin"))
+	err := os.Setenv("GOBIN", filepath.Join(getEnvPath("GOPATH"), "bin"))
 	if err != nil {
 		return "", err
 	}
