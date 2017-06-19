@@ -87,8 +87,9 @@ type Watcher struct {
 type Command struct {
 	Type    string `yaml:"type" json:"type"`
 	Command string `yaml:"command" json:"command"`
-	Path    string `yaml:"path" json:"path"`
-	Changed bool   `yaml:"refresh" json:"refresh"`
+	Path    string `yaml:"path,omitempty" json:"path,omitempty"`
+	Changed bool   `yaml:"changed,omitempty" json:"changed,omitempty"`
+	Startup bool   `yaml:"startup,omitempty" json:"startup,omitempty"`
 }
 
 // Streams is a collection of names and values for the logs functionality

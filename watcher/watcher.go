@@ -93,6 +93,7 @@ func (p *Project) watchByPolling() {
 			}
 			select {
 			case <-exit:
+				p.cmd("after", false)
 				return
 			case <-time.After(p.parent.Legacy.Interval / time.Duration(len(p.Watcher.Paths))):
 			}
@@ -148,6 +149,7 @@ func (p *Project) watchByNotify() {
 			out = BufferOut{Time: time.Now(), Text: err.Error()}
 			p.print("error", out, msg, "")
 		case <-exit:
+			p.cmd("after", false)
 			return
 		}
 	}
@@ -284,25 +286,27 @@ func (p *Project) tool(path string, tool tool) error {
 // Cmd calls an wrapper for execute the commands after/before
 func (p *Project) cmd(flag string, changed bool) {
 	for _, cmd := range p.Watcher.Scripts {
-		if strings.ToLower(cmd.Type) == flag && changed == cmd.Changed {
-			errors, logs := p.command(cmd)
-			msg = fmt.Sprintln(p.pname(p.Name, 5), ":", style.Green.Bold("Command"), style.Green.Bold("\"")+cmd.Command+style.Green.Bold("\""))
-			out = BufferOut{Time: time.Now(), Text: cmd.Command, Type: flag}
-			if logs != "" {
-				p.print("log", out, msg, "")
-			}
-			if errors != "" {
-				p.print("error", out, msg, "")
-			}
-			if logs != "" {
-				msg = fmt.Sprintln(logs)
-				out = BufferOut{Time: time.Now(), Text: logs, Type: flag}
-				p.print("log", out, "", msg)
-			}
-			if errors != "" {
-				msg = fmt.Sprintln(style.Red.Regular(errors))
-				out = BufferOut{Time: time.Now(), Text: errors, Type: flag}
-				p.print("error", out, "", msg)
+		if strings.ToLower(cmd.Type) == flag{
+			if changed && cmd.Changed || !changed && cmd.Startup {
+				errors, logs := p.command(cmd)
+				msg = fmt.Sprintln(p.pname(p.Name, 5), ":", style.Green.Bold("Command"), style.Green.Bold("\"") + cmd.Command + style.Green.Bold("\""))
+				out = BufferOut{Time: time.Now(), Text: cmd.Command, Type: flag}
+				if logs != "" {
+					p.print("log", out, msg, "")
+				}
+				if errors != "" {
+					p.print("error", out, msg, "")
+				}
+				if logs != "" {
+					msg = fmt.Sprintln(logs)
+					out = BufferOut{Time: time.Now(), Text: logs, Type: flag}
+					p.print("log", out, "", msg)
+				}
+				if errors != "" {
+					msg = fmt.Sprintln(style.Red.Regular(errors))
+					out = BufferOut{Time: time.Now(), Text: errors, Type: flag}
+					p.print("error", out, "", msg)
+				}
 			}
 		}
 	}
@@ -320,14 +324,14 @@ func (p *Project) ignore(str string) bool {
 
 // Routines launches the toolchain run, build, install
 func (p *Project) routines(wr *sync.WaitGroup,channel chan bool, watcher watcher, file string) {
-	if len(file) > 0{
+	if len(file) > 0 {
 		p.cmd("before", true)
 		path := filepath.Dir(file)
 		p.tool(file, p.tools.Fmt)
 		p.tool(path, p.tools.Vet)
 		p.tool(path, p.tools.Test)
 		p.tool(path, p.tools.Generate)
-	}else{
+	} else {
 		p.cmd("before", false)
 		p.Fatal(p.watch(watcher))
 	}
@@ -340,9 +344,8 @@ func (p *Project) routines(wr *sync.WaitGroup,channel chan bool, watcher watcher
 	wr.Wait()
 	if len(file) > 0 {
 		p.cmd("after", true)
-	}else{
-		p.cmd("after", false)
 	}
+
 }
 
 // Defines the colors scheme for the project name
