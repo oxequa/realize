@@ -163,6 +163,8 @@ $ go get github.com/tockins/realize
               status: true
             build:
               status: false
+              args:
+                - -race
             run: true
           args:
             - --myarg
@@ -183,10 +185,10 @@ $ go get github.com/tockins/realize
               command: ./ls
               changed: true
           streams:                 // enable/disable streams 
-                 cli_out: true
-                 file_out: false
-                 file_log: false
-                 file_err: false    
+             cli_out: true
+             file_out: false
+             file_log: false
+             file_err: false    
 
         ```                    
 
