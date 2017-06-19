@@ -184,44 +184,55 @@ $ go get github.com/tockins/realize
     
         ```
         settings:
-          resources:
+         legacy:                
+           status: true           // legacy watch status
+           interval: 10s          // polling interval
+          resources:              // files names related to streams
             outputs: outputs.log
             logs: logs.log
             errors: errors.log
           server:
-            status: false
-            open: false
-            host: localhost
-            port: 5001
+            status: false         // server status 
+            open: false           // open browser at start  
+            host: localhost       // server host
+            port: 5001            // server port  
         projects:
-        - name: realize
-          path: /Users/alessio/go/src/github.com/tockins/realize
-          fmt: true
-          generate: false
-          test: false
-          bin: true
-          build: false
-          run: false
+        - name: coin
+          path: coin              // project path
+          commands: 
+            vet: true
+            fmt: true
+            test: false
+            generate: false
+            bin:
+              status: true
+            build:
+              status: false
+            run: true
+          args:
+            - --myarg
           watcher:
-            preview: false
-            paths:
+            preview: false         // watched files preview
+            paths:                 // watched paths 
             - /
-            ignore_paths:
-            - server/assets
-            exts:
+            ignore_paths:          // ignored paths 
+            - vendor
+            exts:                  // watched extensions
             - .go
             scripts:
-            - type: before
-              command: go-bindata -pkg="server" assets/...
-              path: server
+            - type: before         // type 
+              command: ./ls -l     // command
+              changed: true        // relaunch when a file changes 
+              startuo: true        // launch at start
             - type: after
-              command: go-bindata -pkg="server" assets/...
-              path: server
-          streams:
-            cli_out: true
-            file_out: false
-            file_log: false
-            file_err: false
+              command: ./ls
+              changed: true
+          streams:                 // enable/disable streams 
+                 cli_out: true
+                 file_out: false
+                 file_log: false
+                 file_err: false    
+
         ```                    
 
 
