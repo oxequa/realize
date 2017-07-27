@@ -121,37 +121,31 @@ func main() {
 					&cli.BoolFlag{Name: "no-config", Aliases: []string{"nc"}, Value: false, Usage: "Ignore existing configurations."},
 				},
 				Action: func(p *cli.Context) error {
-					c := r
-					if p.String("name") != "" {
-						for index, project := range r.Blueprint.Projects {
-							if project.Name == p.String("name") {
-								c.Blueprint.Projects = []watcher.Project{r.Blueprint.Projects[index]}
-							}
-						}
-					}
 					if p.Bool("legacy") {
-						c.Config.Legacy = settings.Legacy{
+						r.Config.Legacy = settings.Legacy{
 							Status:   p.Bool("legacy"),
 							Interval: interval,
 						}
 					}
-					if p.Bool("no-config") || len(c.Blueprint.Projects) <= 0 {
+					if p.Bool("no-config") || len(r.Blueprint.Projects) <= 0 {
 						if p.Bool("no-config") {
-							c.Config.Create = false
+							r.Config.Create = false
 						}
-						c.Blueprint.Projects = []watcher.Project{}
-						if err := c.Blueprint.Add(p); err != nil {
+						r.Blueprint.Projects = []watcher.Project{}
+						if err := r.Blueprint.Add(p); err != nil {
 							return err
 						}
 					}
-					if err := c.Server.Start(p); err != nil {
+					if err := r.Server.Start(p); err != nil {
 						return err
 					}
-					if err := c.Blueprint.Run(p); err != nil {
+					if err := r.Blueprint.Run(p); err != nil {
 						return err
 					}
-					if err := r.Record(c); err != nil {
-						return err
+					if !p.Bool("no-config") {
+						if err := r.Record(r); err != nil {
+							return err
+						}
 					}
 					return nil
 				},
