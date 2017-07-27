@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	appVersion = "1.3"
+	appVersion = "1.4.1"
 	config     = "realize.yaml"
 	outputs    = "outputs.log"
 	errs       = "errors.log"
