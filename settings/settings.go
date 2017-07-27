@@ -1,9 +1,9 @@
 package settings
 
 import (
+	yaml "gopkg.in/yaml.v2"
 	"os"
 	"time"
-	yaml "gopkg.in/yaml.v2"
 )
 
 var Dir = ".realize/"

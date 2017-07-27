@@ -16,7 +16,7 @@ func (h *Blueprint) Run(p *cli.Context) error {
 		wg.Add(len(h.Projects))
 		for k, element := range h.Projects {
 			tools := tools{}
-			if element.Cmds.Fmt{
+			if element.Cmds.Fmt {
 				tools.Fmt = tool{
 					status:  &h.Projects[k].Cmds.Fmt,
 					cmd:     "gofmt",
@@ -24,7 +24,7 @@ func (h *Blueprint) Run(p *cli.Context) error {
 					name:    "Go Fmt",
 				}
 			}
-			if element.Cmds.Generate{
+			if element.Cmds.Generate {
 				tools.Generate = tool{
 					status:  &h.Projects[k].Cmds.Generate,
 					cmd:     "go",
@@ -32,7 +32,7 @@ func (h *Blueprint) Run(p *cli.Context) error {
 					name:    "Go Generate",
 				}
 			}
-			if element.Cmds.Test{
+			if element.Cmds.Test {
 				tools.Test = tool{
 					status:  &h.Projects[k].Cmds.Test,
 					cmd:     "go",
@@ -178,5 +178,5 @@ func (h *Blueprint) check() error {
 		h.Clean()
 		return nil
 	}
-	return errors.New("there are no projects")
+	return errors.New("There are no projects")
 }

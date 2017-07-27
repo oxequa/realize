@@ -122,25 +122,25 @@ func main() {
 				},
 				Action: func(p *cli.Context) error {
 					c := r
-					if p.String("name") != ""{
-						for index, project := range r.Blueprint.Projects{
-							if project.Name == p.String("name"){
+					if p.String("name") != "" {
+						for index, project := range r.Blueprint.Projects {
+							if project.Name == p.String("name") {
 								c.Blueprint.Projects = []watcher.Project{r.Blueprint.Projects[index]}
 							}
 						}
 					}
 					if p.Bool("legacy") {
-						r.Config.Legacy = settings.Legacy{
+						c.Config.Legacy = settings.Legacy{
 							Status:   p.Bool("legacy"),
 							Interval: interval,
 						}
 					}
-					if p.Bool("no-config") || len(r.Blueprint.Projects) <= 0 {
+					if p.Bool("no-config") || len(c.Blueprint.Projects) <= 0 {
 						if p.Bool("no-config") {
-							r.Config.Create = false
+							c.Config.Create = false
 						}
-						r.Blueprint.Projects = []watcher.Project{}
-						if err := r.Blueprint.Add(p); err != nil {
+						c.Blueprint.Projects = []watcher.Project{}
+						if err := c.Blueprint.Add(p); err != nil {
 							return err
 						}
 					}

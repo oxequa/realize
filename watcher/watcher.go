@@ -286,10 +286,10 @@ func (p *Project) tool(path string, tool tool) error {
 // Cmd calls an wrapper for execute the commands after/before
 func (p *Project) cmd(flag string, changed bool) {
 	for _, cmd := range p.Watcher.Scripts {
-		if strings.ToLower(cmd.Type) == flag{
+		if strings.ToLower(cmd.Type) == flag {
 			if changed && cmd.Changed || !changed && cmd.Startup {
 				errors, logs := p.command(cmd)
-				msg = fmt.Sprintln(p.pname(p.Name, 5), ":", style.Green.Bold("Command"), style.Green.Bold("\"") + cmd.Command + style.Green.Bold("\""))
+				msg = fmt.Sprintln(p.pname(p.Name, 5), ":", style.Green.Bold("Command"), style.Green.Bold("\"")+cmd.Command+style.Green.Bold("\""))
 				out = BufferOut{Time: time.Now(), Text: cmd.Command, Type: flag}
 				if logs != "" {
 					p.print("log", out, msg, "")
@@ -323,7 +323,7 @@ func (p *Project) ignore(str string) bool {
 }
 
 // Routines launches the toolchain run, build, install
-func (p *Project) routines(wr *sync.WaitGroup,channel chan bool, watcher watcher, file string) {
+func (p *Project) routines(wr *sync.WaitGroup, channel chan bool, watcher watcher, file string) {
 	if len(file) > 0 {
 		p.cmd("before", true)
 		path := filepath.Dir(file)
