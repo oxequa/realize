@@ -37,17 +37,17 @@ v 1.5
 
 #### Wiki
 
-- [Getting Started](#installation-and-usage)
+- [Getting Started](#installation)
 - [Run cmd](#run) - Run a project
 - [Add cmd](#add) - Add a new project
 - [Init cmd](#init) - Make a custom config step by step
 - [Remove cmd](#remove) - Remove a project 
 - [List cmd](#list) - List the projects
 - [Config sample](#config-sample)
-- [Support](#support)
+- [Support](#support-us-and-suggest-an-improvement)
 
 
-- ##### Installation
+#### Installation
 Run this to get/install:
 ```
 $ go get github.com/tockins/realize
@@ -193,7 +193,7 @@ $ go get github.com/tockins/realize
         ```                    
 
 
-###### Support us and suggest an improvement
+#### Support us and suggest an improvement
 - Start the project
 - Chat with us [Gitter](https://gitter.im/tockins/realize)
 - Suggest a new [Feature](https://github.com/tockins/realize/issues/new)
