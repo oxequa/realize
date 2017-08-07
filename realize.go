@@ -22,7 +22,7 @@ const (
 	errs       = "errors.log"
 	logs       = "logs.log"
 	host       = "localhost"
-	port       = 5001
+	port       = 3001
 	interval   = 200
 )
 
