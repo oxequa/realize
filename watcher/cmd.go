@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/tockins/realize/style"
 	cli "gopkg.in/urfave/cli.v2"
+	"os"
 	"strings"
 )
 
@@ -51,6 +52,14 @@ func (h *Blueprint) Run(p *cli.Context) error {
 			h.Projects[k].tools = tools
 			h.Projects[k].parent = h
 			h.Projects[k].path = h.Projects[k].Path
+
+			// env variables
+			for key, item := range h.Projects[k].Environment {
+				if err := os.Setenv(key, item); err != nil{
+					h.Projects[k].Buffer.StdErr = append(h.Projects[k].Buffer.StdErr, err)
+				}
+			}
+
 			if h.Legacy.Status {
 				go h.Projects[k].watchByPolling()
 			} else {
