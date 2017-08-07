@@ -52,7 +52,14 @@ func render(c echo.Context, path string, mime int) error {
 
 // Start the web server
 func (s *Server) Start(p *cli.Context) (err error) {
-	if s.Server.Status || p.Bool("server") {
+	if p.Bool("server"){
+		s.Server.Status = p.Bool("server")
+	}
+	if p.Bool("open") {
+		s.Server.Open = p.Bool("open")
+	}
+
+	if s.Server.Status {
 		e := echo.New()
 		e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
 			Level: 2,
@@ -110,7 +117,7 @@ func (s *Server) Start(p *cli.Context) (err error) {
 		e.GET("/ws", s.projects)
 
 		go e.Start(string(s.Settings.Server.Host) + ":" + strconv.Itoa(s.Settings.Server.Port))
-		if s.Open || p.Bool("open") {
+		if s.Open {
 			_, err = Open("http://" + string(s.Settings.Server.Host) + ":" + strconv.Itoa(s.Settings.Server.Port))
 			if err != nil {
 				return err
