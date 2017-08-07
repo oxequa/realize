@@ -41,6 +41,9 @@ func render(c echo.Context, path string, mime int) error {
 	case 4:
 		rs.Header().Set(echo.HeaderContentType, "image/svg+xml")
 		break
+	case 5:
+		rs.Header().Set(echo.HeaderContentType, "image/png")
+		break
 	}
 	rs.WriteHeader(http.StatusOK)
 	rs.Write(data)
@@ -97,7 +100,7 @@ func (s *Server) Start(p *cli.Context) (err error) {
 			return render(c, "assets/assets/img/svg/logo.svg", 4)
 		})
 		e.GET("/assets/img/favicon-32x32.png", func(c echo.Context) error {
-			return render(c, "assets/assets/img/favicon-32x32.png", 4)
+			return render(c, "assets/assets/img/favicon-32x32.png", 5)
 		})
 		e.GET("/assets/img/svg/ic_swap_vertical_circle_black_48px.svg", func(c echo.Context) error {
 			return render(c, "assets/assets/img/svg/ic_swap_vertical_circle_black_48px.svg", 4)
