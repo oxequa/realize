@@ -7,6 +7,7 @@ import (
 	cli "gopkg.in/urfave/cli.v2"
 	"os"
 	"strings"
+	"time"
 )
 
 // Run launches the toolchain for each project
@@ -56,7 +57,7 @@ func (h *Blueprint) Run(p *cli.Context) error {
 			// env variables
 			for key, item := range h.Projects[k].Environment {
 				if err := os.Setenv(key, item); err != nil{
-					h.Projects[k].Buffer.StdErr = append(h.Projects[k].Buffer.StdErr, err)
+					h.Projects[k].Buffer.StdErr = append(h.Projects[k].Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error(), Type: "Env error", Stream: ""})
 				}
 			}
 
