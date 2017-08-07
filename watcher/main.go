@@ -36,7 +36,7 @@ type Project struct {
 	base               string
 	Name               string            `yaml:"name" json:"name"`
 	Path               string            `yaml:"path" json:"path"`
-	Environment        map[string]string `yaml:"environment" json:"environment"`
+	Environment        map[string]string `yaml:"environment,omitempty" json:"environment,omitempty"`
 	Cmds               Cmds              `yaml:"commands" json:"commands"`
 	Args               []string          `yaml:"args,omitempty" json:"args,omitempty"`
 	Watcher            Watcher           `yaml:"watcher" json:"watcher"`
