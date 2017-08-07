@@ -79,7 +79,6 @@ func (h *Blueprint) Add(p *cli.Context) error {
 		Name: h.Name(p.String("name"), p.String("path")),
 		Path: h.Path(p.String("path")),
 		Cmds: Cmds{
-
 			Vet:      p.Bool("vet"),
 			Fmt:      !p.Bool("no-fmt"),
 			Test:     p.Bool("test"),

@@ -52,7 +52,7 @@ func render(c echo.Context, path string, mime int) error {
 
 // Start the web server
 func (s *Server) Start(p *cli.Context) (err error) {
-	if p.Bool("server"){
+	if p.Bool("server") {
 		s.Server.Status = p.Bool("server")
 	}
 	if p.Bool("open") {
