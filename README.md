@@ -60,7 +60,7 @@ $ go get github.com/tockins/realize
     $ realize run
     ```
     
-    It will create a realize.yaml file if it doesn't exist already, adds the working directory as project and run the pipeline.
+    It will create a realize.yaml file if it doesn't exist already, add the working directory as project and run the pipeline.
     
     The Run command supports the following custom parameters:
     

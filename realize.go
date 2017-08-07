@@ -44,7 +44,6 @@ func main() {
 		if gopath == "" {
 			return errors.New("$GOPATH isn't set properly")
 		}
-
 		r = realize{
 			Sync: make(chan string),
 			Settings: settings.Settings{
