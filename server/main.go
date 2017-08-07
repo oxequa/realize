@@ -66,8 +66,8 @@ func (s *Server) Start(p *cli.Context) (err error) {
 		e.GET("/assets/css/app.css", func(c echo.Context) error {
 			return render(c, "assets/assets/css/app.css", 3)
 		})
-		e.GET("/app/components/projects/index.html", func(c echo.Context) error {
-			return render(c, "assets/app/components/projects/index.html", 1)
+		e.GET("/app/components/settings/index.html", func(c echo.Context) error {
+			return render(c, "assets/app/components/settings/index.html", 1)
 		})
 		e.GET("/app/components/project/index.html", func(c echo.Context) error {
 			return render(c, "assets/app/components/project/index.html", 1)
@@ -75,11 +75,29 @@ func (s *Server) Start(p *cli.Context) (err error) {
 		e.GET("/app/components/index.html", func(c echo.Context) error {
 			return render(c, "assets/app/components/index.html", 1)
 		})
-		e.GET("/assets/img/svg/github-logo.svg", func(c echo.Context) error {
-			return render(c, "assets/assets/img/svg/github-logo.svg", 4)
+		e.GET("/assets/img/svg/ic_settings_black_24px.svg", func(c echo.Context) error {
+			return render(c, "assets/assets/img/svg/ic_settings_black_24px.svg", 4)
+		})
+		e.GET("/assets/img/svg/ic_fullscreen_black_24px.svg", func(c echo.Context) error {
+			return render(c, "assets/assets/img/svg/ic_fullscreen_black_24px.svg", 4)
+		})
+		e.GET("/assets/img/svg/ic_add_black_24px.svg", func(c echo.Context) error {
+			return render(c, "assets/assets/img/svg/ic_add_black_24px.svg", 4)
+		})
+		e.GET("/assets/img/svg/ic_keyboard_backspace_black_24px.svg", func(c echo.Context) error {
+			return render(c, "assets/assets/img/svg/ic_keyboard_backspace_black_24px.svg", 4)
 		})
 		e.GET("/assets/img/svg/ic_error_black_48px.svg", func(c echo.Context) error {
 			return render(c, "assets/assets/img/svg/ic_error_black_48px.svg", 4)
+		})
+		e.GET("/assets/img/svg/ic_remove_black_24px.svg", func(c echo.Context) error {
+			return render(c, "assets/assets/img/svg/ic_remove_black_24px.svg", 4)
+		})
+		e.GET("/assets/img/svg/logo.svg", func(c echo.Context) error {
+			return render(c, "assets/assets/img/svg/logo.svg", 4)
+		})
+		e.GET("/assets/img/favicon-32x32.png", func(c echo.Context) error {
+			return render(c, "assets/assets/img/favicon-32x32.png", 4)
 		})
 		e.GET("/assets/img/svg/ic_swap_vertical_circle_black_48px.svg", func(c echo.Context) error {
 			return render(c, "assets/assets/img/svg/ic_swap_vertical_circle_black_48px.svg", 4)
