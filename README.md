@@ -78,6 +78,7 @@ $ go get github.com/tockins/realize
     --legacy                    -> Enable legacy watch instead of Fsnotify watch
     --generate                  -> Enable go generate
     --test                      -> Enable go test
+    --open                      -> Open in default browser
     ```
     Examples:
     
