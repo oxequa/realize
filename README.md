@@ -7,33 +7,34 @@
 [![Join the chat at https://gitter.im/tockins/realize](https://badges.gitter.im/tockins/realize.svg)](https://gitter.im/tockins/realize?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Go Report Card](https://goreportcard.com/badge/github.com/tockins/realize)](https://goreportcard.com/report/github.com/tockins/realize)
 
+![Logo](http://i.imgur.com/pkMDtrl.png)
 
-![Logo](http://i.imgur.com/8nr2s1b.jpg)
+Realize is a Go tool that is focused to speed up and improve the developers workflow.
 
-A Go build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths
+Automate your work pipeline, integrate additional tools of third party, define cli commands and reload projects at each changed without stop to write code.
 
 ![Preview](http://i.imgur.com/dJbNZjt.gif)
 
 #### Features
 
 - Highly customizable
-- Config your project Step by Step
-- Build, Install, Test, Fmt, Generate and Run at the same time
-- Live reload on file changes (re-build, re-install...)
-- Watch custom paths and specific file extensions
-- Watch by FsNotify or by polling
+- Setup step by step
+- Live reload
 - Support for multiple projects
-- Output streams and error logs (support for save on a file)
-- Web Panel (projects list, config settings, logs)
+- Save logs on files
+- Web panel for a smart view
+- Build, install, run, test, fmt, generate, vet and much more
+- Watch custom paths and specific file extensions
+- Multiple watching methods (Polling, File watcher)
+- Docker support
 
 v 1.5
 
-- [ ] Watch dependencies options
+- [ ] Watch gopath dependencies 
+- [ ] Web panel, download logs
+- [ ] Multiple configurations (dev, production)
+- [ ] Support to ignore paths and files in gititnore
 - [ ] Input redirection (wait for an input and redirect)
-- [ ] Web panel full support
-- [ ] Multiple configurations
-- [ ] GoMobile support ?
-- [ ] Ignore path and files in gititnore ?
 
 #### Wiki
 
@@ -43,7 +44,7 @@ v 1.5
 - [Init cmd](#init) - Make a custom config step by step
 - [Remove cmd](#remove) - Remove a project 
 - [List cmd](#list) - List the projects
-- [Config sample](#config-sample)
+- [Config sample](#config-sample) - Sample config file
 - [Support](#support-us-and-suggest-an-improvement)
 
 
@@ -154,6 +155,9 @@ $ go get github.com/tockins/realize
         projects:
         - name: coin
           path: coin              // project path
+          environment:            // env variables
+            test: test
+            myvar: value
           commands: 
             vet: true
             fmt: true
@@ -194,6 +198,5 @@ $ go get github.com/tockins/realize
 
 
 #### Support us and suggest an improvement
-- Start the project
 - Chat with us [Gitter](https://gitter.im/tockins/realize)
 - Suggest a new [Feature](https://github.com/tockins/realize/issues/new)
