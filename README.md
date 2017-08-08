@@ -197,7 +197,6 @@ $ go get github.com/tockins/realize
          file_log: false
          file_err: false    
 
-
 #### Support us and suggest an improvement
 - Chat with us [Gitter](https://gitter.im/tockins/realize)
 - Suggest a new [Feature](https://github.com/tockins/realize/issues/new)
