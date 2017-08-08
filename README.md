@@ -15,7 +15,10 @@
 
 Automate your work pipeline, integrate additional tools of third party, define custom cli commands and reload projects at each changed without stop to write code.
 
-![Preview](http://i.imgur.com/dJbNZjt.gif)
+<p align="center">
+<img src="http://i.imgur.com/KpMSLnE.png">
+</p>
+
 
 #### Features
 
@@ -196,7 +199,7 @@ $ go get github.com/tockins/realize
          file_out: false
          file_log: false
          file_err: false    
-
+         
 #### Support us and suggest an improvement
 - Chat with us [Gitter](https://gitter.im/tockins/realize)
 - Suggest a new [Feature](https://github.com/tockins/realize/issues/new)
