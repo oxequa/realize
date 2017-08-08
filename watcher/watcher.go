@@ -396,9 +396,6 @@ func (p *Project) print(t string, o BufferOut, msg string, stream string) {
 				p.Fatal(err, "")
 			}
 		}
-		if msg != "" {
-			log.Print(msg)
-		}
 	case "error":
 		p.Buffer.StdErr = append(p.Buffer.StdErr, o)
 		if p.Streams.FileErr {
@@ -412,9 +409,9 @@ func (p *Project) print(t string, o BufferOut, msg string, stream string) {
 				p.Fatal(err, "")
 			}
 		}
-		if msg != "" {
-			log.Print(msg)
-		}
+	}
+	if msg != "" {
+		log.Print(msg)
 	}
 	if stream != "" {
 		fmt.Print(stream)

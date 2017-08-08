@@ -85,7 +85,7 @@ func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 		for output.Scan() {
 			text := output.Text()
 			msg := fmt.Sprintln(p.pname(p.Name, 3), ":", style.Blue.Regular(text))
-			if isError && isErrorText(text) {
+			if isError && !isErrorText(text) {
 				out := BufferOut{Time: time.Now(), Text: text, Type: "Go Run"}
 				p.print("error", out, msg, "")
 			} else {
