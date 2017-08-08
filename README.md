@@ -7,47 +7,53 @@
 [![Join the chat at https://gitter.im/tockins/realize](https://badges.gitter.im/tockins/realize.svg)](https://gitter.im/tockins/realize?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Go Report Card](https://goreportcard.com/badge/github.com/tockins/realize)](https://goreportcard.com/report/github.com/tockins/realize)
 
+<p align="center">
+<img src="http://i.imgur.com/pkMDtrl.png" width="350px">
+</p>
 
-![Logo](http://i.imgur.com/8nr2s1b.jpg)
+#### Realize is a Go tool that is focused to speed up and improve the developers workflow.
 
-A Go build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths
+Automate your work pipeline, integrate additional tools of third party, define custom cli commands and reload projects at each changed without stop to write code.
 
-![Preview](http://i.imgur.com/dJbNZjt.gif)
+<p align="center">
+<img src="http://i.imgur.com/KpMSLnE.png">
+</p>
+
 
 #### Features
 
 - Highly customizable
-- Config your project Step by Step
-- Build, Install, Test, Fmt, Generate and Run at the same time
-- Live reload on file changes (re-build, re-install...)
-- Watch custom paths and specific file extensions
-- Watch by FsNotify or by polling
+- Setup step by step
+- Live reload
 - Support for multiple projects
-- Output streams and error logs (support for save on a file)
-- Web Panel (projects list, config settings, logs)
+- Save logs on files
+- Web panel for a smart view
+- Build, install, run, test, fmt, generate, vet and much more
+- Watch custom paths and specific file extensions
+- Multiple watching methods (Polling, File watcher)
+- Docker support
 
 v 1.5
 
-- [ ] Watch dependencies options
+- [ ] Watch gopath dependencies 
+- [ ] Web panel, download logs
+- [ ] Multiple configurations (dev, production)
+- [ ] Support to ignore paths and files in gititnore
 - [ ] Input redirection (wait for an input and redirect)
-- [ ] Web panel full support
-- [ ] Multiple configurations
-- [ ] GoMobile support ?
-- [ ] Ignore path and files in gititnore ?
 
 #### Wiki
 
-- [Getting Started](#installation-and-usage)
+- [Getting Started](#installation)
 - [Run cmd](#run) - Run a project
 - [Add cmd](#add) - Add a new project
 - [Init cmd](#init) - Make a custom config step by step
 - [Remove cmd](#remove) - Remove a project 
 - [List cmd](#list) - List the projects
-- [Config sample](#config-sample)
-- [Support](#support)
+- [Config sample](#config-sample) - Sample config file
+- [Support](#support-us-and-suggest-an-improvement)
 
 
-- ##### Installation
+#### Installation
 Run this to get/install:
 ```
 $ go get github.com/tockins/realize
@@ -60,7 +66,7 @@ $ go get github.com/tockins/realize
     $ realize run
     ```
     
-    It will create a realize.yaml file if it doesn't exist already, adds the working directory as project and run the pipeline.
+    It will create a realize.yaml file if it doesn't exist already, add the working directory as project and run the pipeline.
     
     The Run command supports the following custom parameters:
     
@@ -75,6 +81,7 @@ $ go get github.com/tockins/realize
     --legacy                    -> Enable legacy watch instead of Fsnotify watch
     --generate                  -> Enable go generate
     --test                      -> Enable go test
+    --open                      -> Open in default browser
     ```
     Examples:
     
@@ -137,63 +144,62 @@ $ go get github.com/tockins/realize
     
     For more examples check [Realize Examples](https://github.com/tockins/realize-examples)
     
-        ```
-        settings:
-         legacy:                
-           status: true           // legacy watch status
-           interval: 10s          // polling interval
-          resources:              // files names related to streams
-            outputs: outputs.log
-            logs: logs.log
-            errors: errors.log
-          server:
-            status: false         // server status 
-            open: false           // open browser at start  
-            host: localhost       // server host
-            port: 5001            // server port  
-        projects:
-        - name: coin
-          path: coin              // project path
-          commands: 
-            vet: true
-            fmt: true
-            test: false
-            generate: false
-            bin:
-              status: true
-            build:
-              status: false
-              args:
-                - -race
-            run: true
+    ```
+    settings:
+     legacy:                
+       status: true           // legacy watch status
+       interval: 10s          // polling interval
+      resources:              // files names related to streams
+        outputs: outputs.log
+        logs: logs.log
+        errors: errors.log
+      server:
+        status: false         // server status 
+        open: false           // open browser at start  
+        host: localhost       // server host
+        port: 5001            // server port  
+    projects:
+    - name: coin
+      path: coin              // project path
+      environment:            // env variables
+        test: test
+        myvar: value
+      commands: 
+        vet: true
+        fmt: true
+        test: false
+        generate: false
+        bin:
+          status: true
+        build:
+          status: false
           args:
-            - --myarg
-          watcher:
-            preview: false         // watched files preview
-            paths:                 // watched paths 
-            - /
-            ignore_paths:          // ignored paths 
-            - vendor
-            exts:                  // watched extensions
-            - .go
-            scripts:
-            - type: before         // type 
-              command: ./ls -l     // command
-              changed: true        // relaunch when a file changes 
-              startup: true        // launch at start
-            - type: after
-              command: ./ls
-              changed: true
-          streams:                 // enable/disable streams 
-             cli_out: true
-             file_out: false
-             file_log: false
-             file_err: false    
-
-        ```                    
-
-
-###### Support us and suggest an improvement
-- Start the project
+            - -race
+        run: true
+      args:
+        - --myarg
+      watcher:
+        preview: false         // watched files preview
+        paths:                 // watched paths 
+        - /
+        ignore_paths:          // ignored paths 
+        - vendor
+        exts:                  // watched extensions
+        - .go
+        scripts:
+        - type: before         // type 
+          command: ./ls -l     // command
+          changed: true        // relaunch when a file changes 
+          startup: true        // launch at start
+        - type: after
+          command: ./ls
+          changed: true
+      streams:                 // enable/disable streams 
+         cli_out: true
+         file_out: false
+         file_log: false
+         file_err: false    
+         
+#### Support us and suggest an improvement
 - Chat with us [Gitter](https://gitter.im/tockins/realize)
 - Suggest a new [Feature](https://github.com/tockins/realize/issues/new)

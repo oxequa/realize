@@ -41,6 +41,9 @@ func render(c echo.Context, path string, mime int) error {
 	case 4:
 		rs.Header().Set(echo.HeaderContentType, "image/svg+xml")
 		break
+	case 5:
+		rs.Header().Set(echo.HeaderContentType, "image/png")
+		break
 	}
 	rs.WriteHeader(http.StatusOK)
 	rs.Write(data)
@@ -49,7 +52,14 @@ func render(c echo.Context, path string, mime int) error {
 
 // Start the web server
 func (s *Server) Start(p *cli.Context) (err error) {
-	if s.Server.Status || p.Bool("server") {
+	if p.Bool("server") {
+		s.Server.Status = p.Bool("server")
+	}
+	if p.Bool("open") {
+		s.Server.Open = p.Bool("open")
+	}
+
+	if s.Server.Status {
 		e := echo.New()
 		e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
 			Level: 2,
@@ -66,8 +76,8 @@ func (s *Server) Start(p *cli.Context) (err error) {
 		e.GET("/assets/css/app.css", func(c echo.Context) error {
 			return render(c, "assets/assets/css/app.css", 3)
 		})
-		e.GET("/app/components/projects/index.html", func(c echo.Context) error {
-			return render(c, "assets/app/components/projects/index.html", 1)
+		e.GET("/app/components/settings/index.html", func(c echo.Context) error {
+			return render(c, "assets/app/components/settings/index.html", 1)
 		})
 		e.GET("/app/components/project/index.html", func(c echo.Context) error {
 			return render(c, "assets/app/components/project/index.html", 1)
@@ -75,11 +85,29 @@ func (s *Server) Start(p *cli.Context) (err error) {
 		e.GET("/app/components/index.html", func(c echo.Context) error {
 			return render(c, "assets/app/components/index.html", 1)
 		})
-		e.GET("/assets/img/svg/github-logo.svg", func(c echo.Context) error {
-			return render(c, "assets/assets/img/svg/github-logo.svg", 4)
+		e.GET("/assets/img/svg/ic_settings_black_24px.svg", func(c echo.Context) error {
+			return render(c, "assets/assets/img/svg/ic_settings_black_24px.svg", 4)
+		})
+		e.GET("/assets/img/svg/ic_fullscreen_black_24px.svg", func(c echo.Context) error {
+			return render(c, "assets/assets/img/svg/ic_fullscreen_black_24px.svg", 4)
+		})
+		e.GET("/assets/img/svg/ic_add_black_24px.svg", func(c echo.Context) error {
+			return render(c, "assets/assets/img/svg/ic_add_black_24px.svg", 4)
+		})
+		e.GET("/assets/img/svg/ic_keyboard_backspace_black_24px.svg", func(c echo.Context) error {
+			return render(c, "assets/assets/img/svg/ic_keyboard_backspace_black_24px.svg", 4)
 		})
 		e.GET("/assets/img/svg/ic_error_black_48px.svg", func(c echo.Context) error {
 			return render(c, "assets/assets/img/svg/ic_error_black_48px.svg", 4)
+		})
+		e.GET("/assets/img/svg/ic_remove_black_24px.svg", func(c echo.Context) error {
+			return render(c, "assets/assets/img/svg/ic_remove_black_24px.svg", 4)
+		})
+		e.GET("/assets/img/svg/logo.svg", func(c echo.Context) error {
+			return render(c, "assets/assets/img/svg/logo.svg", 4)
+		})
+		e.GET("/assets/img/favicon-32x32.png", func(c echo.Context) error {
+			return render(c, "assets/assets/img/favicon-32x32.png", 5)
 		})
 		e.GET("/assets/img/svg/ic_swap_vertical_circle_black_48px.svg", func(c echo.Context) error {
 			return render(c, "assets/assets/img/svg/ic_swap_vertical_circle_black_48px.svg", 4)
@@ -89,7 +117,7 @@ func (s *Server) Start(p *cli.Context) (err error) {
 		e.GET("/ws", s.projects)
 
 		go e.Start(string(s.Settings.Server.Host) + ":" + strconv.Itoa(s.Settings.Server.Port))
-		if s.Open || p.Bool("open") {
+		if s.Open {
 			_, err = Open("http://" + string(s.Settings.Server.Host) + ":" + strconv.Itoa(s.Settings.Server.Port))
 			if err != nil {
 				return err

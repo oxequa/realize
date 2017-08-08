@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"github.com/tockins/realize/style"
 	cli "gopkg.in/urfave/cli.v2"
+	"os"
 	"strings"
+	"time"
 )
 
 // Run launches the toolchain for each project
@@ -16,7 +18,7 @@ func (h *Blueprint) Run(p *cli.Context) error {
 		wg.Add(len(h.Projects))
 		for k, element := range h.Projects {
 			tools := tools{}
-			if element.Cmds.Fmt{
+			if element.Cmds.Fmt {
 				tools.Fmt = tool{
 					status:  &h.Projects[k].Cmds.Fmt,
 					cmd:     "gofmt",
@@ -24,7 +26,7 @@ func (h *Blueprint) Run(p *cli.Context) error {
 					name:    "Go Fmt",
 				}
 			}
-			if element.Cmds.Generate{
+			if element.Cmds.Generate {
 				tools.Generate = tool{
 					status:  &h.Projects[k].Cmds.Generate,
 					cmd:     "go",
@@ -32,7 +34,7 @@ func (h *Blueprint) Run(p *cli.Context) error {
 					name:    "Go Generate",
 				}
 			}
-			if element.Cmds.Test{
+			if element.Cmds.Test {
 				tools.Test = tool{
 					status:  &h.Projects[k].Cmds.Test,
 					cmd:     "go",
@@ -51,6 +53,14 @@ func (h *Blueprint) Run(p *cli.Context) error {
 			h.Projects[k].tools = tools
 			h.Projects[k].parent = h
 			h.Projects[k].path = h.Projects[k].Path
+
+			// env variables
+			for key, item := range h.Projects[k].Environment {
+				if err := os.Setenv(key, item); err != nil {
+					h.Projects[k].Buffer.StdErr = append(h.Projects[k].Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error(), Type: "Env error", Stream: ""})
+				}
+			}
+
 			if h.Legacy.Status {
 				go h.Projects[k].watchByPolling()
 			} else {
@@ -69,7 +79,6 @@ func (h *Blueprint) Add(p *cli.Context) error {
 		Name: h.Name(p.String("name"), p.String("path")),
 		Path: h.Path(p.String("path")),
 		Cmds: Cmds{
-
 			Vet:      p.Bool("vet"),
 			Fmt:      !p.Bool("no-fmt"),
 			Test:     p.Bool("test"),
@@ -178,5 +187,5 @@ func (h *Blueprint) check() error {
 		h.Clean()
 		return nil
 	}
-	return errors.New("there are no projects")
+	return errors.New("There are no projects")
 }

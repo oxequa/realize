@@ -16,13 +16,13 @@ import (
 )
 
 const (
-	appVersion = "1.3"
+	appVersion = "1.4.1"
 	config     = "realize.yaml"
 	outputs    = "outputs.log"
 	errs       = "errors.log"
 	logs       = "logs.log"
 	host       = "localhost"
-	port       = 5001
+	port       = 3001
 	interval   = 200
 )
 
@@ -44,7 +44,6 @@ func main() {
 		if gopath == "" {
 			return errors.New("$GOPATH isn't set properly")
 		}
-
 		r = realize{
 			Sync: make(chan string),
 			Settings: settings.Settings{
@@ -116,19 +115,12 @@ func main() {
 					&cli.BoolFlag{Name: "build", Aliases: []string{"b"}, Value: false, Usage: "Enable go build."},
 					&cli.BoolFlag{Name: "legacy", Aliases: []string{"l"}, Value: false, Usage: "Watch by polling instead of Watch by fsnotify."},
 					&cli.BoolFlag{Name: "server", Aliases: []string{"s"}, Value: false, Usage: "Enable server and open into the default browser."},
+					&cli.BoolFlag{Name: "open", Aliases: []string{"o"}, Value: false, Usage: "Open server directly in the default browser."},
 					&cli.BoolFlag{Name: "no-run", Aliases: []string{"nr"}, Value: false, Usage: "Disable go run"},
 					&cli.BoolFlag{Name: "no-install", Aliases: []string{"ni"}, Value: false, Usage: "Disable go install"},
 					&cli.BoolFlag{Name: "no-config", Aliases: []string{"nc"}, Value: false, Usage: "Ignore existing configurations."},
 				},
 				Action: func(p *cli.Context) error {
-					c := r
-					if p.String("name") != ""{
-						for index, project := range r.Blueprint.Projects{
-							if project.Name == p.String("name"){
-								c.Blueprint.Projects = []watcher.Project{r.Blueprint.Projects[index]}
-							}
-						}
-					}
 					if p.Bool("legacy") {
 						r.Config.Legacy = settings.Legacy{
 							Status:   p.Bool("legacy"),
@@ -144,14 +136,16 @@ func main() {
 							return err
 						}
 					}
-					if err := c.Server.Start(p); err != nil {
+					if err := r.Server.Start(p); err != nil {
 						return err
 					}
-					if err := c.Blueprint.Run(p); err != nil {
+					if err := r.Blueprint.Run(p); err != nil {
 						return err
 					}
-					if err := r.Record(c); err != nil {
-						return err
+					if !p.Bool("no-config") {
+						if err := r.Record(r); err != nil {
+							return err
+						}
 					}
 					return nil
 				},
