@@ -11,7 +11,7 @@
 
 Realize is a Go tool that is focused to speed up and improve the developers workflow.
 
-Automate your work pipeline, integrate additional tools of third party, define cli commands and reload projects at each changed without stop to write code.
+Automate your work pipeline, integrate additional tools of third party, define custom cli commands and reload projects at each changed without stop to write code.
 
 ![Preview](http://i.imgur.com/dJbNZjt.gif)
 
