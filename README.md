@@ -141,63 +141,61 @@ $ go get github.com/tockins/realize
     
     For more examples check [Realize Examples](https://github.com/tockins/realize-examples)
     
-        ```
-        settings:
-         legacy:                
-           status: true           // legacy watch status
-           interval: 10s          // polling interval
-          resources:              // files names related to streams
-            outputs: outputs.log
-            logs: logs.log
-            errors: errors.log
-          server:
-            status: false         // server status 
-            open: false           // open browser at start  
-            host: localhost       // server host
-            port: 5001            // server port  
-        projects:
-        - name: coin
-          path: coin              // project path
-          environment:            // env variables
-            test: test
-            myvar: value
-          commands: 
-            vet: true
-            fmt: true
-            test: false
-            generate: false
-            bin:
-              status: true
-            build:
-              status: false
-              args:
-                - -race
-            run: true
+    ```
+    settings:
+     legacy:                
+       status: true           // legacy watch status
+       interval: 10s          // polling interval
+      resources:              // files names related to streams
+        outputs: outputs.log
+        logs: logs.log
+        errors: errors.log
+      server:
+        status: false         // server status 
+        open: false           // open browser at start  
+        host: localhost       // server host
+        port: 5001            // server port  
+    projects:
+    - name: coin
+      path: coin              // project path
+      environment:            // env variables
+        test: test
+        myvar: value
+      commands: 
+        vet: true
+        fmt: true
+        test: false
+        generate: false
+        bin:
+          status: true
+        build:
+          status: false
           args:
-            - --myarg
-          watcher:
-            preview: false         // watched files preview
-            paths:                 // watched paths 
-            - /
-            ignore_paths:          // ignored paths 
-            - vendor
-            exts:                  // watched extensions
-            - .go
-            scripts:
-            - type: before         // type 
-              command: ./ls -l     // command
-              changed: true        // relaunch when a file changes 
-              startup: true        // launch at start
-            - type: after
-              command: ./ls
-              changed: true
-          streams:                 // enable/disable streams 
-             cli_out: true
-             file_out: false
-             file_log: false
-             file_err: false    
-
-        ```                    
+            - -race
+        run: true
+      args:
+        - --myarg
+      watcher:
+        preview: false         // watched files preview
+        paths:                 // watched paths 
+        - /
+        ignore_paths:          // ignored paths 
+        - vendor
+        exts:                  // watched extensions
+        - .go
+        scripts:
+        - type: before         // type 
+          command: ./ls -l     // command
+          changed: true        // relaunch when a file changes 
+          startup: true        // launch at start
+        - type: after
+          command: ./ls
+          changed: true
+      streams:                 // enable/disable streams 
+         cli_out: true
+         file_out: false
+         file_log: false
+         file_err: false    
 
 
 #### Support us and suggest an improvement
