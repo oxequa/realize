@@ -7,9 +7,9 @@
 [![Join the chat at https://gitter.im/tockins/realize](https://badges.gitter.im/tockins/realize.svg)](https://gitter.im/tockins/realize?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Go Report Card](https://goreportcard.com/badge/github.com/tockins/realize)](https://goreportcard.com/report/github.com/tockins/realize)
 
-<div style="text-align:center">
+<p align="center">
 <img src="http://i.imgur.com/pkMDtrl.png" width="350px">
-</div>
+</p>
 
 Realize is a Go tool that is focused to speed up and improve the developers workflow.
 
