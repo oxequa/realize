@@ -53,7 +53,7 @@ v 1.5
 - [List cmd](#list) - List the projects
 - [Config sample](#config-sample) - Sample config file
 - [Support](#support-us-and-suggest-an-improvement)
-
+- [Backers and Sponsors] (#backers)
 
 #### Installation
 Run this to get/install:
@@ -207,7 +207,7 @@ $ go get github.com/tockins/realize
 - Chat with us [Gitter](https://gitter.im/tockins/realize)
 - Suggest a new [Feature](https://github.com/tockins/realize/issues/new)
 
-### Backers
+#### Backers
 
 Support us with a monthly donation and help us continue our activities. [[Become a backer](https://opencollective.com/realize#backer)]
 
@@ -243,7 +243,7 @@ Support us with a monthly donation and help us continue our activities. [[Become
 <a href="https://opencollective.com/realize/backer/29/website" target="_blank"><img src="https://opencollective.com/realize/backer/29/avatar.svg"></a>
 
 
-### Sponsors
+#### Sponsors
 
 Become a sponsor and get your logo on our README on Github with a link to your site. [[Become a sponsor](https://opencollective.com/realize#sponsor)]
 
