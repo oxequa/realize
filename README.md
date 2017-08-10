@@ -53,7 +53,7 @@ v 1.5
 - [List cmd](#list) - List the projects
 - [Config sample](#config-sample) - Sample config file
 - [Support](#support-us-and-suggest-an-improvement)
-- [Backers and Sponsors] (#backers)
+- [Backers and Sponsors](#backers)
 
 #### Installation
 Run this to get/install:
