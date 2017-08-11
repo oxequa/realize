@@ -54,7 +54,6 @@ func getEnvPath(env string) string {
 	path := filepath.SplitList(os.Getenv(env))
 	if len(path) == 0 {
 		return ""
-	} else {
-		return path[0]
 	}
+	return path[0]
 }

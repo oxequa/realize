@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// realize hidden dir
 var Dir = ".realize/"
 
 // Settings defines a group of general settings
