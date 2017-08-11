@@ -27,6 +27,7 @@ Various operations can be programmed for each project, which can be executed at 
 
 #### Wiki
 
+- [Features list](#features)
 - [Getting Started](#installation)
 - [Config sample](#config-sample) - Sample config file
 - [Run cmd](#run) - Run a project
