@@ -25,6 +25,18 @@ Various operations can be programmed for each project, which can be executed at 
 </p>
 
 
+#### Wiki
+
+- [Getting Started](#installation)
+- [Config sample](#config-sample) - Sample config file
+- [Run cmd](#run) - Run a project
+- [Add cmd](#add) - Add a new project
+- [Init cmd](#init) - Make a custom config step by step
+- [Remove cmd](#remove) - Remove a project
+- [List cmd](#list) - List the projects
+- [Support](#support-us-and-suggest-an-improvement)
+- [Backers and Sponsors](#backers)
+
 #### Features
 
 - Two watcher types: file system and polling
@@ -48,18 +60,6 @@ v 1.5
 - [ ] Multiple configurations (dev, production)
 - [ ] Support to ignore paths and files in gititnore
 - [ ] Input redirection (wait for an input and redirect)
-
-#### Wiki
-
-- [Getting Started](#installation)
-- [Config sample](#config-sample) - Sample config file
-- [Run cmd](#run) - Run a project
-- [Add cmd](#add) - Add a new project
-- [Init cmd](#init) - Make a custom config step by step
-- [Remove cmd](#remove) - Remove a project 
-- [List cmd](#list) - List the projects
-- [Support](#support-us-and-suggest-an-improvement)
-- [Backers and Sponsors](#backers)
 
 #### Installation
 Run this to get/install:
