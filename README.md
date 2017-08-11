@@ -6,6 +6,8 @@
 [![](https://img.shields.io/badge/realize-examples-yellow.svg)](https://github.com/tockins/realize-examples)
 [![Join the chat at https://gitter.im/tockins/realize](https://badges.gitter.im/tockins/realize.svg)](https://gitter.im/tockins/realize?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Go Report Card](https://goreportcard.com/badge/github.com/tockins/realize)](https://goreportcard.com/report/github.com/tockins/realize)
+[![OpenCollective](https://opencollective.com/realize/backers/badge.svg)](#backers) 
+[![OpenCollective](https://opencollective.com/realize/sponsors/badge.svg)](#sponsors)
 
 <p align="center">
 <img src="http://i.imgur.com/pkMDtrl.png" width="350px">
@@ -57,7 +59,7 @@ v 1.5
 - [Remove cmd](#remove) - Remove a project 
 - [List cmd](#list) - List the projects
 - [Support](#support-us-and-suggest-an-improvement)
-
+- [Backers and Sponsors](#backers)
 
 #### Installation
 Run this to get/install:
@@ -204,7 +206,79 @@ $ go get github.com/tockins/realize
          file_out: false
          file_log: false
          file_err: false    
+             ```
          
 #### Support us and suggest an improvement
 - Chat with us [Gitter](https://gitter.im/tockins/realize)
 - Suggest a new [Feature](https://github.com/tockins/realize/issues/new)
+
+#### Backers
+
+Support us with a monthly donation and help us continue our activities. [[Become a backer](https://opencollective.com/realize#backer)]
+
+<a href="https://opencollective.com/realize/backer/0/website" target="_blank"><img src="https://opencollective.com/realize/backer/0/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/1/website" target="_blank"><img src="https://opencollective.com/realize/backer/1/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/2/website" target="_blank"><img src="https://opencollective.com/realize/backer/2/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/3/website" target="_blank"><img src="https://opencollective.com/realize/backer/3/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/4/website" target="_blank"><img src="https://opencollective.com/realize/backer/4/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/5/website" target="_blank"><img src="https://opencollective.com/realize/backer/5/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/6/website" target="_blank"><img src="https://opencollective.com/realize/backer/6/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/7/website" target="_blank"><img src="https://opencollective.com/realize/backer/7/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/8/website" target="_blank"><img src="https://opencollective.com/realize/backer/8/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/9/website" target="_blank"><img src="https://opencollective.com/realize/backer/9/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/10/website" target="_blank"><img src="https://opencollective.com/realize/backer/10/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/11/website" target="_blank"><img src="https://opencollective.com/realize/backer/11/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/12/website" target="_blank"><img src="https://opencollective.com/realize/backer/12/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/13/website" target="_blank"><img src="https://opencollective.com/realize/backer/13/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/14/website" target="_blank"><img src="https://opencollective.com/realize/backer/14/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/15/website" target="_blank"><img src="https://opencollective.com/realize/backer/15/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/16/website" target="_blank"><img src="https://opencollective.com/realize/backer/16/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/17/website" target="_blank"><img src="https://opencollective.com/realize/backer/17/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/18/website" target="_blank"><img src="https://opencollective.com/realize/backer/18/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/19/website" target="_blank"><img src="https://opencollective.com/realize/backer/19/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/20/website" target="_blank"><img src="https://opencollective.com/realize/backer/20/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/21/website" target="_blank"><img src="https://opencollective.com/realize/backer/21/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/22/website" target="_blank"><img src="https://opencollective.com/realize/backer/22/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/23/website" target="_blank"><img src="https://opencollective.com/realize/backer/23/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/24/website" target="_blank"><img src="https://opencollective.com/realize/backer/24/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/25/website" target="_blank"><img src="https://opencollective.com/realize/backer/25/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/26/website" target="_blank"><img src="https://opencollective.com/realize/backer/26/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/27/website" target="_blank"><img src="https://opencollective.com/realize/backer/27/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/28/website" target="_blank"><img src="https://opencollective.com/realize/backer/28/avatar.svg"></a>
+<a href="https://opencollective.com/realize/backer/29/website" target="_blank"><img src="https://opencollective.com/realize/backer/29/avatar.svg"></a>
+
+
+#### Sponsors
+
+Become a sponsor and get your logo on our README on Github with a link to your site. [[Become a sponsor](https://opencollective.com/realize#sponsor)]
+
+<a href="https://opencollective.com/realize/sponsor/0/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/0/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/1/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/1/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/2/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/2/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/3/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/3/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/4/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/4/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/5/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/5/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/6/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/6/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/7/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/7/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/8/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/8/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/9/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/9/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/10/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/10/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/11/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/11/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/12/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/12/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/13/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/13/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/14/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/14/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/15/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/15/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/16/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/16/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/17/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/17/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/18/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/18/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/19/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/19/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/20/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/20/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/21/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/21/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/22/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/22/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/23/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/23/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/24/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/24/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/25/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/25/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/26/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/26/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/27/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/27/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/28/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/28/avatar.svg"></a>
+<a href="https://opencollective.com/realize/sponsor/29/website" target="_blank"><img src="https://opencollective.com/realize/sponsor/29/avatar.svg"></a>
