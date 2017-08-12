@@ -6,8 +6,11 @@ import (
 	"time"
 )
 
-// realize hidden dir
-var Dir = ".realize/"
+// settings const
+const (
+	Permission = 0775
+	Directory  = ".realize/"
+)
 
 // Settings defines a group of general settings
 type Settings struct {
@@ -48,15 +51,16 @@ type Resources struct {
 // Read from config file
 func (s *Settings) Read(out interface{}) error {
 	localConfigPath := s.Resources.Config
-	if _, err := os.Stat(Dir + s.Resources.Config); err == nil {
-		localConfigPath = Dir + s.Resources.Config
+	// backward compatibility
+	if _, err := os.Stat(Directory + s.Resources.Config); err == nil {
+		localConfigPath = Directory + s.Resources.Config
 	}
 	content, err := s.Stream(localConfigPath)
 	if err == nil {
 		err = yaml.Unmarshal(content, out)
 		return err
 	}
-	return nil
+	return err
 }
 
 // Record create and unmarshal the yaml config file
@@ -66,20 +70,21 @@ func (s *Settings) Record(out interface{}) error {
 		if err != nil {
 			return err
 		}
-		if _, err := os.Stat(Dir); os.IsNotExist(err) {
-			if err = os.Mkdir(Dir, 0770); err != nil {
+		if _, err := os.Stat(Directory); os.IsNotExist(err) {
+			if err = os.Mkdir(Directory, Permission); err != nil {
 				return s.Write(s.Resources.Config, y)
 			}
 		}
-		return s.Write(Dir+s.Resources.Config, y)
+		return s.Write(Directory+s.Resources.Config, y)
 	}
 	return nil
 }
 
 // Remove realize folder
-func (s *Settings) Remove() error {
-	if _, err := os.Stat(Dir); !os.IsNotExist(err) {
-		return os.RemoveAll(Dir)
+func (s *Settings) Remove(d string) error {
+	_, err := os.Stat(d)
+	if !os.IsNotExist(err) {
+		return os.RemoveAll(d)
 	}
-	return nil
+	return err
 }

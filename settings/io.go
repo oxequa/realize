@@ -17,21 +17,21 @@ func (s Settings) Stream(file string) ([]byte, error) {
 	return content, err
 }
 
-// Write a file given a name and a byte stream
+// Write a file
 func (s Settings) Write(name string, data []byte) error {
-	err := ioutil.WriteFile(name, data, 0655)
+	err := ioutil.WriteFile(name, data, Permission)
 	return s.Validate(err)
 }
 
 // Create a new file and return its pointer
 func (s Settings) Create(path string, name string) *os.File {
 	var file string
-	if _, err := os.Stat(Dir); err == nil {
-		file = filepath.Join(path, Dir, name)
+	if _, err := os.Stat(Directory); err == nil {
+		file = filepath.Join(path, Directory, name)
 	} else {
 		file = filepath.Join(path, name)
 	}
-	out, err := os.OpenFile(file, os.O_APPEND|os.O_WRONLY|os.O_CREATE|os.O_SYNC, 0655)
+	out, err := os.OpenFile(file, os.O_APPEND|os.O_WRONLY|os.O_CREATE|os.O_SYNC, Permission)
 	s.Validate(err)
 	return out
 }
