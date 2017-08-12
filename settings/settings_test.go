@@ -11,7 +11,7 @@ func TestSettings_Read(t *testing.T) {
 	var a interface{}
 	s.Resources.Config = "settings_b"
 	if err := s.Read(a); err == nil {
-		t.Error("Error unexpected", err)
+		t.Fatal("Error unexpected", err)
 	}
 
 	s.Resources.Config = "settings_test.yaml"
@@ -21,22 +21,22 @@ func TestSettings_Read(t *testing.T) {
 	}
 	s.Resources.Config = d.Name()
 	if err := s.Read(a); err != nil {
-		t.Error("Error unexpected", err)
+		t.Fatal("Error unexpected", err)
 	}
 }
 
 func TestSettings_Remove(t *testing.T) {
 	s := Settings{}
 	if err := s.Remove("abcd"); err == nil {
-		t.Error("Error unexpected, dir dosn't exist", err)
+		t.Fatal("Error unexpected, dir dosn't exist", err)
 	}
 
 	d, err := ioutil.TempDir("", "settings_test")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	if err := s.Remove(d); err != nil {
-		t.Error("Error unexpected, dir exist", err)
+		t.Fatal("Error unexpected, dir exist", err)
 	}
 }
 
@@ -45,7 +45,7 @@ func TestSettings_Record(t *testing.T) {
 	s.Resources.Config = "settings_test.yaml"
 	var a interface{}
 	if err := s.Record(a); err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	s.Remove(filepath.Join(Directory, s.Resources.Config))
 }

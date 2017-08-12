@@ -36,11 +36,11 @@ func TestSettings_Name(t *testing.T) {
 	path := random.String(5)
 	dir, err := os.Getwd()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	result := s.Name(name, path)
 	if result != dir && result != filepath.Base(path) {
-		t.Error("Expected", dir, "or", filepath.Base(path), "instead", result)
+		t.Fatal("Expected", dir, "or", filepath.Base(path), "instead", result)
 	}
 
 }
@@ -51,7 +51,7 @@ func TestSettings_Path(t *testing.T) {
 	expected := strings.Replace(filepath.Clean(path), "\\", "/", -1)
 	result := s.Path(path)
 	if result != expected {
-		t.Error("Expected", expected, "instead", result)
+		t.Fatal("Expected", expected, "instead", result)
 	}
 
 }
