@@ -16,3 +16,24 @@ func TestArgsParam(t *testing.T) {
 		t.Fatal("Expected 2 instead", len(result))
 	}
 }
+
+func TestDuplicates(t *testing.T) {
+	projects := []Project{
+		{
+			Name: "a",
+		}, {
+			Name: "b",
+		}, {
+			Name: "c",
+		},
+	}
+	_, err := duplicates(projects[0], projects)
+	if err == nil {
+		t.Fatal("Error unexpected", err)
+	}
+	_, err = duplicates(Project{}, projects)
+	if err != nil {
+		t.Fatal("Error unexpected", err)
+	}
+
+}
