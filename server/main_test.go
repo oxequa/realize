@@ -19,6 +19,9 @@ func TestServer_Start(t *testing.T) {
 		Settings:  &s,
 	}
 	err := server.Start(nil)
+	if err != nil{
+		t.Fatal(err)
+	}
 	host := "http://localhost:5000/"
 	urls := []string{
 		host,
@@ -40,8 +43,8 @@ func TestServer_Start(t *testing.T) {
 		host+"assets/img/svg/ic_swap_vertical_circle_black_48px.svg",
 	}
 	for _, elm := range urls {
-		_, err = http.Get(elm)
-		if err != nil {
+		resp, err := http.Get(elm)
+		if err != nil || resp.StatusCode != 200 {
 			t.Fatal(err)
 		}
 	}
