@@ -21,17 +21,17 @@ func init() {
 }
 
 // Open a url in the default browser
-func Open(url string) (io.Writer, error) {
-	goos := runtime.GOOS
-	open, err := cmd[goos]
-	if !err {
-		return nil, fmt.Errorf("operating system %q is not supported", goos)
+func (s *Server) OpenURL(url string) (io.Writer, error) {
+	if s.Open {
+		open, err := cmd[runtime.GOOS]
+		if !err {
+			return nil, fmt.Errorf("operating system %q is not supported", runtime.GOOS)
+		}
+		cmd := exec.Command(open, url)
+		cmd.Stderr = &stderr
+		if err := cmd.Run(); err != nil {
+			return cmd.Stderr, err
+		}
 	}
-	cmd := exec.Command(open, url)
-	cmd.Stderr = &stderr
-	if err := cmd.Run(); err != nil {
-		return cmd.Stderr, err
-	}
-
 	return nil, nil
 }

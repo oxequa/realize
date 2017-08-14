@@ -117,11 +117,9 @@ func (s *Server) Start(p *cli.Context) (err error) {
 		e.GET("/ws", s.projects)
 
 		go e.Start(string(s.Settings.Server.Host) + ":" + strconv.Itoa(s.Settings.Server.Port))
-		if s.Open {
-			_, err = Open("http://" + string(s.Settings.Server.Host) + ":" + strconv.Itoa(s.Settings.Server.Port))
-			if err != nil {
-				return err
-			}
+		_, err = s.OpenURL("http://" + string(s.Settings.Server.Host) + ":" + strconv.Itoa(s.Settings.Server.Port))
+		if err != nil {
+			return err
 		}
 	}
 	return nil
