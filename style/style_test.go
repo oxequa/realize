@@ -1,8 +1,8 @@
 package style
 
 import (
-	"fmt"
 	"bytes"
+	"fmt"
 	"testing"
 )
 
@@ -15,7 +15,7 @@ func TestColorBase_Regular(t *testing.T) {
 	}
 	result := c.Regular(input)
 	expected := fmt.Sprint(input)
-	if !bytes.Equal([]byte(result), []byte(expected)){
+	if !bytes.Equal([]byte(result), []byte(expected)) {
 		t.Error("Expected:", expected, "instead", result)
 	}
 }
@@ -29,7 +29,7 @@ func TestColorBase_Bold(t *testing.T) {
 	}
 	result := c.Bold(input)
 	expected := fmt.Sprint(input)
-	if !bytes.Equal([]byte(result), []byte(expected)){
+	if !bytes.Equal([]byte(result), []byte(expected)) {
 		t.Error("Expected:", expected, "instead", result)
 	}
 }

@@ -125,6 +125,7 @@ func (s *Server) Start(p *cli.Context) (err error) {
 	return nil
 }
 
+// Websocket projects
 func (s *Server) projects(c echo.Context) error {
 	websocket.Handler(func(ws *websocket.Conn) {
 		defer ws.Close()
