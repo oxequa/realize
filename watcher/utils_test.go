@@ -3,6 +3,8 @@ package watcher
 import (
 	"flag"
 	"gopkg.in/urfave/cli.v2"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -36,4 +38,22 @@ func TestDuplicates(t *testing.T) {
 		t.Fatal("Error unexpected", err)
 	}
 
+}
+
+func TestInArray(t *testing.T) {
+	arr := []string{"a", "b", "c"}
+	if !inArray(arr[0], arr) {
+		t.Fatal("Unexpected", arr[0], "should be in", arr)
+	}
+	if inArray("d", arr) {
+		t.Fatal("Unexpected", "d", "shouldn't be in", arr)
+	}
+}
+
+func TestGetEnvPath(t *testing.T) {
+	expected := filepath.SplitList(os.Getenv("GOPATH"))[0]
+	result := getEnvPath("GOPATH")
+	if expected != result {
+		t.Fatal("Expected", expected, "instead", result)
+	}
 }
