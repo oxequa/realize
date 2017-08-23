@@ -36,7 +36,6 @@ func main() {
 		Server            server.Server      `yaml:"-"`
 		Projects          *[]watcher.Project `yaml:"projects" json:"projects"`
 	}
-
 	var r realize
 	// Before of every exec of a cli method
 	before := func(*cli.Context) error {
@@ -76,9 +75,8 @@ func main() {
 		r.Projects = &r.Blueprint.Projects
 
 		// read if exist
-		if err := r.Read(&r); err != nil {
-			return err
-		}
+		r.Read(&r)
+
 		// increase the file limit
 		if r.Config.Flimit != 0 {
 			if err := r.Flimit(); err != nil {
@@ -87,7 +85,6 @@ func main() {
 		}
 		return nil
 	}
-
 	app := &cli.App{
 		Name:    "Realize",
 		Version: appVersion,
@@ -956,7 +953,6 @@ func main() {
 			},
 		},
 	}
-
 	if err := app.Run(os.Args); err != nil {
 		fmt.Println(style.Red.Bold(err))
 		os.Exit(1)
