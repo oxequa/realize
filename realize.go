@@ -133,6 +133,7 @@ func main() {
 							return err
 						}
 					}
+
 					if err := r.Server.Start(p); err != nil {
 						return err
 					}

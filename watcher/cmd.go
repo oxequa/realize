@@ -17,6 +17,9 @@ func (h *Blueprint) Run(p *cli.Context) error {
 		// loop projects
 		wg.Add(len(h.Projects))
 		for k, element := range h.Projects {
+			if p.String("name") != "" && h.Projects[k].Name != p.String("name") {
+				continue
+			}
 			tools := tools{}
 			if element.Cmds.Fmt {
 				tools.Fmt = tool{
@@ -60,7 +63,6 @@ func (h *Blueprint) Run(p *cli.Context) error {
 					h.Projects[k].Buffer.StdErr = append(h.Projects[k].Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error(), Type: "Env error", Stream: ""})
 				}
 			}
-
 			if h.Legacy.Status {
 				go h.Projects[k].watchByPolling()
 			} else {
