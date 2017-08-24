@@ -36,7 +36,6 @@ func main() {
 		Server            server.Server      `yaml:"-"`
 		Projects          *[]watcher.Project `yaml:"projects" json:"projects"`
 	}
-
 	var r realize
 	// Before of every exec of a cli method
 	before := func(*cli.Context) error {
@@ -76,9 +75,8 @@ func main() {
 		r.Projects = &r.Blueprint.Projects
 
 		// read if exist
-		if err := r.Read(&r); err != nil {
-			return err
-		}
+		r.Read(&r)
+
 		// increase the file limit
 		if r.Config.Flimit != 0 {
 			if err := r.Flimit(); err != nil {
@@ -87,7 +85,6 @@ func main() {
 		}
 		return nil
 	}
-
 	app := &cli.App{
 		Name:    "Realize",
 		Version: appVersion,
@@ -136,6 +133,7 @@ func main() {
 							return err
 						}
 					}
+
 					if err := r.Server.Start(p); err != nil {
 						return err
 					}
@@ -196,7 +194,7 @@ func main() {
 						Questions: []*interact.Question{
 							{
 								Before: func(d interact.Context) error {
-									if _, err := os.Stat(settings.Dir + config); err != nil {
+									if _, err := os.Stat(settings.Directory + config); err != nil {
 										d.Skip()
 									}
 									d.SetDef(false, style.Green.Regular("(n)"))
@@ -894,7 +892,7 @@ func main() {
 						},
 						After: func(d interact.Context) error {
 							if val, _ := d.Qns().Get(0).Ans().Bool(); val {
-								actErr = r.Settings.Remove()
+								actErr = r.Settings.Remove(settings.Directory)
 								if actErr != nil {
 									return actErr
 								}
@@ -946,7 +944,7 @@ func main() {
 				Aliases:     []string{"c"},
 				Description: "Remove realize folder.",
 				Action: func(p *cli.Context) error {
-					if err := r.Settings.Remove(); err != nil {
+					if err := r.Settings.Remove(settings.Directory); err != nil {
 						return err
 					}
 					fmt.Println(style.Yellow.Bold("[")+"REALIZE"+style.Yellow.Bold("]"), style.Green.Bold("Realize folder successfully removed."))
@@ -956,7 +954,6 @@ func main() {
 			},
 		},
 	}
-
 	if err := app.Run(os.Args); err != nil {
 		fmt.Println(style.Red.Bold(err))
 		os.Exit(1)

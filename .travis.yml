@@ -13,3 +13,4 @@ install:
 
 script:
   - go install .
+  - go test -v ./...

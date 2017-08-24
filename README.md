@@ -15,52 +15,59 @@
 
 #### Realize is the Go tool that is focused to speed up and improve developers workflow.
 
-Automate your work pipeline, integrate additional tools of third party, define custom cli commands and reload projects at each changed without stop to write code.
+Automate the most recurring operations needed for development, define what you need only one time, integrate additional tools of third party, define custom cli commands and reload projects at each file change without stop to write code.
+
+Various operations can be programmed for each project, which can be executed at startup, at stop, and at each file change.
+
 
 <p align="center">
 <img src="http://i.imgur.com/KpMSLnE.png">
 </p>
 
 
+#### Wiki
+
+- [Features list](#features)
+- [Getting Started](#installation)
+- [Config sample](#config-sample) - Sample config file
+- [Run cmd](#run) - Run a project
+- [Add cmd](#add) - Add a new project
+- [Init cmd](#init) - Make a custom config step by step
+- [Remove cmd](#remove) - Remove a project
+- [List cmd](#list) - List the projects
+- [Support](#support-us-and-suggest-an-improvement)
+- [Backers and Sponsors](#backers)
+
 #### Features
 
-- Highly customizable
-- Setup step by step
-- Live reload
-- Support for multiple projects
-- Save logs on files
-- Web panel for a smart view
-- Build, install, run, test, fmt, generate, vet and much more
-- Watch custom paths and specific file extensions
-- Multiple watching methods (Polling, File watcher)
-- Docker support
+- Two watcher types: file system and polling
+- Logs and errors files
+- Projects setup step by step
+- After/Before custom commands
+- Custom environment variables
+- Multiple projects at the same time
+- Custom arguments to pass at each project
+- Docker support (only with polling watcher)
+- Live reload on file change (extensions and paths customizable)
+- Support for most go commands (install, build, run, vet, test, fmt and much more)
+- Web panel for a smart control of the workflow
 
 v 1.5
 
+- [ ] Use cases
+- [ ] Tests
 - [ ] Watch gopath dependencies 
 - [ ] Web panel, download logs
 - [ ] Multiple configurations (dev, production)
 - [ ] Support to ignore paths and files in gititnore
 - [ ] Input redirection (wait for an input and redirect)
 
-#### Wiki
-
-- [Getting Started](#installation)
-- [Run cmd](#run) - Run a project
-- [Add cmd](#add) - Add a new project
-- [Init cmd](#init) - Make a custom config step by step
-- [Remove cmd](#remove) - Remove a project 
-- [List cmd](#list) - List the projects
-- [Config sample](#config-sample) - Sample config file
-- [Support](#support-us-and-suggest-an-improvement)
-- [Backers and Sponsors](#backers)
-
 #### Installation
 Run this to get/install:
 ```
 $ go get github.com/tockins/realize
 ```
-#### Commands
+#### Commands available
 
 - ##### Run
     From project/projects root execute:
@@ -148,10 +155,10 @@ $ go get github.com/tockins/realize
     
     ```
     settings:
-     legacy:                
-       status: true           // legacy watch status
+     legacy:
+       status: true           // enable polling watcher instead fsnotifiy
        interval: 10s          // polling interval
-      resources:              // files names related to streams
+      resources:              // files names
         outputs: outputs.log
         logs: logs.log
         errors: errors.log
@@ -163,10 +170,10 @@ $ go get github.com/tockins/realize
     projects:
     - name: coin
       path: coin              // project path
-      environment:            // env variables
+      environment:            // env variables available at startup
         test: test
         myvar: value
-      commands: 
+      commands:               // go commands supported
         vet: true
         fmt: true
         test: false
@@ -175,10 +182,10 @@ $ go get github.com/tockins/realize
           status: true
         build:
           status: false
-          args:
+          args:                // additional params for the command
             - -race
         run: true
-      args:
+      args:                    // arguments to pass at the project
         - --myarg
       watcher:
         preview: false         // watched files preview
@@ -188,16 +195,15 @@ $ go get github.com/tockins/realize
         - vendor
         exts:                  // watched extensions
         - .go
-        scripts:
-        - type: before         // type 
+        scripts:               // custom scripts
+        - type: before         // type (after/before)
           command: ./ls -l     // command
-          changed: true        // relaunch when a file changes 
+          changed: true        // relaunch when a file change
           startup: true        // launch at start
         - type: after
           command: ./ls
           changed: true
-      streams:                 // enable/disable streams 
-         cli_out: true
+      streams:                 // save logs/errors/outputs on files
          file_out: false
          file_log: false
          file_err: false    

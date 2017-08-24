@@ -59,6 +59,7 @@ type tool struct {
 	name    string
 }
 
+// Cmds go supported
 type Cmds struct {
 	Vet      bool `yaml:"vet" json:"vet"`
 	Fmt      bool `yaml:"fmt" json:"fmt"`
@@ -69,7 +70,7 @@ type Cmds struct {
 	Run      bool `yaml:"run" json:"run"`
 }
 
-// Buildmode options
+// Cmd buildmode options
 type Cmd struct {
 	Status bool     `yaml:"status" json:"status"`
 	Args   []string `yaml:"args,omitempty" json:"args,omitempty"`

@@ -9,7 +9,7 @@ import (
 	"github.com/tockins/realize/style"
 )
 
-// Wdir return the current working directory
+// Wdir return the current working Directory
 func (s Settings) Wdir() string {
 	dir, err := os.Getwd()
 	s.Validate(err)
