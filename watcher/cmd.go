@@ -15,9 +15,9 @@ func (h *Blueprint) Run(p *cli.Context) error {
 	err := h.check()
 	if err == nil {
 		// loop projects
-		if p.String("name") != ""{
+		if p.String("name") != "" {
 			wg.Add(1)
-		}else{
+		} else {
 			wg.Add(len(h.Projects))
 		}
 		for k, element := range h.Projects {
