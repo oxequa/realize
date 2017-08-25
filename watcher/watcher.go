@@ -161,7 +161,7 @@ func (p *Project) watch(watcher watcher) error {
 	wd, _ := os.Getwd()
 	walk := func(path string, info os.FileInfo, err error) error {
 		if !p.ignore(path) {
-			if (info.IsDir() && len(filepath.Ext(path)) == 0 && !strings.HasPrefix(path, ".")) && !strings.Contains(path, "/.") || (inArray(filepath.Ext(path), p.Watcher.Exts)) {
+			if ((info.IsDir() && len(filepath.Ext(path)) == 0 && !strings.HasPrefix(path, ".")) && !strings.Contains(path, "/.")) || (inArray(filepath.Ext(path), p.Watcher.Exts)) {
 				if p.Watcher.Preview {
 					log.Println(p.pname(p.Name, 1), ":", path)
 				}
