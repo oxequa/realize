@@ -57,6 +57,7 @@ func (s Settings) Path(path string) string {
 	return strings.Replace(filepath.Clean(path), "\\", "/", -1)
 }
 
+// Rand is used for generate a random string
 func Rand(n int) string {
 	src := rand.NewSource(time.Now().UnixNano())
 	b := make([]byte, n)

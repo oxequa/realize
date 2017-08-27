@@ -20,7 +20,7 @@ func init() {
 	}
 }
 
-// Open a url in the default browser
+// OpenURL is used for open an url in the default browser
 func (s *Server) OpenURL(url string) (io.Writer, error) {
 	if s.Open {
 		open, err := cmd[runtime.GOOS]
