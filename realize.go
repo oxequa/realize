@@ -16,78 +16,34 @@ import (
 )
 
 const (
-	appVersion = "1.4.1"
-	config     = "realize.yaml"
-	outputs    = "outputs.log"
-	errs       = "errors.log"
-	logs       = "logs.log"
-	host       = "localhost"
-	port       = 3001
-	interval   = 200
+	version   = "1.4.1"
+	config    = "realize.yaml"
+	directory = ".realize"
+	outputs   = "outputs.log"
+	errs      = "errors.log"
+	logs      = "logs.log"
+	host      = "localhost"
+	port      = 3001
+	interval  = 200
 )
+
+// Realize struct contains the general app informations
+type realize struct {
+	settings.Settings `yaml:"settings,omitempty"`
+	Sync              chan string        `yaml:"-"`
+	Blueprint         watcher.Blueprint  `yaml:"-"`
+	Server            server.Server      `yaml:"-"`
+	Projects          *[]watcher.Project `yaml:"projects" json:"projects"`
+}
+
+// New realize instance
+var r realize
 
 // Cli commands
 func main() {
-	// Realize struct contains the general app informations
-	type realize struct {
-		settings.Settings `yaml:"settings,omitempty"`
-		Sync              chan string        `yaml:"-"`
-		Blueprint         watcher.Blueprint  `yaml:"-"`
-		Server            server.Server      `yaml:"-"`
-		Projects          *[]watcher.Project `yaml:"projects" json:"projects"`
-	}
-	var r realize
-	// Before of every exec of a cli method
-	before := func(*cli.Context) error {
-		gopath := os.Getenv("GOPATH")
-		if gopath == "" {
-			return errors.New("$GOPATH isn't set properly")
-		}
-		r = realize{
-			Sync: make(chan string),
-			Settings: settings.Settings{
-				Config: settings.Config{
-					Create: true,
-				},
-				Resources: settings.Resources{
-					Config:  config,
-					Outputs: outputs,
-					Logs:    logs,
-					Errors:  errs,
-				},
-				Server: settings.Server{
-					Status: false,
-					Open:   false,
-					Host:   host,
-					Port:   port,
-				},
-			},
-		}
-		r.Blueprint = watcher.Blueprint{
-			Settings: &r.Settings,
-			Sync:     r.Sync,
-		}
-		r.Server = server.Server{
-			Blueprint: &r.Blueprint,
-			Settings:  &r.Settings,
-			Sync:      r.Sync,
-		}
-		r.Projects = &r.Blueprint.Projects
-
-		// read if exist
-		r.Read(&r)
-
-		// increase the file limit
-		if r.Config.Flimit != 0 {
-			if err := r.Flimit(); err != nil {
-				return err
-			}
-		}
-		return nil
-	}
 	app := &cli.App{
 		Name:    "Realize",
-		Version: appVersion,
+		Version: version,
 		Authors: []*cli.Author{
 			{
 				Name:  "Alessio Pracchia",
@@ -118,29 +74,18 @@ func main() {
 					&cli.BoolFlag{Name: "no-config", Aliases: []string{"nc"}, Value: false, Usage: "Ignore existing configurations."},
 				},
 				Action: func(p *cli.Context) error {
-					if p.Bool("legacy") {
-						r.Config.Legacy = settings.Legacy{
-							Status:   p.Bool("legacy"),
-							Interval: interval,
-						}
+					polling(p, &r.Config.Legacy)
+					noconf(p, &r.Settings.Config)
+					if err := insert(p, &r.Blueprint); err != nil {
+						return err
 					}
-					if p.Bool("no-config") || len(r.Blueprint.Projects) <= 0 {
-						if p.Bool("no-config") {
-							r.Config.Create = false
-						}
-						r.Blueprint.Projects = []watcher.Project{}
-						if err := r.Blueprint.Add(p); err != nil {
-							return err
-						}
-					}
-
 					if err := r.Server.Start(p); err != nil {
 						return err
 					}
 					if err := r.Blueprint.Run(p); err != nil {
 						return err
 					}
-					if !p.Bool("no-config") {
+					if r.Config.Create {
 						if err := r.Record(r); err != nil {
 							return err
 						}
@@ -167,14 +112,13 @@ func main() {
 					&cli.BoolFlag{Name: "no-config", Aliases: []string{"nc"}, Value: false, Usage: "Ignore existing configurations."},
 				},
 				Action: func(p *cli.Context) error {
-					fmt.Println(p.String("path"))
 					if err := r.Blueprint.Add(p); err != nil {
 						return err
 					}
 					if err := r.Record(r); err != nil {
 						return err
 					}
-					fmt.Println(style.Yellow.Bold("[")+"REALIZE"+style.Yellow.Bold("]"), style.Green.Bold("Your project was successfully added."))
+					fmt.Println(prefix(style.Green.Bold("Your project was successfully added.")))
 					return nil
 				},
 				Before: before,
@@ -194,7 +138,7 @@ func main() {
 						Questions: []*interact.Question{
 							{
 								Before: func(d interact.Context) error {
-									if _, err := os.Stat(settings.Directory + config); err != nil {
+									if _, err := os.Stat(directory + "/" + config); err != nil {
 										d.Skip()
 									}
 									d.SetDef(false, style.Green.Regular("(n)"))
@@ -892,7 +836,7 @@ func main() {
 						},
 						After: func(d interact.Context) error {
 							if val, _ := d.Qns().Get(0).Ans().Bool(); val {
-								actErr = r.Settings.Remove(settings.Directory)
+								actErr = r.Settings.Remove(directory)
 								if actErr != nil {
 									return actErr
 								}
@@ -903,7 +847,7 @@ func main() {
 					if err := r.Record(r); err != nil {
 						return err
 					}
-					fmt.Println(style.Yellow.Bold("[")+"REALIZE"+style.Yellow.Bold("]"), style.Green.Bold("Your configuration was successful."))
+					fmt.Println(prefix(style.Green.Bold("Your configuration was successful.")))
 					return nil
 				},
 				Before: before,
@@ -923,7 +867,7 @@ func main() {
 					if err := r.Record(r); err != nil {
 						return err
 					}
-					fmt.Println(style.Yellow.Bold("[")+"REALIZE"+style.Yellow.Bold("]"), style.Green.Bold("Your project was successfully removed."))
+					fmt.Println(prefix(style.Green.Bold("Your project was successfully removed.")))
 					return nil
 				},
 				Before: before,
@@ -944,10 +888,10 @@ func main() {
 				Aliases:     []string{"c"},
 				Description: "Remove realize folder.",
 				Action: func(p *cli.Context) error {
-					if err := r.Settings.Remove(settings.Directory); err != nil {
+					if err := r.Settings.Remove(directory); err != nil {
 						return err
 					}
-					fmt.Println(style.Yellow.Bold("[")+"REALIZE"+style.Yellow.Bold("]"), style.Green.Bold("Realize folder successfully removed."))
+					fmt.Println(prefix(style.Green.Bold("Realize folder successfully removed.")))
 					return nil
 				},
 				Before: before,
@@ -955,7 +899,90 @@ func main() {
 		},
 	}
 	if err := app.Run(os.Args); err != nil {
-		fmt.Println(style.Red.Bold(err))
+		print(style.Red.Bold(err))
 		os.Exit(1)
 	}
+}
+
+// Prefix a given string
+func prefix(s string) string {
+	if s != "" {
+		return fmt.Sprint(style.Yellow.Bold("[")+"REALIZE"+style.Yellow.Bold("]"), s)
+	}
+	return ""
+}
+
+// Before is launched before each command
+func before(*cli.Context) error {
+	// Before of every exec of a cli method
+	gopath := os.Getenv("GOPATH")
+	if gopath == "" {
+		return errors.New("$GOPATH isn't set properly")
+	}
+	r = realize{
+		Sync: make(chan string),
+		Settings: settings.Settings{
+			Config: settings.Config{
+				Create: true,
+			},
+			Resources: settings.Resources{
+				Config:  config,
+				Outputs: outputs,
+				Logs:    logs,
+				Errors:  errs,
+			},
+			Server: settings.Server{
+				Status: false,
+				Open:   false,
+				Host:   host,
+				Port:   port,
+			},
+		},
+	}
+	r.Blueprint = watcher.Blueprint{
+		Settings: &r.Settings,
+		Sync:     r.Sync,
+	}
+	r.Server = server.Server{
+		Blueprint: &r.Blueprint,
+		Settings:  &r.Settings,
+		Sync:      r.Sync,
+	}
+	r.Projects = &r.Blueprint.Projects
+
+	// read if exist
+	r.Read(&r)
+
+	// increase the file limit
+	if r.Config.Flimit != 0 {
+		if err := r.Flimit(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Check for the noconf option
+func noconf(c *cli.Context, s *settings.Config) {
+	if c.Bool("no-config") {
+		s.Create = false
+	}
+}
+
+// Check for polling option
+func polling(c *cli.Context, s *settings.Legacy) {
+	if c.Bool("legacy") {
+		s.Status = c.Bool("legacy")
+		s.Interval = interval
+	}
+}
+
+// Insert a project if there isn't already one
+func insert(c *cli.Context, b *watcher.Blueprint) error {
+	if len(b.Projects) <= 0 {
+		if err := b.Add(c); err != nil {
+			return err
+		}
+	}
+	return nil
 }
