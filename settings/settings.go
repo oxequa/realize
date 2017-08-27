@@ -3,13 +3,14 @@ package settings
 import (
 	yaml "gopkg.in/yaml.v2"
 	"os"
+	"path/filepath"
 	"time"
 )
 
 // settings const
 const (
-	Permission = 0775
-	Directory  = ".realize/"
+	permission = 0775
+	directory  = ".realize"
 )
 
 // Settings defines a group of general settings
@@ -52,8 +53,9 @@ type Resources struct {
 func (s *Settings) Read(out interface{}) error {
 	localConfigPath := s.Resources.Config
 	// backward compatibility
-	if _, err := os.Stat(Directory + s.Resources.Config); err == nil {
-		localConfigPath = Directory + s.Resources.Config
+	path := filepath.Join(directory, s.Resources.Config)
+	if _, err := os.Stat(path); err == nil {
+		localConfigPath = path
 	}
 	content, err := s.Stream(localConfigPath)
 	if err == nil {
@@ -70,12 +72,12 @@ func (s *Settings) Record(out interface{}) error {
 		if err != nil {
 			return err
 		}
-		if _, err := os.Stat(Directory); os.IsNotExist(err) {
-			if err = os.Mkdir(Directory, Permission); err != nil {
+		if _, err := os.Stat(directory); os.IsNotExist(err) {
+			if err = os.Mkdir(directory, permission); err != nil {
 				return s.Write(s.Resources.Config, y)
 			}
 		}
-		return s.Write(Directory+s.Resources.Config, y)
+		return s.Write(filepath.Join(directory, s.Resources.Config), y)
 	}
 	return nil
 }
