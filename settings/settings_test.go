@@ -47,5 +47,5 @@ func TestSettings_Record(t *testing.T) {
 	if err := s.Record(a); err != nil {
 		t.Fatal(err)
 	}
-	s.Remove(filepath.Join(Directory, s.Resources.Config))
+	s.Remove(filepath.Join(directory, s.Resources.Config))
 }

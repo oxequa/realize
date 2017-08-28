@@ -27,7 +27,7 @@ func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 	if err != nil {
 		msg := fmt.Sprintln(p.pname(p.Name, 3), ":", style.Blue.Regular(err.Error()))
 		out := BufferOut{Time: time.Now(), Text: err.Error(), Type: "Go Run"}
-		p.print("error", out, msg, "")
+		p.stamp("error", out, msg, "")
 	} else {
 		isErrorText = func(t string) bool {
 			return errRegexp.MatchString(t)
@@ -63,7 +63,7 @@ func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 		}
 		msg := fmt.Sprintln(p.pname(p.Name, 2), ":", style.Red.Regular("Ended"))
 		out := BufferOut{Time: time.Now(), Text: "Ended", Type: "Go Run"}
-		p.print("log", out, msg, "")
+		p.stamp("log", out, msg, "")
 		wr.Done()
 	}()
 
@@ -87,10 +87,10 @@ func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 			msg := fmt.Sprintln(p.pname(p.Name, 3), ":", style.Blue.Regular(text))
 			if isError && !isErrorText(text) {
 				out := BufferOut{Time: time.Now(), Text: text, Type: "Go Run"}
-				p.print("error", out, msg, "")
+				p.stamp("error", out, msg, "")
 			} else {
 				out := BufferOut{Time: time.Now(), Text: text, Type: "Go Run"}
-				p.print("out", out, msg, "")
+				p.stamp("out", out, msg, "")
 			}
 		}
 		close(stop)
