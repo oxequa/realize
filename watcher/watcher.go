@@ -43,8 +43,10 @@ func (p *Project) watchByPolling() {
 	channel, exit := make(chan bool, 1), make(chan os.Signal, 2)
 	signal.Notify(exit, os.Interrupt, syscall.SIGTERM)
 	defer func() {
+		p.cmd("after", true)
 		wg.Done()
 	}()
+	p.cmd("before", true)
 	go p.routines(&wr, channel, watcher, "")
 	p.LastChangedOn = time.Now().Truncate(time.Second)
 	walk := func(changed string, info os.FileInfo, err error) error {
@@ -109,8 +111,10 @@ func (p *Project) watchByNotify() {
 	watcher, err := fsnotify.NewWatcher()
 	p.Fatal(err)
 	defer func() {
+		p.cmd("after", true)
 		wg.Done()
 	}()
+	p.cmd("before", true)
 	go p.routines(&wr, channel, watcher, "")
 	p.LastChangedOn = time.Now().Truncate(time.Second)
 	for {
@@ -156,7 +160,6 @@ func (p *Project) watchByNotify() {
 // Watch the files tree of a project
 func (p *Project) watch(watcher watcher) error {
 	var files, folders int64
-	wd, _ := os.Getwd()
 	walk := func(path string, info os.FileInfo, err error) error {
 		if !p.ignore(path) {
 			if ((info.IsDir() && len(filepath.Ext(path)) == 0 && !strings.HasPrefix(path, ".")) && !strings.Contains(path, "/.")) || (inArray(filepath.Ext(path), p.Watcher.Exts)) {
@@ -168,30 +171,23 @@ func (p *Project) watch(watcher watcher) error {
 				}
 				if inArray(filepath.Ext(path), p.Watcher.Exts) {
 					files++
-					p.tool(path, p.tools.Fmt)
 				} else {
 					folders++
-					p.tool(path, p.tools.Vet)
-					p.tool(path, p.tools.Test)
-					p.tool(path, p.tools.Generate)
 				}
 			}
 		}
 		return nil
 	}
-	if p.path == "." || p.path == "/" {
-		p.base = wd
-		p.path = p.Wdir()
-	} else if filepath.IsAbs(p.path) {
-		p.base = p.path
-	} else {
-		p.base = filepath.Join(wd, p.path)
-	}
+
 	for _, dir := range p.Watcher.Paths {
 		base := filepath.Join(p.base, dir)
 		if _, err := os.Stat(base); err == nil {
 			if err := filepath.Walk(base, walk); err != nil {
 				log.Println(style.Red.Bold(err.Error()))
+				p.tool(base, p.tools.Fmt)
+				p.tool(base, p.tools.Vet)
+				p.tool(base, p.tools.Test)
+				p.tool(base, p.tools.Generate)
 			}
 		} else {
 			return errors.New(base + " path doesn't exist")
@@ -262,6 +258,7 @@ func (p *Project) build() error {
 	return nil
 }
 
+//  Tool logs the result of a go command
 func (p *Project) tool(path string, tool tool) error {
 	if tool.status != nil {
 		v := reflect.ValueOf(tool.status).Elem()
@@ -284,15 +281,14 @@ func (p *Project) tool(path string, tool tool) error {
 // Cmd calls an wrapper for execute the commands after/before
 func (p *Project) cmd(flag string, global bool) {
 	for _, cmd := range p.Watcher.Scripts {
-		if strings.ToLower(cmd.Type) == flag {
+		if strings.ToLower(cmd.Type) == flag && cmd.Global == global {
 			err, logs := p.command(cmd)
 			msg = fmt.Sprintln(p.pname(p.Name, 5), ":", style.Green.Bold("Command"), style.Green.Bold("\"")+cmd.Command+style.Green.Bold("\""))
 			out = BufferOut{Time: time.Now(), Text: cmd.Command, Type: flag}
-			if logs != "" {
-				p.stamp("log", out, msg, "")
-			}
 			if err != "" {
 				p.stamp("error", out, msg, "")
+			} else {
+				p.stamp("log", out, msg, "")
 			}
 			if logs != "" {
 				msg = fmt.Sprintln(logs)
@@ -370,8 +366,8 @@ func (p *Project) stamp(t string, o BufferOut, msg string, stream string) {
 	switch t {
 	case "out":
 		p.Buffer.StdOut = append(p.Buffer.StdOut, o)
-		if p.Streams.FileOut {
-			f := p.Create(p.base, p.parent.Resources.Outputs)
+		if p.Resources.Outputs.Status {
+			f := p.Create(p.base, p.Resources.Outputs.Name)
 			t := time.Now()
 			s := []string{t.Format("2006-01-02 15:04:05"), strings.ToUpper(p.Name), ":", o.Text, "\r\n"}
 			if _, err := f.WriteString(strings.Join(s, " ")); err != nil {
@@ -380,8 +376,8 @@ func (p *Project) stamp(t string, o BufferOut, msg string, stream string) {
 		}
 	case "log":
 		p.Buffer.StdLog = append(p.Buffer.StdLog, o)
-		if p.Streams.FileLog {
-			f := p.Create(p.base, p.parent.Resources.Logs)
+		if p.Resources.Logs.Status {
+			f := p.Create(p.base, p.Resources.Logs.Name)
 			t := time.Now()
 			s := []string{t.Format("2006-01-02 15:04:05"), strings.ToUpper(p.Name), ":", o.Text, "\r\n"}
 			if stream != "" {
@@ -393,8 +389,8 @@ func (p *Project) stamp(t string, o BufferOut, msg string, stream string) {
 		}
 	case "error":
 		p.Buffer.StdErr = append(p.Buffer.StdErr, o)
-		if p.Streams.FileErr {
-			f := p.Create(p.base, p.parent.Resources.Errors)
+		if p.Resources.Errors.Status {
+			f := p.Create(p.base, p.Resources.Errors.Name)
 			t := time.Now()
 			s := []string{t.Format("2006-01-02 15:04:05"), strings.ToUpper(p.Name), ":", o.Type, o.Text, o.Path, "\r\n"}
 			if stream != "" {

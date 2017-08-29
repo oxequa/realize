@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"path/filepath"
 )
 
 // Run launches the toolchain for each project
@@ -27,8 +28,8 @@ func (h *Blueprint) Run(p *cli.Context) error {
 			if element.Cmds.Fmt {
 				h.Projects[k].tools.Fmt = tool{
 					status:  &h.Projects[k].Cmds.Fmt,
-					cmd:     "gofmt",
-					options: []string{"-s", "-w", "-e"},
+					cmd:     "go",
+					options: []string{"fmt"},
 					name:    "Go Fmt",
 				}
 			}
@@ -65,6 +66,23 @@ func (h *Blueprint) Run(p *cli.Context) error {
 					h.Projects[k].Buffer.StdErr = append(h.Projects[k].Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error(), Type: "Env error", Stream: ""})
 				}
 			}
+
+			// base path
+			wd, err := os.Getwd()
+			if err != nil{
+				return err
+			}
+			if element.path == "." || element.path == "/" {
+				h.Projects[k].base = wd
+				h.Projects[k].path = element.Wdir()
+			} else if filepath.IsAbs(element.path) {
+				h.Projects[k].base = element.path
+			} else {
+				h.Projects[k].base = filepath.Join(wd, element.path)
+			}
+
+			println(h.Projects[k].base)
+			// watch
 			if h.Legacy.Status {
 				go h.Projects[k].watchByPolling()
 			} else {
@@ -175,10 +193,6 @@ func (h *Blueprint) List() error {
 					}
 				}
 			}
-			fmt.Println(name, style.Yellow.Regular("Streams"), ":")
-			fmt.Println(name, "\t", style.Yellow.Regular("File Out"), ":", style.Magenta.Regular(val.Streams.FileOut))
-			fmt.Println(name, "\t", style.Yellow.Regular("File Log"), ":", style.Magenta.Regular(val.Streams.FileLog))
-			fmt.Println(name, "\t", style.Yellow.Regular("File Err"), ":", style.Magenta.Regular(val.Streams.FileErr))
 		}
 		return nil
 	}
