@@ -115,7 +115,6 @@ func (s *Server) Start(p *cli.Context) (err error) {
 
 		//websocket
 		e.GET("/ws", s.projects)
-
 		go e.Start(string(s.Settings.Server.Host) + ":" + strconv.Itoa(s.Settings.Server.Port))
 		_, err = s.OpenURL("http://" + string(s.Settings.Server.Host) + ":" + strconv.Itoa(s.Settings.Server.Port))
 		if err != nil {
@@ -148,7 +147,6 @@ func (s *Server) projects(c echo.Context) error {
 			text := ""
 			err := websocket.Message.Receive(ws, &text)
 			if err != nil {
-				//log.Println(err)
 				break
 			} else {
 				err := json.Unmarshal([]byte(text), &s.Blueprint.Projects)
