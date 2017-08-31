@@ -26,6 +26,7 @@ _testmain.go
 .glide
 .idea
 .DS_Store
+.realize
 
 server/assets
 docker
