@@ -2,7 +2,6 @@ package settings
 
 import (
 	"errors"
-	"github.com/labstack/gommon/random"
 	"os"
 	"path/filepath"
 	"strings"
@@ -32,8 +31,8 @@ func TestSettings_Validate(t *testing.T) {
 
 func TestSettings_Name(t *testing.T) {
 	s := Settings{}
-	name := random.String(8)
-	path := random.String(5)
+	name := Rand(8)
+	path := Rand(5)
 	dir, err := os.Getwd()
 	if err != nil {
 		t.Fatal(err)
@@ -47,7 +46,7 @@ func TestSettings_Name(t *testing.T) {
 
 func TestSettings_Path(t *testing.T) {
 	s := Settings{}
-	path := random.String(5)
+	path := Rand(5)
 	expected := strings.Replace(filepath.Clean(path), "\\", "/", -1)
 	result := s.Path(path)
 	if result != expected {

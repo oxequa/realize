@@ -19,19 +19,19 @@ func (s Settings) Stream(file string) ([]byte, error) {
 
 // Write a file
 func (s Settings) Write(name string, data []byte) error {
-	err := ioutil.WriteFile(name, data, Permission)
+	err := ioutil.WriteFile(name, data, permission)
 	return s.Validate(err)
 }
 
 // Create a new file and return its pointer
 func (s Settings) Create(path string, name string) *os.File {
 	var file string
-	if _, err := os.Stat(Directory); err == nil {
-		file = filepath.Join(path, Directory, name)
+	if _, err := os.Stat(directory); err == nil {
+		file = filepath.Join(path, directory, name)
 	} else {
 		file = filepath.Join(path, name)
 	}
-	out, err := os.OpenFile(file, os.O_APPEND|os.O_WRONLY|os.O_CREATE|os.O_SYNC, Permission)
+	out, err := os.OpenFile(file, os.O_APPEND|os.O_WRONLY|os.O_CREATE|os.O_SYNC, permission)
 	s.Validate(err)
 	return out
 }

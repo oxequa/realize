@@ -15,14 +15,17 @@ func (h *Blueprint) Run(p *cli.Context) error {
 	err := h.check()
 	if err == nil {
 		// loop projects
-		wg.Add(len(h.Projects))
+		if p.String("name") != "" {
+			wg.Add(1)
+		} else {
+			wg.Add(len(h.Projects))
+		}
 		for k, element := range h.Projects {
 			if p.String("name") != "" && h.Projects[k].Name != p.String("name") {
 				continue
 			}
-			tools := tools{}
 			if element.Cmds.Fmt {
-				tools.Fmt = tool{
+				h.Projects[k].tools.Fmt = tool{
 					status:  &h.Projects[k].Cmds.Fmt,
 					cmd:     "gofmt",
 					options: []string{"-s", "-w", "-e"},
@@ -30,7 +33,7 @@ func (h *Blueprint) Run(p *cli.Context) error {
 				}
 			}
 			if element.Cmds.Generate {
-				tools.Generate = tool{
+				h.Projects[k].tools.Generate = tool{
 					status:  &h.Projects[k].Cmds.Generate,
 					cmd:     "go",
 					options: []string{"generate"},
@@ -38,7 +41,7 @@ func (h *Blueprint) Run(p *cli.Context) error {
 				}
 			}
 			if element.Cmds.Test {
-				tools.Test = tool{
+				h.Projects[k].tools.Test = tool{
 					status:  &h.Projects[k].Cmds.Test,
 					cmd:     "go",
 					options: []string{"test"},
@@ -46,14 +49,13 @@ func (h *Blueprint) Run(p *cli.Context) error {
 				}
 			}
 			if element.Cmds.Vet {
-				tools.Vet = tool{
+				h.Projects[k].tools.Vet = tool{
 					status:  &h.Projects[k].Cmds.Vet,
 					cmd:     "go",
 					options: []string{"vet"},
 					name:    "Go Vet",
 				}
 			}
-			h.Projects[k].tools = tools
 			h.Projects[k].parent = h
 			h.Projects[k].path = h.Projects[k].Path
 
@@ -127,7 +129,7 @@ func (h *Blueprint) Remove(p *cli.Context) error {
 			return nil
 		}
 	}
-	return errors.New("no project found")
+	return errors.New("No project found.")
 }
 
 // List of all the projects
@@ -189,5 +191,5 @@ func (h *Blueprint) check() error {
 		h.Clean()
 		return nil
 	}
-	return errors.New("There are no projects")
+	return errors.New("There are no projects.")
 }

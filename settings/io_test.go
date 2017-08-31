@@ -1,7 +1,6 @@
 package settings
 
 import (
-	"github.com/labstack/gommon/random"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -9,7 +8,7 @@ import (
 
 func TestSettings_Stream(t *testing.T) {
 	s := Settings{}
-	filename := random.String(4)
+	filename := Rand(4)
 	if _, err := s.Stream(filename); err == nil {
 		t.Fatal("Error expected, none found", filename, err)
 	}
