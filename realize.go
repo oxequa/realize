@@ -118,7 +118,7 @@ func main() {
 					if err := r.Record(r); err != nil {
 						return err
 					}
-					fmt.Println(prefix(style.Green.Bold("Your project was successfully added.")))
+					fmt.Fprintln(style.Output,prefix(style.Green.Bold("Your project was successfully added.")))
 					return nil
 				},
 				Before: before,
@@ -158,10 +158,7 @@ func main() {
 												Create: true,
 											},
 											Resources: settings.Resources{
-												Config:  config,
-												Outputs: outputs,
-												Logs:    logs,
-												Errors:  errs,
+												Config: config,
 											},
 											Server: settings.Server{
 												Status: false,
@@ -753,60 +750,6 @@ func main() {
 									},
 									{
 										Before: func(d interact.Context) error {
-											d.SetDef(false, style.Green.Regular("(n)"))
-											return nil
-										},
-										Quest: interact.Quest{
-											Options: style.Yellow.Regular("[y/n]"),
-											Msg:     "Enable file output history",
-										},
-										Action: func(d interact.Context) interface{} {
-											val, err := d.Ans().Bool()
-											if err != nil {
-												return d.Err()
-											}
-											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Streams.FileOut = val
-											return nil
-										},
-									},
-									{
-										Before: func(d interact.Context) error {
-											d.SetDef(false, style.Green.Regular("(n)"))
-											return nil
-										},
-										Quest: interact.Quest{
-											Options: style.Yellow.Regular("[y/n]"),
-											Msg:     "Enable file logs history",
-										},
-										Action: func(d interact.Context) interface{} {
-											val, err := d.Ans().Bool()
-											if err != nil {
-												return d.Err()
-											}
-											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Streams.FileLog = val
-											return nil
-										},
-									},
-									{
-										Before: func(d interact.Context) error {
-											d.SetDef(false, style.Green.Regular("(n)"))
-											return nil
-										},
-										Quest: interact.Quest{
-											Options: style.Yellow.Regular("[y/n]"),
-											Msg:     "Enable file errors history",
-										},
-										Action: func(d interact.Context) interface{} {
-											val, err := d.Ans().Bool()
-											if err != nil {
-												return d.Err()
-											}
-											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Streams.FileErr = val
-											return nil
-										},
-									},
-									{
-										Before: func(d interact.Context) error {
 											d.SetDef("", style.Green.Regular("(none)"))
 											return nil
 										},
@@ -847,7 +790,7 @@ func main() {
 					if err := r.Record(r); err != nil {
 						return err
 					}
-					fmt.Println(prefix(style.Green.Bold("Your configuration was successful.")))
+					fmt.Fprintln(style.Output,prefix(style.Green.Bold("Your configuration was successful.")))
 					return nil
 				},
 				Before: before,
@@ -867,7 +810,7 @@ func main() {
 					if err := r.Record(r); err != nil {
 						return err
 					}
-					fmt.Println(prefix(style.Green.Bold("Your project was successfully removed.")))
+					fmt.Fprintln(style.Output,prefix(style.Green.Bold("Your project was successfully removed.")))
 					return nil
 				},
 				Before: before,
@@ -891,7 +834,7 @@ func main() {
 					if err := r.Settings.Remove(directory); err != nil {
 						return err
 					}
-					fmt.Println(prefix(style.Green.Bold("Realize folder successfully removed.")))
+					fmt.Fprintln(style.Output,prefix(style.Green.Bold("Realize folder successfully removed.")))
 					return nil
 				},
 				Before: before,
@@ -926,10 +869,7 @@ func before(*cli.Context) error {
 				Create: true,
 			},
 			Resources: settings.Resources{
-				Config:  config,
-				Outputs: outputs,
-				Logs:    logs,
-				Errors:  errs,
+				Config: config,
 			},
 			Server: settings.Server{
 				Status: false,
