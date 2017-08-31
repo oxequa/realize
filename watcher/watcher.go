@@ -414,7 +414,7 @@ func (p *Project) print(t string, o BufferOut, msg string, stream string) {
 		log.Print(msg)
 	}
 	if stream != "" {
-		fmt.Print(stream)
+		fmt.Fprint(style.Output, stream)
 	}
 	go func() {
 		p.parent.Sync <- "sync"

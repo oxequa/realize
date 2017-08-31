@@ -46,7 +46,7 @@ func inArray(str string, list []string) bool {
 
 // Rewrite the layout of the log timestamp
 func (w logWriter) Write(bytes []byte) (int, error) {
-	return fmt.Print(style.Yellow.Regular("[") + time.Now().Format("15:04:05") + style.Yellow.Regular("]") + string(bytes))
+	return fmt.Fprint(style.Output, style.Yellow.Regular("[")+time.Now().Format("15:04:05")+style.Yellow.Regular("]")+string(bytes))
 }
 
 // getEnvPath returns the first path found in env or empty string

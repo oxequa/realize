@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	"github.com/tockins/interact"
 	"github.com/tockins/realize/server"
 	"github.com/tockins/realize/settings"
 	"github.com/tockins/realize/style"
 	"github.com/tockins/realize/watcher"
+	"github.com/tockins/interact"
 	cli "gopkg.in/urfave/cli.v2"
 )
 
@@ -167,14 +167,14 @@ func main() {
 					&cli.BoolFlag{Name: "no-config", Aliases: []string{"nc"}, Value: false, Usage: "Ignore existing configurations."},
 				},
 				Action: func(p *cli.Context) error {
-					fmt.Println(p.String("path"))
+					fmt.Fprintln(style.Output, p.String("path"))
 					if err := r.Blueprint.Add(p); err != nil {
 						return err
 					}
 					if err := r.Record(r); err != nil {
 						return err
 					}
-					fmt.Println(style.Yellow.Bold("[")+"REALIZE"+style.Yellow.Bold("]"), style.Green.Bold("Your project was successfully added."))
+					fmt.Fprintln(style.Output, style.Yellow.Bold("[")+"REALIZE"+style.Yellow.Bold("]"), style.Green.Bold("Your project was successfully added."))
 					return nil
 				},
 				Before: before,
@@ -903,7 +903,7 @@ func main() {
 					if err := r.Record(r); err != nil {
 						return err
 					}
-					fmt.Println(style.Yellow.Bold("[")+"REALIZE"+style.Yellow.Bold("]"), style.Green.Bold("Your configuration was successful."))
+					fmt.Fprintln(style.Output, style.Yellow.Bold("[")+"REALIZE"+style.Yellow.Bold("]"), style.Green.Bold("Your configuration was successful."))
 					return nil
 				},
 				Before: before,
@@ -923,7 +923,7 @@ func main() {
 					if err := r.Record(r); err != nil {
 						return err
 					}
-					fmt.Println(style.Yellow.Bold("[")+"REALIZE"+style.Yellow.Bold("]"), style.Green.Bold("Your project was successfully removed."))
+					fmt.Fprintln(style.Output, style.Yellow.Bold("[")+"REALIZE"+style.Yellow.Bold("]"), style.Green.Bold("Your project was successfully removed."))
 					return nil
 				},
 				Before: before,
@@ -947,7 +947,7 @@ func main() {
 					if err := r.Settings.Remove(settings.Directory); err != nil {
 						return err
 					}
-					fmt.Println(style.Yellow.Bold("[")+"REALIZE"+style.Yellow.Bold("]"), style.Green.Bold("Realize folder successfully removed."))
+					fmt.Fprintln(style.Output, style.Yellow.Bold("[")+"REALIZE"+style.Yellow.Bold("]"), style.Green.Bold("Realize folder successfully removed."))
 					return nil
 				},
 				Before: before,
@@ -955,7 +955,7 @@ func main() {
 		},
 	}
 	if err := app.Run(os.Args); err != nil {
-		fmt.Println(style.Red.Bold(err))
+		fmt.Fprintln(style.Output, style.Red.Bold(err))
 		os.Exit(1)
 	}
 }
