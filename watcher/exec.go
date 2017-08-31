@@ -162,7 +162,7 @@ func (p *Project) goTools(dir string, name string, cmd ...string) (string, error
 	build.Stdout = &out
 	build.Stderr = &stderr
 	if err := build.Run(); err != nil {
-		return stderr.String(), err
+		return stderr.String() + out.String(), err
 	}
 	return "", nil
 }

@@ -40,7 +40,6 @@ type Project struct {
 	Cmds               Cmds              `yaml:"commands" json:"commands"`
 	Args               []string          `yaml:"args,omitempty" json:"args,omitempty"`
 	Watcher            Watcher           `yaml:"watcher" json:"watcher"`
-	Streams            Streams           `yaml:"streams,omitempty" json:"streams,omitempty"`
 	Buffer             Buffer            `yaml:"-" json:"buffer"`
 	ErrorOutputPattern string            `yaml:"errorOutputPattern,omitempty" json:"errorOutputPattern,omitempty"`
 	parent             *Blueprint
@@ -61,26 +60,26 @@ type tool struct {
 
 // Cmds go supported
 type Cmds struct {
-	Vet      bool `yaml:"vet" json:"vet"`
-	Fmt      bool `yaml:"fmt" json:"fmt"`
-	Test     bool `yaml:"test" json:"test"`
-	Generate bool `yaml:"generate" json:"generate"`
+	Vet      bool `yaml:"vet,omitempty" json:"vet,omitempty"`
+	Fmt      bool `yaml:"fmt,omitempty" json:"fmt,omitempty"`
+	Test     bool `yaml:"test,omitempty" json:"test,omitempty"`
+	Generate bool `yaml:"generate,omitempty" json:"generate,omitempty"`
 	Bin      Cmd  `yaml:"bin" json:"bin"`
-	Build    Cmd  `yaml:"build" json:"build"`
-	Run      bool `yaml:"run" json:"run"`
+	Build    Cmd  `yaml:"build,omitempty" json:"build,omitempty"`
+	Run      bool `yaml:"run,omitempty" json:"run,omitempty"`
 }
 
 // Cmd buildmode options
 type Cmd struct {
-	Status bool     `yaml:"status" json:"status"`
+	Status bool     `yaml:"status,omitempty" json:"status,omitempty"`
 	Args   []string `yaml:"args,omitempty" json:"args,omitempty"`
 }
 
 // Watcher struct defines the livereload's logic
 type Watcher struct {
-	Preview bool      `yaml:"preview" json:"preview"`
+	Preview bool      `yaml:"preview,omitempty" json:"preview,omitempty"`
 	Paths   []string  `yaml:"paths" json:"paths"`
-	Ignore  []string  `yaml:"ignore_paths" json:"ignore"`
+	Ignore  []string  `yaml:"ignore_paths,omitempty" json:"ignore_paths,omitempty"`
 	Exts    []string  `yaml:"exts" json:"exts"`
 	Scripts []Command `yaml:"scripts,omitempty" json:"scripts,omitempty"`
 }
@@ -90,14 +89,7 @@ type Command struct {
 	Type    string `yaml:"type" json:"type"`
 	Command string `yaml:"command" json:"command"`
 	Path    string `yaml:"path,omitempty" json:"path,omitempty"`
-	Global  bool   `yaml:"global,omitempty" json:"changed,global"`
-}
-
-// Streams is a collection of names and values for the logs functionality
-type Streams struct {
-	FileOut bool `yaml:"file_out" json:"file_out"`
-	FileLog bool `yaml:"file_log" json:"file_log"`
-	FileErr bool `yaml:"file_err" json:"file_err"`
+	Global  bool   `yaml:"global,omitempty" json:"global,omitempty"`
 }
 
 // Buffer define an array buffer for each log files
