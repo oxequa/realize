@@ -22,3 +22,7 @@ var (
 	Magenta = colorBase(color.FgMagenta)
 	Green   = colorBase(color.FgGreen)
 )
+
+// Output defines the standard output of the print functions. By default, os.Stdout is used.
+// When invoked on Windows machines, this automatically handles escape sequences.
+var Output = color.Output

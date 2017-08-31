@@ -8,7 +8,6 @@ import (
 	"os"
 	"strings"
 	"time"
-	"path/filepath"
 )
 
 // Run launches the toolchain for each project
@@ -28,8 +27,8 @@ func (h *Blueprint) Run(p *cli.Context) error {
 			if element.Cmds.Fmt {
 				h.Projects[k].tools.Fmt = tool{
 					status:  &h.Projects[k].Cmds.Fmt,
-					cmd:     "go",
-					options: []string{"fmt"},
+					cmd:     "gofmt",
+					options: []string{"-s", "-w", "-e"},
 					name:    "Go Fmt",
 				}
 			}
@@ -66,23 +65,6 @@ func (h *Blueprint) Run(p *cli.Context) error {
 					h.Projects[k].Buffer.StdErr = append(h.Projects[k].Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error(), Type: "Env error", Stream: ""})
 				}
 			}
-
-			// base path
-			wd, err := os.Getwd()
-			if err != nil{
-				return err
-			}
-			if element.path == "." || element.path == "/" {
-				h.Projects[k].base = wd
-				h.Projects[k].path = element.Wdir()
-			} else if filepath.IsAbs(element.path) {
-				h.Projects[k].base = element.path
-			} else {
-				h.Projects[k].base = filepath.Join(wd, element.path)
-			}
-
-			println(h.Projects[k].base)
-			// watch
 			if h.Legacy.Status {
 				go h.Projects[k].watchByPolling()
 			} else {
@@ -155,44 +137,48 @@ func (h *Blueprint) List() error {
 	err := h.check()
 	if err == nil {
 		for _, val := range h.Projects {
-			fmt.Println(style.Blue.Bold("[") + strings.ToUpper(val.Name) + style.Blue.Bold("]"))
+			fmt.Fprintln(style.Output, style.Blue.Bold("[")+strings.ToUpper(val.Name)+style.Blue.Bold("]"))
 			name := style.Magenta.Bold("[") + strings.ToUpper(val.Name) + style.Magenta.Bold("]")
 
-			fmt.Println(name, style.Yellow.Regular("Base Path"), ":", style.Magenta.Regular(val.Path))
-			fmt.Println(name, style.Yellow.Regular("Fmt"), ":", style.Magenta.Regular(val.Cmds.Fmt))
-			fmt.Println(name, style.Yellow.Regular("Generate"), ":", style.Magenta.Regular(val.Cmds.Generate))
-			fmt.Println(name, style.Yellow.Regular("Test"), ":", style.Magenta.Regular(val.Cmds.Test))
-			fmt.Println(name, style.Yellow.Regular("Install"), ":", style.Magenta.Regular(val.Cmds.Bin))
-			fmt.Println(name, style.Yellow.Regular("Build"), ":", style.Magenta.Regular(val.Cmds.Build))
-			fmt.Println(name, style.Yellow.Regular("Run"), ":", style.Magenta.Regular(val.Cmds.Run))
+			fmt.Fprintln(style.Output, name, style.Yellow.Regular("Base Path"), ":", style.Magenta.Regular(val.Path))
+			fmt.Fprintln(style.Output, name, style.Yellow.Regular("Fmt"), ":", style.Magenta.Regular(val.Cmds.Fmt))
+			fmt.Fprintln(style.Output, name, style.Yellow.Regular("Generate"), ":", style.Magenta.Regular(val.Cmds.Generate))
+			fmt.Fprintln(style.Output, name, style.Yellow.Regular("Test"), ":", style.Magenta.Regular(val.Cmds.Test))
+			fmt.Fprintln(style.Output, name, style.Yellow.Regular("Install"), ":", style.Magenta.Regular(val.Cmds.Bin))
+			fmt.Fprintln(style.Output, name, style.Yellow.Regular("Build"), ":", style.Magenta.Regular(val.Cmds.Build))
+			fmt.Fprintln(style.Output, name, style.Yellow.Regular("Run"), ":", style.Magenta.Regular(val.Cmds.Run))
 			if len(val.Args) > 0 {
-				fmt.Println(name, style.Yellow.Regular("Params"), ":", style.Magenta.Regular(val.Args))
+				fmt.Fprintln(style.Output, name, style.Yellow.Regular("Params"), ":", style.Magenta.Regular(val.Args))
 			}
-			fmt.Println(name, style.Yellow.Regular("Watcher"), ":")
-			fmt.Println(name, "\t", style.Yellow.Regular("Preview"), ":", style.Magenta.Regular(val.Watcher.Preview))
+			fmt.Fprintln(style.Output, name, style.Yellow.Regular("Watcher"), ":")
+			fmt.Fprintln(style.Output, name, "\t", style.Yellow.Regular("Preview"), ":", style.Magenta.Regular(val.Watcher.Preview))
 			if len(val.Watcher.Exts) > 0 {
-				fmt.Println(name, "\t", style.Yellow.Regular("Extensions"), ":", style.Magenta.Regular(val.Watcher.Exts))
+				fmt.Fprintln(style.Output, name, "\t", style.Yellow.Regular("Extensions"), ":", style.Magenta.Regular(val.Watcher.Exts))
 			}
 			if len(val.Watcher.Paths) > 0 {
-				fmt.Println(name, "\t", style.Yellow.Regular("Paths"), ":", style.Magenta.Regular(val.Watcher.Paths))
+				fmt.Fprintln(style.Output, name, "\t", style.Yellow.Regular("Paths"), ":", style.Magenta.Regular(val.Watcher.Paths))
 			}
 			if len(val.Watcher.Ignore) > 0 {
-				fmt.Println(name, "\t", style.Yellow.Regular("Ignored paths"), ":", style.Magenta.Regular(val.Watcher.Ignore))
+				fmt.Fprintln(style.Output, name, "\t", style.Yellow.Regular("Ignored paths"), ":", style.Magenta.Regular(val.Watcher.Ignore))
 			}
 			if len(val.Watcher.Scripts) > 0 {
-				fmt.Println(name, "\t", style.Yellow.Regular("Scripts"), ":")
+				fmt.Fprintln(style.Output, name, "\t", style.Yellow.Regular("Scripts"), ":")
 				for _, v := range val.Watcher.Scripts {
 					if v.Command != "" {
-						fmt.Println(name, "\t\t", style.Magenta.Regular("-"), style.Yellow.Regular("Command"), ":", style.Magenta.Regular(v.Command))
+						fmt.Fprintln(style.Output, name, "\t\t", style.Magenta.Regular("-"), style.Yellow.Regular("Command"), ":", style.Magenta.Regular(v.Command))
 						if v.Path != "" {
-							fmt.Println(name, "\t\t", style.Yellow.Regular("Path"), ":", style.Magenta.Regular(v.Path))
+							fmt.Fprintln(style.Output, name, "\t\t", style.Yellow.Regular("Path"), ":", style.Magenta.Regular(v.Path))
 						}
 						if v.Type != "" {
-							fmt.Println(name, "\t\t", style.Yellow.Regular("Type"), ":", style.Magenta.Regular(v.Type))
+							fmt.Fprintln(style.Output, name, "\t\t", style.Yellow.Regular("Type"), ":", style.Magenta.Regular(v.Type))
 						}
 					}
 				}
 			}
+			fmt.Fprintln(style.Output, name, style.Yellow.Regular("Streams"), ":")
+			fmt.Fprintln(style.Output, name, "\t", style.Yellow.Regular("File Out"), ":", style.Magenta.Regular(val.Streams.FileOut))
+			fmt.Fprintln(style.Output, name, "\t", style.Yellow.Regular("File Log"), ":", style.Magenta.Regular(val.Streams.FileLog))
+			fmt.Fprintln(style.Output, name, "\t", style.Yellow.Regular("File Err"), ":", style.Magenta.Regular(val.Streams.FileErr))
 		}
 		return nil
 	}
