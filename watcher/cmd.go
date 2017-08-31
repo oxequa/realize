@@ -6,9 +6,9 @@ import (
 	"github.com/tockins/realize/style"
 	cli "gopkg.in/urfave/cli.v2"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
-	"path/filepath"
 )
 
 // Run launches the toolchain for each project
@@ -69,7 +69,7 @@ func (h *Blueprint) Run(p *cli.Context) error {
 
 			// base path of the project
 			wd, err := os.Getwd()
-			if err != nil{
+			if err != nil {
 				return err
 			}
 			if element.path == "." || element.path == "/" {

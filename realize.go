@@ -118,7 +118,7 @@ func main() {
 					if err := r.Record(r); err != nil {
 						return err
 					}
-					fmt.Fprintln(style.Output,prefix(style.Green.Bold("Your project was successfully added.")))
+					fmt.Fprintln(style.Output, prefix(style.Green.Bold("Your project was successfully added.")))
 					return nil
 				},
 				Before: before,
@@ -790,7 +790,7 @@ func main() {
 					if err := r.Record(r); err != nil {
 						return err
 					}
-					fmt.Fprintln(style.Output,prefix(style.Green.Bold("Your configuration was successful.")))
+					fmt.Fprintln(style.Output, prefix(style.Green.Bold("Your configuration was successful.")))
 					return nil
 				},
 				Before: before,
@@ -810,7 +810,7 @@ func main() {
 					if err := r.Record(r); err != nil {
 						return err
 					}
-					fmt.Fprintln(style.Output,prefix(style.Green.Bold("Your project was successfully removed.")))
+					fmt.Fprintln(style.Output, prefix(style.Green.Bold("Your project was successfully removed.")))
 					return nil
 				},
 				Before: before,
@@ -834,7 +834,7 @@ func main() {
 					if err := r.Settings.Remove(directory); err != nil {
 						return err
 					}
-					fmt.Fprintln(style.Output,prefix(style.Green.Bold("Realize folder successfully removed.")))
+					fmt.Fprintln(style.Output, prefix(style.Green.Bold("Realize folder successfully removed.")))
 					return nil
 				},
 				Before: before,
