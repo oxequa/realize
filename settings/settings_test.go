@@ -9,17 +9,21 @@ import (
 func TestSettings_Read(t *testing.T) {
 	s := Settings{}
 	var a interface{}
-	s.Resources.Config = "settings_b"
+	s.File = "settings_b"
 	if err := s.Read(a); err == nil {
 		t.Fatal("Error unexpected", err)
 	}
 
-	s.Resources.Config = "settings_test.yaml"
-	d, err := ioutil.TempFile("", "settings_test.yaml")
+	s.File = "settings_test.yaml"
+	dir, err := ioutil.TempDir("", Directory)
 	if err != nil {
 		t.Fatal(err)
 	}
-	s.Resources.Config = d.Name()
+	d, err := ioutil.TempFile(dir, "settings_test.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	s.File = d.Name()
 	if err := s.Read(a); err != nil {
 		t.Fatal("Error unexpected", err)
 	}
@@ -42,10 +46,10 @@ func TestSettings_Remove(t *testing.T) {
 
 func TestSettings_Record(t *testing.T) {
 	s := Settings{}
-	s.Resources.Config = "settings_test.yaml"
+	s.File = "settings_test.yaml"
 	var a interface{}
 	if err := s.Record(a); err != nil {
 		t.Fatal(err)
 	}
-	s.Remove(filepath.Join(directory, s.Resources.Config))
+	s.Remove(filepath.Join(Directory, s.File))
 }
