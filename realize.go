@@ -13,18 +13,11 @@ import (
 	"github.com/tockins/realize/style"
 	"github.com/tockins/realize/watcher"
 	cli "gopkg.in/urfave/cli.v2"
+	"strconv"
 )
 
 const (
-	version   = "1.4.1"
-	config    = "realize.yaml"
-	directory = ".realize"
-	outputs   = "outputs.log"
-	errs      = "errors.log"
-	logs      = "logs.log"
-	host      = "localhost"
-	port      = 3001
-	interval  = 200
+	version = "1.4.1"
 )
 
 // Realize struct contains the general app informations
@@ -74,8 +67,8 @@ func main() {
 					&cli.BoolFlag{Name: "no-config", Aliases: []string{"nc"}, Value: false, Usage: "Ignore existing configurations."},
 				},
 				Action: func(p *cli.Context) error {
-					polling(p, &r.Config.Legacy)
-					noconf(p, &r.Settings.Config)
+					polling(p, &r.Legacy)
+					noconf(p, &r.Settings)
 					if err := insert(p, &r.Blueprint); err != nil {
 						return err
 					}
@@ -85,7 +78,7 @@ func main() {
 					if err := r.Blueprint.Run(p); err != nil {
 						return err
 					}
-					if r.Config.Create {
+					if r.Make {
 						if err := r.Record(r); err != nil {
 							return err
 						}
@@ -138,7 +131,7 @@ func main() {
 						Questions: []*interact.Question{
 							{
 								Before: func(d interact.Context) error {
-									if _, err := os.Stat(directory + "/" + config); err != nil {
+									if _, err := os.Stat(settings.Directory + "/" + settings.File); err != nil {
 										d.Skip()
 									}
 									d.SetDef(false, style.Green.Regular("(n)"))
@@ -154,17 +147,13 @@ func main() {
 										return d.Err()
 									} else if val {
 										r.Settings = settings.Settings{
-											Config: settings.Config{
-												Create: true,
-											},
-											Resources: settings.Resources{
-												Config: config,
-											},
+											Make: true,
+											File: settings.File,
 											Server: settings.Server{
 												Status: false,
 												Open:   false,
-												Host:   host,
-												Port:   port,
+												Host:   server.Host,
+												Port:   server.Port,
 											},
 										}
 										r.Blueprint.Projects = r.Blueprint.Projects[len(r.Blueprint.Projects):]
@@ -200,7 +189,7 @@ func main() {
 											if err != nil {
 												return d.Err()
 											}
-											r.Config.Flimit = val
+											r.FileLimit = val
 											return nil
 										},
 									},
@@ -232,17 +221,32 @@ func main() {
 													if err != nil {
 														return d.Err()
 													}
-													r.Config.Legacy.Interval = time.Duration(val * 1000000000)
+													r.Legacy.Interval = time.Duration(val * 1000000000)
 													return nil
 												},
 											},
+										},
+										Action: func(d interact.Context) interface{} {
+											return nil
+										},
+									},
+									{
+										Before: func(d interact.Context) error {
+											d.SetDef(false, style.Green.Regular("(n)"))
+											return nil
+										},
+										Quest: interact.Quest{
+											Options: style.Yellow.Regular("[y/n]"),
+											Msg:     "Enable logging files",
 										},
 										Action: func(d interact.Context) interface{} {
 											val, err := d.Ans().Bool()
 											if err != nil {
 												return d.Err()
 											}
-											r.Config.Legacy.Status = val
+											r.Files.Errors = settings.Resource{Name: settings.FileErr, Status: val}
+											r.Files.Outputs = settings.Resource{Name: settings.FileOut, Status: val}
+											r.Files.Logs = settings.Resource{Name: settings.FileLog, Status: val}
 											return nil
 										},
 									},
@@ -262,7 +266,7 @@ func main() {
 										Subs: []*interact.Question{
 											{
 												Before: func(d interact.Context) error {
-													d.SetDef(5001, style.Green.Regular("(5001)"))
+													d.SetDef(server.Port, style.Green.Regular("("+strconv.Itoa(server.Port)+")"))
 													return nil
 												},
 												Quest: interact.Quest{
@@ -280,7 +284,7 @@ func main() {
 											},
 											{
 												Before: func(d interact.Context) error {
-													d.SetDef("localhost", style.Green.Regular("(localhost)"))
+													d.SetDef(server.Host, style.Green.Regular("("+server.Host+")"))
 													return nil
 												},
 												Quest: interact.Quest{
@@ -388,24 +392,7 @@ func main() {
 											return nil
 										},
 									},
-									{
-										Before: func(d interact.Context) error {
-											d.SetDef(true, style.Green.Regular("(y)"))
-											return nil
-										},
-										Quest: interact.Quest{
-											Options: style.Yellow.Regular("[y/n]"),
-											Msg:     "Enable go fmt",
-										},
-										Action: func(d interact.Context) interface{} {
-											val, err := d.Ans().Bool()
-											if err != nil {
-												return d.Err()
-											}
-											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Fmt = val
-											return nil
-										},
-									},
+
 									{
 										Before: func(d interact.Context) error {
 											d.SetDef(true, style.Green.Regular("(y)"))
@@ -426,19 +413,89 @@ func main() {
 									},
 									{
 										Before: func(d interact.Context) error {
-											d.SetDef(false, style.Green.Regular("(n)"))
+											d.SetDef(true, style.Green.Regular("(y)"))
 											return nil
 										},
 										Quest: interact.Quest{
 											Options: style.Yellow.Regular("[y/n]"),
-											Msg:     "Enable go test",
+											Msg:     "Enable go fmt",
+											Resolve: func(d interact.Context) bool {
+												val, _ := d.Ans().Bool()
+												return val
+											},
+										},
+										Subs: []*interact.Question{
+											{
+												Before: func(d interact.Context) error {
+													d.SetDef("", style.Green.Regular("(none)"))
+													return nil
+												},
+												Quest: interact.Quest{
+													Options: style.Yellow.Regular("[string]"),
+													Msg:     "Fmt additional arguments",
+												},
+												Action: func(d interact.Context) interface{} {
+													val, err := d.Ans().String()
+													if err != nil {
+														return d.Err()
+													}
+													if val != "" {
+														r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Fmt.Args = append(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Fmt.Args, val)
+													}
+													return nil
+												},
+											},
 										},
 										Action: func(d interact.Context) interface{} {
 											val, err := d.Ans().Bool()
 											if err != nil {
 												return d.Err()
 											}
-											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Test = val
+											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Fmt.Status = val
+											return nil
+										},
+									},
+									{
+										Before: func(d interact.Context) error {
+											d.SetDef(true, style.Green.Regular("(y)"))
+											return nil
+										},
+										Quest: interact.Quest{
+											Options: style.Yellow.Regular("[y/n]"),
+											Msg:     "Enable go test",
+											Resolve: func(d interact.Context) bool {
+												val, _ := d.Ans().Bool()
+												return val
+											},
+										},
+										Subs: []*interact.Question{
+											{
+												Before: func(d interact.Context) error {
+													d.SetDef("", style.Green.Regular("(none)"))
+													return nil
+												},
+												Quest: interact.Quest{
+													Options: style.Yellow.Regular("[string]"),
+													Msg:     "Test additional arguments",
+												},
+												Action: func(d interact.Context) interface{} {
+													val, err := d.Ans().String()
+													if err != nil {
+														return d.Err()
+													}
+													if val != "" {
+														r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Test.Args = append(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Test.Args, val)
+													}
+													return nil
+												},
+											},
+										},
+										Action: func(d interact.Context) interface{} {
+											val, err := d.Ans().Bool()
+											if err != nil {
+												return d.Err()
+											}
+											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Test.Status = val
 											return nil
 										},
 									},
@@ -450,13 +507,39 @@ func main() {
 										Quest: interact.Quest{
 											Options: style.Yellow.Regular("[y/n]"),
 											Msg:     "Enable go generate",
+											Resolve: func(d interact.Context) bool {
+												val, _ := d.Ans().Bool()
+												return val
+											},
+										},
+										Subs: []*interact.Question{
+											{
+												Before: func(d interact.Context) error {
+													d.SetDef("", style.Green.Regular("(none)"))
+													return nil
+												},
+												Quest: interact.Quest{
+													Options: style.Yellow.Regular("[string]"),
+													Msg:     "Generate additional arguments",
+												},
+												Action: func(d interact.Context) interface{} {
+													val, err := d.Ans().String()
+													if err != nil {
+														return d.Err()
+													}
+													if val != "" {
+														r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Generate.Args = append(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Generate.Args, val)
+													}
+													return nil
+												},
+											},
 										},
 										Action: func(d interact.Context) interface{} {
 											val, err := d.Ans().Bool()
 											if err != nil {
 												return d.Err()
 											}
-											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Generate = val
+											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Generate.Status = val
 											return nil
 										},
 									},
@@ -468,6 +551,32 @@ func main() {
 										Quest: interact.Quest{
 											Options: style.Yellow.Regular("[y/n]"),
 											Msg:     "Enable go install",
+											Resolve: func(d interact.Context) bool {
+												val, _ := d.Ans().Bool()
+												return val
+											},
+										},
+										Subs: []*interact.Question{
+											{
+												Before: func(d interact.Context) error {
+													d.SetDef("", style.Green.Regular("(none)"))
+													return nil
+												},
+												Quest: interact.Quest{
+													Options: style.Yellow.Regular("[string]"),
+													Msg:     "Install additional arguments",
+												},
+												Action: func(d interact.Context) interface{} {
+													val, err := d.Ans().String()
+													if err != nil {
+														return d.Err()
+													}
+													if val != "" {
+														r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Bin.Args = append(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Bin.Args, val)
+													}
+													return nil
+												},
+											},
 										},
 										Action: func(d interact.Context) interface{} {
 											val, err := d.Ans().Bool()
@@ -486,6 +595,32 @@ func main() {
 										Quest: interact.Quest{
 											Options: style.Yellow.Regular("[y/n]"),
 											Msg:     "Enable go build",
+											Resolve: func(d interact.Context) bool {
+												val, _ := d.Ans().Bool()
+												return val
+											},
+										},
+										Subs: []*interact.Question{
+											{
+												Before: func(d interact.Context) error {
+													d.SetDef("", style.Green.Regular("(none)"))
+													return nil
+												},
+												Quest: interact.Quest{
+													Options: style.Yellow.Regular("[string]"),
+													Msg:     "Build additional arguments",
+												},
+												Action: func(d interact.Context) interface{} {
+													val, err := d.Ans().String()
+													if err != nil {
+														return d.Err()
+													}
+													if val != "" {
+														r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Build.Args = append(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Build.Args, val)
+													}
+													return nil
+												},
+											},
 										},
 										Action: func(d interact.Context) interface{} {
 											val, err := d.Ans().Bool()
@@ -611,7 +746,7 @@ func main() {
 										},
 										Quest: interact.Quest{
 											Options: style.Yellow.Regular("[y/n]"),
-											Msg:     "Add additionals arguments",
+											Msg:     "Add an additional argument",
 											Resolve: func(d interact.Context) bool {
 												val, _ := d.Ans().Bool()
 												return val
@@ -625,7 +760,7 @@ func main() {
 												},
 												Quest: interact.Quest{
 													Options: style.Yellow.Regular("[string]"),
-													Msg:     "Insert an argument (insert '!' to stop)",
+													Msg:     "Add another argument (insert '!' to stop)",
 												},
 												Action: func(d interact.Context) interface{} {
 													val, err := d.Ans().String()
@@ -648,12 +783,13 @@ func main() {
 									},
 									{
 										Before: func(d interact.Context) error {
-											d.SetDef(false, style.Green.Regular("(n)"))
+											d.SetDef(false, style.Green.Regular("(none)"))
+											d.SetEnd("!")
 											return nil
 										},
 										Quest: interact.Quest{
 											Options: style.Yellow.Regular("[y/n]"),
-											Msg:     "Add 'before' custom commands",
+											Msg:     "Add a 'before' custom command (insert '!' to stop)",
 											Resolve: func(d interact.Context) bool {
 												val, _ := d.Ans().Bool()
 												return val
@@ -662,12 +798,11 @@ func main() {
 										Subs: []*interact.Question{
 											{
 												Before: func(d interact.Context) error {
-													d.SetEnd("!")
 													return nil
 												},
 												Quest: interact.Quest{
 													Options: style.Yellow.Regular("[string]"),
-													Msg:     "Insert a command (insert '!' to stop)",
+													Msg:     "Insert a command",
 												},
 												Action: func(d interact.Context) interface{} {
 													val, err := d.Ans().String()
@@ -675,27 +810,84 @@ func main() {
 														return d.Err()
 													}
 													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts = append(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts, watcher.Command{Type: "before", Command: val})
-													d.Reload()
+													return nil
+												},
+											},
+											{
+												Before: func(d interact.Context) error {
+													d.SetDef("", style.Green.Regular("(n)"))
+													return nil
+												},
+												Quest: interact.Quest{
+													Options: style.Yellow.Regular("[string]"),
+													Msg:     "Launch from a specific path",
+												},
+												Action: func(d interact.Context) interface{} {
+													val, err := d.Ans().String()
+													if err != nil {
+														return d.Err()
+													}
+													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts[len(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts)-1].Path = val
+													return nil
+												},
+											},
+											{
+												Before: func(d interact.Context) error {
+													d.SetDef(false, style.Green.Regular("(n)"))
+													return nil
+												},
+												Quest: interact.Quest{
+													Options: style.Yellow.Regular("[y/n]"),
+													Msg:     "Tag as global command",
+												},
+												Action: func(d interact.Context) interface{} {
+													val, err := d.Ans().Bool()
+													if err != nil {
+														return d.Err()
+													}
+													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts[len(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts)-1].Global = val
+													return nil
+												},
+											},
+											{
+												Before: func(d interact.Context) error {
+													d.SetDef(false, style.Green.Regular("(n)"))
+													return nil
+												},
+												Quest: interact.Quest{
+													Options: style.Yellow.Regular("[y/n]"),
+													Msg:     "Display command output",
+												},
+												Action: func(d interact.Context) interface{} {
+													val, err := d.Ans().Bool()
+													if err != nil {
+														return d.Err()
+													}
+													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts[len(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts)-1].Output = val
 													return nil
 												},
 											},
 										},
 										Action: func(d interact.Context) interface{} {
-											_, err := d.Ans().Bool()
+											val, err := d.Ans().Bool()
 											if err != nil {
 												return d.Err()
+											}
+											if val {
+												d.Reload()
 											}
 											return nil
 										},
 									},
 									{
 										Before: func(d interact.Context) error {
-											d.SetDef(false, style.Green.Regular("(n)"))
+											d.SetDef(false, style.Green.Regular("(none)"))
+											d.SetEnd("!")
 											return nil
 										},
 										Quest: interact.Quest{
 											Options: style.Yellow.Regular("[y/n]"),
-											Msg:     "Add 'after' custom commands",
+											Msg:     "Add an 'after' custom commands  (insert '!' to stop)",
 											Resolve: func(d interact.Context) bool {
 												val, _ := d.Ans().Bool()
 												return val
@@ -704,12 +896,11 @@ func main() {
 										Subs: []*interact.Question{
 											{
 												Before: func(d interact.Context) error {
-													d.SetEnd("!")
 													return nil
 												},
 												Quest: interact.Quest{
 													Options: style.Yellow.Regular("[string]"),
-													Msg:     "Insert a command (insert '!' to stop)",
+													Msg:     "Insert a command",
 												},
 												Action: func(d interact.Context) interface{} {
 													val, err := d.Ans().String()
@@ -717,15 +908,71 @@ func main() {
 														return d.Err()
 													}
 													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts = append(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts, watcher.Command{Type: "after", Command: val})
-													d.Reload()
+													return nil
+												},
+											},
+											{
+												Before: func(d interact.Context) error {
+													d.SetDef("", style.Green.Regular("(n)"))
+													return nil
+												},
+												Quest: interact.Quest{
+													Options: style.Yellow.Regular("[string]"),
+													Msg:     "Launch from a specific path",
+												},
+												Action: func(d interact.Context) interface{} {
+													val, err := d.Ans().String()
+													if err != nil {
+														return d.Err()
+													}
+													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts[len(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts)-1].Path = val
+													return nil
+												},
+											},
+											{
+												Before: func(d interact.Context) error {
+													d.SetDef(false, style.Green.Regular("(n)"))
+													return nil
+												},
+												Quest: interact.Quest{
+													Options: style.Yellow.Regular("[y/n]"),
+													Msg:     "Tag as global command",
+												},
+												Action: func(d interact.Context) interface{} {
+													val, err := d.Ans().Bool()
+													if err != nil {
+														return d.Err()
+													}
+													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts[len(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts)-1].Global = val
+													return nil
+												},
+											},
+											{
+												Before: func(d interact.Context) error {
+													d.SetDef(false, style.Green.Regular("(n)"))
+													return nil
+												},
+												Quest: interact.Quest{
+													Options: style.Yellow.Regular("[y/n]"),
+													Msg:     "Display command output",
+												},
+												Action: func(d interact.Context) interface{} {
+													val, err := d.Ans().Bool()
+													if err != nil {
+														return d.Err()
+													}
+													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts[len(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts)-1].Output = val
 													return nil
 												},
 											},
 										},
 										Action: func(d interact.Context) interface{} {
-											_, err := d.Ans().Bool()
+											val, err := d.Ans().Bool()
 											if err != nil {
 												return d.Err()
+											}
+											if val {
+												d.Reload()
 											}
 											return nil
 										},
@@ -779,7 +1026,7 @@ func main() {
 						},
 						After: func(d interact.Context) error {
 							if val, _ := d.Qns().Get(0).Ans().Bool(); val {
-								actErr = r.Settings.Remove(directory)
+								actErr = r.Settings.Remove(settings.Directory)
 								if actErr != nil {
 									return actErr
 								}
@@ -831,7 +1078,7 @@ func main() {
 				Aliases:     []string{"c"},
 				Description: "Remove realize folder.",
 				Action: func(p *cli.Context) error {
-					if err := r.Settings.Remove(directory); err != nil {
+					if err := r.Settings.Remove(settings.Directory); err != nil {
 						return err
 					}
 					fmt.Fprintln(style.Output, prefix(style.Green.Bold("Realize folder successfully removed.")))
@@ -865,17 +1112,13 @@ func before(*cli.Context) error {
 	r = realize{
 		Sync: make(chan string),
 		Settings: settings.Settings{
-			Config: settings.Config{
-				Create: true,
-			},
-			Resources: settings.Resources{
-				Config: config,
-			},
+			Make: true,
+			File: settings.File,
 			Server: settings.Server{
 				Status: false,
 				Open:   false,
-				Host:   host,
-				Port:   port,
+				Host:   server.Host,
+				Port:   server.Port,
 			},
 		},
 	}
@@ -889,12 +1132,10 @@ func before(*cli.Context) error {
 		Sync:      r.Sync,
 	}
 	r.Projects = &r.Blueprint.Projects
-
 	// read if exist
 	r.Read(&r)
-
 	// increase the file limit
-	if r.Config.Flimit != 0 {
+	if r.FileLimit != 0 {
 		if err := r.Flimit(); err != nil {
 			return err
 		}
@@ -903,17 +1144,16 @@ func before(*cli.Context) error {
 }
 
 // Check for the noconf option
-func noconf(c *cli.Context, s *settings.Config) {
+func noconf(c *cli.Context, s *settings.Settings) {
 	if c.Bool("no-config") {
-		s.Create = false
+		s.Make = false
 	}
 }
 
 // Check for polling option
 func polling(c *cli.Context, s *settings.Legacy) {
 	if c.Bool("legacy") {
-		s.Status = c.Bool("legacy")
-		s.Interval = interval
+		s.Interval = settings.Interval
 	}
 }
 

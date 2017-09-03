@@ -30,12 +30,12 @@ func TestBefore(t *testing.T) {
 }
 
 func TestNoConf(t *testing.T) {
-	settings := settings.Config{Create: true}
+	settings := settings.Settings{Make: true}
 	set := flag.NewFlagSet("test", 0)
 	set.Bool("no-config", true, "")
 	params := cli.NewContext(nil, set, nil)
 	noconf(params, &settings)
-	if settings.Create == true {
+	if settings.Make == true {
 		t.Fatal("Expected", false, "Instead", true)
 	}
 }
@@ -46,9 +46,8 @@ func TestPolling(t *testing.T) {
 	set.Bool("legacy", true, "")
 	params := cli.NewContext(nil, set, nil)
 	polling(params, &settings)
-	if settings.Interval == 0 || settings.Status == false {
-		t.Fatal("Expected status", true, "Instead", false)
-		t.Fatal("Expected interval", interval, "Instead", 0)
+	if settings.Interval == 0 {
+		t.Fatal("Expected interval", settings.Interval, "Instead", 0)
 	}
 }
 
