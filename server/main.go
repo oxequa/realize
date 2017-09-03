@@ -13,6 +13,12 @@ import (
 	"gopkg.in/urfave/cli.v2"
 )
 
+// Dafault host and port
+const (
+	Host = "localhost"
+	Port = 5001
+)
+
 // Server settings
 type Server struct {
 	*settings.Settings `yaml:"-"`
