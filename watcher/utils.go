@@ -9,6 +9,7 @@ import (
 
 	"github.com/tockins/realize/style"
 	cli "gopkg.in/urfave/cli.v2"
+	"strings"
 )
 
 // Argsparam parse one by one the given argumentes
@@ -56,4 +57,13 @@ func getEnvPath(env string) string {
 		return ""
 	}
 	return path[0]
+}
+
+// Split each arguments in multiple fields
+func arguments(args, fields []string) []string {
+	for _, arg := range fields {
+		arr := strings.Fields(arg)
+		args = append(args, arr...)
+	}
+	return args
 }

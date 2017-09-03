@@ -290,7 +290,7 @@ func (p *Project) cmd(flag string, global bool) {
 			} else {
 				p.stamp("log", out, msg, "")
 			}
-			if logs != "" {
+			if logs != "" && cmd.Output {
 				msg = fmt.Sprintln(logs)
 				out = BufferOut{Time: time.Now(), Text: logs, Type: flag}
 				p.stamp("log", out, "", msg)
@@ -316,8 +316,8 @@ func (p *Project) ignore(str string) bool {
 
 // Routines launches the toolchain run, build, install
 func (p *Project) routines(wr *sync.WaitGroup, channel chan bool, watcher watcher, file string) {
+	p.cmd("before", false)
 	if len(file) > 0 {
-		p.cmd("before", false)
 		path := filepath.Dir(file)
 		p.tool(file, p.tools.Fmt)
 		p.tool(path, p.tools.Vet)
@@ -336,7 +336,6 @@ func (p *Project) routines(wr *sync.WaitGroup, channel chan bool, watcher watche
 	if len(file) > 0 {
 		p.cmd("after", false)
 	}
-
 }
 
 // Defines the colors scheme for the project name
@@ -366,8 +365,8 @@ func (p *Project) stamp(t string, o BufferOut, msg string, stream string) {
 	switch t {
 	case "out":
 		p.Buffer.StdOut = append(p.Buffer.StdOut, o)
-		if p.Resources.Outputs.Status {
-			f := p.Create(p.base, p.Resources.Outputs.Name)
+		if p.Files.Outputs.Status {
+			f := p.Create(p.base, p.Files.Outputs.Name)
 			t := time.Now()
 			s := []string{t.Format("2006-01-02 15:04:05"), strings.ToUpper(p.Name), ":", o.Text, "\r\n"}
 			if _, err := f.WriteString(strings.Join(s, " ")); err != nil {
@@ -376,8 +375,8 @@ func (p *Project) stamp(t string, o BufferOut, msg string, stream string) {
 		}
 	case "log":
 		p.Buffer.StdLog = append(p.Buffer.StdLog, o)
-		if p.Resources.Logs.Status {
-			f := p.Create(p.base, p.Resources.Logs.Name)
+		if p.Files.Logs.Status {
+			f := p.Create(p.base, p.Files.Logs.Name)
 			t := time.Now()
 			s := []string{t.Format("2006-01-02 15:04:05"), strings.ToUpper(p.Name), ":", o.Text, "\r\n"}
 			if stream != "" {
@@ -389,8 +388,8 @@ func (p *Project) stamp(t string, o BufferOut, msg string, stream string) {
 		}
 	case "error":
 		p.Buffer.StdErr = append(p.Buffer.StdErr, o)
-		if p.Resources.Errors.Status {
-			f := p.Create(p.base, p.Resources.Errors.Name)
+		if p.Files.Errors.Status {
+			f := p.Create(p.base, p.Files.Errors.Name)
 			t := time.Now()
 			s := []string{t.Format("2006-01-02 15:04:05"), strings.ToUpper(p.Name), ":", o.Type, o.Text, o.Path, "\r\n"}
 			if stream != "" {

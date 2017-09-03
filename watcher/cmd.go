@@ -25,27 +25,27 @@ func (h *Blueprint) Run(p *cli.Context) error {
 			if p.String("name") != "" && h.Projects[k].Name != p.String("name") {
 				continue
 			}
-			if element.Cmds.Fmt {
+			if element.Cmds.Fmt.Status {
 				h.Projects[k].tools.Fmt = tool{
-					status:  &h.Projects[k].Cmds.Fmt,
+					status:  &h.Projects[k].Cmds.Fmt.Status,
 					cmd:     "gofmt",
-					options: []string{"-s", "-w", "-e"},
+					options: arguments([]string{}, element.Cmds.Fmt.Args),
 					name:    "Go Fmt",
 				}
 			}
-			if element.Cmds.Generate {
+			if element.Cmds.Generate.Status {
 				h.Projects[k].tools.Generate = tool{
-					status:  &h.Projects[k].Cmds.Generate,
+					status:  &h.Projects[k].Cmds.Generate.Status,
 					cmd:     "go",
-					options: []string{"generate"},
+					options: arguments([]string{"generate"}, element.Cmds.Generate.Args),
 					name:    "Go Generate",
 				}
 			}
-			if element.Cmds.Test {
+			if element.Cmds.Test.Status {
 				h.Projects[k].tools.Test = tool{
-					status:  &h.Projects[k].Cmds.Test,
+					status:  &h.Projects[k].Cmds.Test.Status,
 					cmd:     "go",
-					options: []string{"test"},
+					options: arguments([]string{"test"}, element.Cmds.Test.Args),
 					name:    "Go Test",
 				}
 			}
@@ -58,6 +58,7 @@ func (h *Blueprint) Run(p *cli.Context) error {
 				}
 			}
 			h.Projects[k].parent = h
+			h.Projects[k].Settings = *h.Settings
 			h.Projects[k].path = h.Projects[k].Path
 
 			// env variables
@@ -81,7 +82,7 @@ func (h *Blueprint) Run(p *cli.Context) error {
 				h.Projects[k].base = filepath.Join(wd, element.path)
 			}
 
-			if h.Legacy.Status {
+			if h.Legacy.Interval != 0 {
 				go h.Projects[k].watchByPolling()
 			} else {
 				go h.Projects[k].watchByNotify()
@@ -99,10 +100,16 @@ func (h *Blueprint) Add(p *cli.Context) error {
 		Name: h.Name(p.String("name"), p.String("path")),
 		Path: h.Path(p.String("path")),
 		Cmds: Cmds{
-			Vet:      p.Bool("vet"),
-			Fmt:      !p.Bool("no-fmt"),
-			Test:     p.Bool("test"),
-			Generate: p.Bool("generate"),
+			Vet: p.Bool("vet"),
+			Fmt: Cmd{
+				Status: !p.Bool("no-fmt"),
+			},
+			Test: Cmd{
+				Status: !p.Bool("test"),
+			},
+			Generate: Cmd{
+				Status: !p.Bool("generate"),
+			},
 			Build: Cmd{
 				Status: p.Bool("build"),
 			},

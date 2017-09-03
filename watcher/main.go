@@ -61,9 +61,9 @@ type tool struct {
 // Cmds go supported
 type Cmds struct {
 	Vet      bool `yaml:"vet,omitempty" json:"vet,omitempty"`
-	Fmt      bool `yaml:"fmt,omitempty" json:"fmt,omitempty"`
-	Test     bool `yaml:"test,omitempty" json:"test,omitempty"`
-	Generate bool `yaml:"generate,omitempty" json:"generate,omitempty"`
+	Fmt      Cmd  `yaml:"fmt,omitempty" json:"fmt,omitempty"`
+	Test     Cmd  `yaml:"test,omitempty" json:"test,omitempty"`
+	Generate Cmd  `yaml:"generate,omitempty" json:"generate,omitempty"`
 	Bin      Cmd  `yaml:"bin" json:"bin"`
 	Build    Cmd  `yaml:"build,omitempty" json:"build,omitempty"`
 	Run      bool `yaml:"run,omitempty" json:"run,omitempty"`
@@ -90,6 +90,7 @@ type Command struct {
 	Command string `yaml:"command" json:"command"`
 	Path    string `yaml:"path,omitempty" json:"path,omitempty"`
 	Global  bool   `yaml:"global,omitempty" json:"global,omitempty"`
+	Output  bool   `yaml:"output,omitempty" json:"output,omitempty"`
 }
 
 // Buffer define an array buffer for each log files

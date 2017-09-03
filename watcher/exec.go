@@ -114,10 +114,7 @@ func (p *Project) goBuild() (string, error) {
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	args := []string{"build"}
-	for _, arg := range p.Cmds.Build.Args {
-		arr := strings.Fields(arg)
-		args = append(args, arr...)
-	}
+	args = arguments(args, p.Cmds.Build.Args)
 	build := exec.Command("go", args...)
 	build.Dir = p.base
 	build.Stdout = &out
