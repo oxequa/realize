@@ -22,7 +22,7 @@ const (
 type Settings struct {
 	File      string `yaml:"-" json:"-"`
 	Make      bool   `yaml:"-" json:"-"`
-	Files     `yaml:"files" json:"files"`
+	Files     `yaml:"files,omitempty" json:"files,omitempty"`
 	Legacy    `yaml:"legacy,omitempty" json:"legacy,omitempty"`
 	Server    `yaml:"server,omitempty" json:"server,omitempty"`
 	FileLimit int64 `yaml:"flimit,omitempty" json:"flimit,omitempty"`

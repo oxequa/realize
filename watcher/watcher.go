@@ -201,7 +201,7 @@ func (p *Project) watch(watcher watcher) error {
 
 // Install calls an implementation of "go install"
 func (p *Project) install() error {
-	if p.Cmds.Bin.Status {
+	if p.Cmds.Install.Status {
 		start := time.Now()
 		log.Println(p.pname(p.Name, 1), ":", "Installing..")
 		stream, err := p.goInstall()

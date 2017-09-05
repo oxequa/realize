@@ -131,7 +131,7 @@ func (p *Project) goInstall() (string, error) {
 		return "", err
 	}
 	args := []string{"install"}
-	for _, arg := range p.Cmds.Bin.Args {
+	for _, arg := range p.Cmds.Install.Args {
 		arr := strings.Fields(arg)
 		args = append(args, arr...)
 	}

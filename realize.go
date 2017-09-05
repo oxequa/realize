@@ -572,7 +572,7 @@ func main() {
 														return d.Err()
 													}
 													if val != "" {
-														r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Bin.Args = append(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Bin.Args, val)
+														r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Install.Args = append(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Install.Args, val)
 													}
 													return nil
 												},
@@ -583,7 +583,7 @@ func main() {
 											if err != nil {
 												return d.Err()
 											}
-											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Bin.Status = val
+											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Install.Status = val
 											return nil
 										},
 									},

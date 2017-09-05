@@ -64,7 +64,7 @@ type Cmds struct {
 	Fmt      Cmd  `yaml:"fmt,omitempty" json:"fmt,omitempty"`
 	Test     Cmd  `yaml:"test,omitempty" json:"test,omitempty"`
 	Generate Cmd  `yaml:"generate,omitempty" json:"generate,omitempty"`
-	Bin      Cmd  `yaml:"bin" json:"bin"`
+	Install  Cmd  `yaml:"install" json:"install"`
 	Build    Cmd  `yaml:"build,omitempty" json:"build,omitempty"`
 	Run      bool `yaml:"run,omitempty" json:"run,omitempty"`
 }
@@ -77,10 +77,10 @@ type Cmd struct {
 
 // Watcher struct defines the livereload's logic
 type Watcher struct {
-	Preview bool      `yaml:"preview,omitempty" json:"preview,omitempty"`
 	Paths   []string  `yaml:"paths" json:"paths"`
-	Ignore  []string  `yaml:"ignore_paths,omitempty" json:"ignore_paths,omitempty"`
-	Exts    []string  `yaml:"exts" json:"exts"`
+	Exts    []string  `yaml:"extensions" json:"extensions"`
+	Ignore  []string  `yaml:"ignored_paths,omitempty" json:"ignored_paths,omitempty"`
+	Preview bool      `yaml:"preview,omitempty" json:"preview,omitempty"`
 	Scripts []Command `yaml:"scripts,omitempty" json:"scripts,omitempty"`
 }
 

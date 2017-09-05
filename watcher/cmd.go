@@ -113,8 +113,8 @@ func (h *Blueprint) Add(p *cli.Context) error {
 			Build: Cmd{
 				Status: p.Bool("build"),
 			},
-			Bin: Cmd{
-				Status: !p.Bool("no-bin"),
+			Install: Cmd{
+				Status: !p.Bool("no-install"),
 			},
 			Run: !p.Bool("no-run"),
 		},
@@ -167,7 +167,7 @@ func (h *Blueprint) List() error {
 			fmt.Fprintln(style.Output, name, style.Yellow.Regular("Fmt"), ":", style.Magenta.Regular(val.Cmds.Fmt))
 			fmt.Fprintln(style.Output, name, style.Yellow.Regular("Generate"), ":", style.Magenta.Regular(val.Cmds.Generate))
 			fmt.Fprintln(style.Output, name, style.Yellow.Regular("Test"), ":", style.Magenta.Regular(val.Cmds.Test))
-			fmt.Fprintln(style.Output, name, style.Yellow.Regular("Install"), ":", style.Magenta.Regular(val.Cmds.Bin))
+			fmt.Fprintln(style.Output, name, style.Yellow.Regular("Install"), ":", style.Magenta.Regular(val.Cmds.Install))
 			fmt.Fprintln(style.Output, name, style.Yellow.Regular("Build"), ":", style.Magenta.Regular(val.Cmds.Build))
 			fmt.Fprintln(style.Output, name, style.Yellow.Regular("Run"), ":", style.Magenta.Regular(val.Cmds.Run))
 			if len(val.Args) > 0 {
