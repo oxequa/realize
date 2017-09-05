@@ -19,7 +19,6 @@ import (
 func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup) error {
 	var build *exec.Cmd
 	var args []string
-	var path = ""
 	isErrorText := func(string) bool {
 		return false
 	}
@@ -37,25 +36,23 @@ func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 		arr := strings.Fields(arg)
 		args = append(args, arr...)
 	}
+
 	if _, err := os.Stat(filepath.Join(p.base, p.path)); err == nil {
-		path = filepath.Join(p.base, p.path)
+		p.path = filepath.Join(p.base, p.path)
 	}
 	if _, err := os.Stat(filepath.Join(p.base, p.path+".exe")); err == nil {
-		path = filepath.Join(p.base, p.path+".exe")
+		p.path = filepath.Join(p.base, p.path+".exe")
 	}
 
-	if path != "" {
-		build = exec.Command(path, args...)
+	if _, err := os.Stat(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.path))); err == nil {
+		build = exec.Command(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.path)), args...)
+	} else if _, err := os.Stat(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.path)) + ".exe"); err == nil {
+		build = exec.Command(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.path))+".exe", args...)
 	} else {
-		if _, err := os.Stat(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.path))); err == nil {
-			build = exec.Command(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.path)), args...)
-		} else if _, err := os.Stat(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.path)) + ".exe"); err == nil {
-			build = exec.Command(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.path))+".exe", args...)
-		} else {
-			p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Can't run a not compiled project"})
-			p.Fatal(err, "Can't run a not compiled project", ":")
-		}
+		p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Can't run a not compiled project"})
+		p.Fatal(err, "Can't run a not compiled project", ":")
 	}
+
 	defer func() {
 		if err := build.Process.Kill(); err != nil {
 			p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Failed to stop: " + err.Error()})
