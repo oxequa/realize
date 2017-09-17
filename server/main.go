@@ -60,9 +60,7 @@ func render(c echo.Context, path string, mime int) error {
 func (s *Server) Start(p *cli.Context) (err error) {
 	if p.Bool("server") {
 		s.Server.Status = p.Bool("server")
-	}
-	if p.Bool("open") {
-		s.Server.Open = p.Bool("open")
+		s.Server.Open = true
 	}
 
 	if s.Server.Status {
@@ -157,6 +155,7 @@ func (s *Server) projects(c echo.Context) error {
 			} else {
 				err := json.Unmarshal([]byte(text), &s.Blueprint.Projects)
 				if err != nil {
+					s.Record(s.Settings)
 					break
 				}
 			}
