@@ -29,17 +29,6 @@ func TestBefore(t *testing.T) {
 	}
 }
 
-func TestNoConf(t *testing.T) {
-	settings := settings.Settings{Make: true}
-	set := flag.NewFlagSet("test", 0)
-	set.Bool("no-config", true, "")
-	params := cli.NewContext(nil, set, nil)
-	noconf(params, &settings)
-	if settings.Make == true {
-		t.Fatal("Expected", false, "Instead", true)
-	}
-}
-
 func TestPolling(t *testing.T) {
 	settings := settings.Legacy{}
 	set := flag.NewFlagSet("test", 0)

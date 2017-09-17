@@ -68,20 +68,19 @@ func main() {
 				},
 				Action: func(p *cli.Context) error {
 					polling(p, &r.Legacy)
-					noconf(p, &r.Settings)
 					if err := insert(p, &r.Blueprint); err != nil {
 						return err
+					}
+					if !p.Bool("no-config") {
+						if err := r.Record(r); err != nil {
+							return err
+						}
 					}
 					if err := r.Server.Start(p); err != nil {
 						return err
 					}
 					if err := r.Blueprint.Run(p); err != nil {
 						return err
-					}
-					if r.Make {
-						if err := r.Record(r); err != nil {
-							return err
-						}
 					}
 					return nil
 				},
@@ -145,7 +144,6 @@ func main() {
 										return d.Err()
 									} else if val {
 										r.Settings = settings.Settings{
-											Make: true,
 											File: settings.File,
 											Server: settings.Server{
 												Status: false,
@@ -1110,7 +1108,6 @@ func before(*cli.Context) error {
 	r = realize{
 		Sync: make(chan string),
 		Settings: settings.Settings{
-			Make: true,
 			File: settings.File,
 			Server: settings.Server{
 				Status: false,
@@ -1145,13 +1142,6 @@ func before(*cli.Context) error {
 func polling(c *cli.Context, s *settings.Legacy) {
 	if c.Bool("legacy") {
 		s.Interval = settings.Interval
-	}
-}
-
-// Check for the noconf option
-func noconf(c *cli.Context, s *settings.Settings) {
-	if c.Bool("no-config") {
-		s.Make = false
 	}
 }
 
