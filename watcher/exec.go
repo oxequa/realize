@@ -15,6 +15,88 @@ import (
 	"time"
 )
 
+// GoBuild is an implementation of the "go build"
+func (p *Project) goBuild() (string, error) {
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	args := []string{"build"}
+	args = arguments(args, p.Cmds.Build.Args)
+	build := exec.Command("go", args...)
+	build.Dir = p.base
+	build.Stdout = &out
+	build.Stderr = &stderr
+	if err := build.Run(); err != nil {
+		return stderr.String(), err
+	}
+	return "", nil
+}
+
+// GoInstall is an implementation of the "go install"
+func (p *Project) goInstall() (string, error) {
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	err := os.Setenv("GOBIN", filepath.Join(getEnvPath("GOPATH"), "bin"))
+	if err != nil {
+		return "", err
+	}
+	args := []string{"install"}
+	for _, arg := range p.Cmds.Install.Args {
+		arr := strings.Fields(arg)
+		args = append(args, arr...)
+	}
+	build := exec.Command("go", args...)
+	build.Dir = p.base
+	build.Stdout = &out
+	build.Stderr = &stderr
+	if err := build.Run(); err != nil {
+		return stderr.String(), err
+	}
+	return "", nil
+}
+
+// Exec an additional command from a defined path if specified
+func (p *Project) command(cmd Command) (errors string, logs string) {
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	command := strings.Replace(strings.Replace(cmd.Command, "'", "", -1), "\"", "", -1)
+	c := strings.Split(command, " ")
+	build := exec.Command(c[0], c[1:]...)
+	build.Dir = p.base
+	if cmd.Path != "" {
+		if strings.Contains(cmd.Path, p.base) {
+			build.Dir = cmd.Path
+		} else {
+			build.Dir = filepath.Join(p.base, cmd.Path)
+		}
+	}
+	build.Stdout = &stdout
+	build.Stderr = &stderr
+	err := build.Run()
+	// check if log
+	logs = stdout.String()
+	if err != nil {
+		errors = stderr.String()
+		return errors, logs
+	}
+	return "", logs
+}
+
+// GoTool is used for run go methods such as fmt, test, generate...
+func (p *Project) goTool(dir string, name string, cmd ...string) (string, error) {
+	if s := filepath.Ext(dir); s != "" && s != ".go" {
+		return "", nil
+	}
+	var out, stderr bytes.Buffer
+	build := exec.Command(name, cmd...)
+	build.Dir = dir
+	build.Stdout = &out
+	build.Stderr = &stderr
+	if err := build.Run(); err != nil {
+		return stderr.String() + out.String(), err
+	}
+	return "", nil
+}
+
 // GoRun  is an implementation of the bin execution
 func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup) error {
 	var build *exec.Cmd
@@ -104,86 +186,4 @@ func (p *Project) goRun(channel chan bool, runner chan bool, wr *sync.WaitGroup)
 			return nil
 		}
 	}
-}
-
-// GoBuild is an implementation of the "go build"
-func (p *Project) goBuild() (string, error) {
-	var out bytes.Buffer
-	var stderr bytes.Buffer
-	args := []string{"build"}
-	args = arguments(args, p.Cmds.Build.Args)
-	build := exec.Command("go", args...)
-	build.Dir = p.base
-	build.Stdout = &out
-	build.Stderr = &stderr
-	if err := build.Run(); err != nil {
-		return stderr.String(), err
-	}
-	return "", nil
-}
-
-// GoInstall is an implementation of the "go install"
-func (p *Project) goInstall() (string, error) {
-	var out bytes.Buffer
-	var stderr bytes.Buffer
-	err := os.Setenv("GOBIN", filepath.Join(getEnvPath("GOPATH"), "bin"))
-	if err != nil {
-		return "", err
-	}
-	args := []string{"install"}
-	for _, arg := range p.Cmds.Install.Args {
-		arr := strings.Fields(arg)
-		args = append(args, arr...)
-	}
-	build := exec.Command("go", args...)
-	build.Dir = p.base
-	build.Stdout = &out
-	build.Stderr = &stderr
-	if err := build.Run(); err != nil {
-		return stderr.String(), err
-	}
-	return "", nil
-}
-
-// GoTool is used for run go methods such as fmt, test, generate...
-func (p *Project) goTool(dir string, name string, cmd ...string) (string, error) {
-	if s := filepath.Ext(dir); s != "" && s != ".go" {
-		return "", nil
-	}
-	var out, stderr bytes.Buffer
-	build := exec.Command(name, cmd...)
-	build.Dir = dir
-	build.Stdout = &out
-	build.Stderr = &stderr
-	if err := build.Run(); err != nil {
-		return stderr.String() + out.String(), err
-	}
-	return "", nil
-}
-
-// Exec an additional command from a defined path if specified
-func (p *Project) command(cmd Command) (errors string, logs string) {
-	var stdout bytes.Buffer
-	var stderr bytes.Buffer
-	command := strings.Replace(strings.Replace(cmd.Command, "'", "", -1), "\"", "", -1)
-	c := strings.Split(command, " ")
-	build := exec.Command(c[0], c[1:]...)
-	build.Dir = p.base
-	if cmd.Path != "" {
-		if strings.Contains(cmd.Path, p.base) {
-			build.Dir = cmd.Path
-		} else {
-			build.Dir = filepath.Join(p.base, cmd.Path)
-		}
-	}
-	build.Stdout = &stdout
-	build.Stderr = &stderr
-	err := build.Run()
-	// check if log
-	logs = stdout.String()
-	if err != nil {
-		errors = stderr.String()
-		return errors, logs
-	}
-	return "", logs
 }
