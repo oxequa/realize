@@ -12,6 +12,25 @@ import (
 	"strings"
 )
 
+// getEnvPath returns the first path found in env or empty string
+func getEnvPath(env string) string {
+	path := filepath.SplitList(os.Getenv(env))
+	if len(path) == 0 {
+		return ""
+	}
+	return path[0]
+}
+
+// Check if a string is inArray
+func inArray(str string, list []string) bool {
+	for _, v := range list {
+		if v == str {
+			return true
+		}
+	}
+	return false
+}
+
 // Argsparam parse one by one the given argumentes
 func argsParam(params *cli.Context) []string {
 	argsN := params.NArg()
@@ -25,6 +44,15 @@ func argsParam(params *cli.Context) []string {
 	return nil
 }
 
+// Split each arguments in multiple fields
+func arguments(args, fields []string) []string {
+	for _, arg := range fields {
+		arr := strings.Fields(arg)
+		args = append(args, arr...)
+	}
+	return args
+}
+
 // Duplicates check projects with same name or same combinations of main/path
 func duplicates(value Project, arr []Project) (Project, error) {
 	for _, val := range arr {
@@ -35,35 +63,7 @@ func duplicates(value Project, arr []Project) (Project, error) {
 	return Project{}, nil
 }
 
-// Check if a string is inArray
-func inArray(str string, list []string) bool {
-	for _, v := range list {
-		if v == str {
-			return true
-		}
-	}
-	return false
-}
-
 // Rewrite the layout of the log timestamp
 func (w logWriter) Write(bytes []byte) (int, error) {
 	return fmt.Fprint(style.Output, style.Yellow.Regular("[")+time.Now().Format("15:04:05")+style.Yellow.Regular("]")+string(bytes))
-}
-
-// getEnvPath returns the first path found in env or empty string
-func getEnvPath(env string) string {
-	path := filepath.SplitList(os.Getenv(env))
-	if len(path) == 0 {
-		return ""
-	}
-	return path[0]
-}
-
-// Split each arguments in multiple fields
-func arguments(args, fields []string) []string {
-	for _, arg := range fields {
-		arr := strings.Fields(arg)
-		args = append(args, arr...)
-	}
-	return args
 }

@@ -29,30 +29,12 @@ type Blueprint struct {
 	Sync               chan string `yaml:"-"`
 }
 
-// Project defines the informations of a single project
-type Project struct {
-	settings.Settings  `yaml:"-"`
-	LastChangedOn      time.Time `yaml:"-" json:"-"`
-	base               string
-	Name               string            `yaml:"name" json:"name"`
-	Path               string            `yaml:"path" json:"path"`
-	Environment        map[string]string `yaml:"environment,omitempty" json:"environment,omitempty"`
-	Cmds               Cmds              `yaml:"commands" json:"commands"`
-	Args               []string          `yaml:"args,omitempty" json:"args,omitempty"`
-	Watcher            Watcher           `yaml:"watcher" json:"watcher"`
-	Buffer             Buffer            `yaml:"-" json:"buffer"`
-	ErrorOutputPattern string            `yaml:"errorOutputPattern,omitempty" json:"errorOutputPattern,omitempty"`
-	parent             *Blueprint
-	path               string
-	tools              tools
-}
-
 type tools struct {
 	Fmt, Test, Generate, Vet tool
 }
 
 type tool struct {
-	status  *bool
+	status  bool
 	cmd     string
 	options []string
 	name    string

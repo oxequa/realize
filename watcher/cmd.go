@@ -11,128 +11,6 @@ import (
 	"time"
 )
 
-// Run launches the toolchain for each project
-func (h *Blueprint) Run(p *cli.Context) error {
-	err := h.check()
-	if err == nil {
-		// loop projects
-		if p.String("name") != "" {
-			wg.Add(1)
-		} else {
-			wg.Add(len(h.Projects))
-		}
-		for k, element := range h.Projects {
-			if p.String("name") != "" && h.Projects[k].Name != p.String("name") {
-				continue
-			}
-			if element.Cmds.Fmt.Status {
-				h.Projects[k].tools.Fmt = tool{
-					status:  &h.Projects[k].Cmds.Fmt.Status,
-					cmd:     "gofmt",
-					options: arguments([]string{}, element.Cmds.Fmt.Args),
-					name:    "Go Fmt",
-				}
-			}
-			if element.Cmds.Generate.Status {
-				h.Projects[k].tools.Generate = tool{
-					status:  &h.Projects[k].Cmds.Generate.Status,
-					cmd:     "go",
-					options: arguments([]string{"generate"}, element.Cmds.Generate.Args),
-					name:    "Go Generate",
-				}
-			}
-			if element.Cmds.Test.Status {
-				h.Projects[k].tools.Test = tool{
-					status:  &h.Projects[k].Cmds.Test.Status,
-					cmd:     "go",
-					options: arguments([]string{"test"}, element.Cmds.Test.Args),
-					name:    "Go Test",
-				}
-			}
-			if element.Cmds.Vet {
-				h.Projects[k].tools.Vet = tool{
-					status:  &h.Projects[k].Cmds.Vet,
-					cmd:     "go",
-					options: []string{"vet"},
-					name:    "Go Vet",
-				}
-			}
-			h.Projects[k].parent = h
-			h.Projects[k].Settings = *h.Settings
-			h.Projects[k].path = h.Projects[k].Path
-
-			// env variables
-			for key, item := range h.Projects[k].Environment {
-				if err := os.Setenv(key, item); err != nil {
-					h.Projects[k].Buffer.StdErr = append(h.Projects[k].Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error(), Type: "Env error", Stream: ""})
-				}
-			}
-
-			// base path of the project
-			wd, err := os.Getwd()
-			if err != nil {
-				return err
-			}
-			if element.path == "." || element.path == "/" {
-				h.Projects[k].base = wd
-				h.Projects[k].path = element.Wdir()
-			} else if filepath.IsAbs(element.path) {
-				h.Projects[k].base = element.path
-			} else {
-				h.Projects[k].base = filepath.Join(wd, element.path)
-			}
-
-			if h.Legacy.Interval != 0 {
-				go h.Projects[k].watchByPolling()
-			} else {
-				go h.Projects[k].watchByNotify()
-			}
-		}
-		wg.Wait()
-		return nil
-	}
-	return err
-}
-
-// Add a new project
-func (h *Blueprint) Add(p *cli.Context) error {
-	project := Project{
-		Name: h.Name(p.String("name"), p.String("path")),
-		Path: h.Path(p.String("path")),
-		Cmds: Cmds{
-			Vet: p.Bool("vet"),
-			Fmt: Cmd{
-				Status: !p.Bool("no-fmt"),
-			},
-			Test: Cmd{
-				Status: !p.Bool("test"),
-			},
-			Generate: Cmd{
-				Status: !p.Bool("generate"),
-			},
-			Build: Cmd{
-				Status: p.Bool("build"),
-			},
-			Install: Cmd{
-				Status: !p.Bool("no-install"),
-			},
-			Run: !p.Bool("no-run"),
-		},
-		Args: argsParam(p),
-		Watcher: Watcher{
-			Paths:   []string{"/"},
-			Ignore:  []string{"vendor"},
-			Exts:    []string{".go"},
-			Preview: p.Bool("preview"),
-		},
-	}
-	if _, err := duplicates(project, h.Projects); err != nil {
-		return err
-	}
-	h.Projects = append(h.Projects, project)
-	return nil
-}
-
 // Clean duplicate projects
 func (h *Blueprint) Clean() {
 	arr := h.Projects
@@ -142,17 +20,6 @@ func (h *Blueprint) Clean() {
 			break
 		}
 	}
-}
-
-// Remove a project
-func (h *Blueprint) Remove(p *cli.Context) error {
-	for key, val := range h.Projects {
-		if p.String("name") == val.Name {
-			h.Projects = append(h.Projects[:key], h.Projects[key+1:]...)
-			return nil
-		}
-	}
-	return errors.New("No project found.")
 }
 
 // List of all the projects
@@ -211,4 +78,138 @@ func (h *Blueprint) check() error {
 		return nil
 	}
 	return errors.New("There are no projects.")
+}
+
+// Add a new project
+func (h *Blueprint) Add(p *cli.Context) error {
+	project := Project{
+		Name: h.Name(p.String("name"), p.String("path")),
+		Path: h.Path(p.String("path")),
+		Cmds: Cmds{
+			Vet: p.Bool("vet"),
+			Fmt: Cmd{
+				Status: p.Bool("fmt"),
+			},
+			Test: Cmd{
+				Status: p.Bool("test"),
+			},
+			Generate: Cmd{
+				Status: p.Bool("generate"),
+			},
+			Build: Cmd{
+				Status: p.Bool("build"),
+			},
+			Install: Cmd{
+				Status: p.Bool("install"),
+			},
+			Run: p.Bool("run"),
+		},
+		Args: argsParam(p),
+		Watcher: Watcher{
+			Paths:  []string{"/"},
+			Ignore: []string{"vendor"},
+			Exts:   []string{".go"},
+		},
+	}
+	if _, err := duplicates(project, h.Projects); err != nil {
+		return err
+	}
+	h.Projects = append(h.Projects, project)
+	return nil
+}
+
+// Run launches the toolchain for each project
+func (h *Blueprint) Run(p *cli.Context) error {
+	err := h.check()
+	if err == nil {
+		// loop projects
+		if p.String("name") != "" {
+			wg.Add(1)
+		} else {
+			wg.Add(len(h.Projects))
+		}
+		for k, element := range h.Projects {
+			if p.String("name") != "" && h.Projects[k].Name != p.String("name") {
+				continue
+			}
+			if element.Cmds.Fmt.Status {
+				if len(element.Cmds.Fmt.Args) == 0{
+					element.Cmds.Fmt.Args = []string{"-s", "-w", "-e"}
+				}
+				h.Projects[k].tools.Fmt = tool{
+					status:  element.Cmds.Fmt.Status,
+					cmd:     "gofmt",
+					options: arguments([]string{}, element.Cmds.Fmt.Args),
+					name:    "Go Fmt",
+				}
+			}
+			if element.Cmds.Generate.Status {
+				h.Projects[k].tools.Generate = tool{
+					status:  element.Cmds.Generate.Status,
+					cmd:     "go",
+					options: arguments([]string{"generate"}, element.Cmds.Generate.Args),
+					name:    "Go Generate",
+				}
+			}
+			if element.Cmds.Test.Status {
+				h.Projects[k].tools.Test = tool{
+					status:  element.Cmds.Test.Status,
+					cmd:     "go",
+					options: arguments([]string{"test"}, element.Cmds.Test.Args),
+					name:    "Go Test",
+				}
+			}
+			if element.Cmds.Vet {
+				h.Projects[k].tools.Vet = tool{
+					status:  element.Cmds.Vet,
+					cmd:     "go",
+					options: []string{"vet"},
+					name:    "Go Vet",
+				}
+			}
+			h.Projects[k].parent = h
+			h.Projects[k].Settings = *h.Settings
+			h.Projects[k].path = h.Projects[k].Path
+
+			// env variables
+			for key, item := range h.Projects[k].Environment {
+				if err := os.Setenv(key, item); err != nil {
+					h.Projects[k].Buffer.StdErr = append(h.Projects[k].Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error(), Type: "Env error", Stream: ""})
+				}
+			}
+
+			// base path of the project
+			wd, err := os.Getwd()
+			if err != nil {
+				return err
+			}
+			if element.path == "." || element.path == "/" {
+				h.Projects[k].base = wd
+				h.Projects[k].path = element.Wdir()
+			} else if filepath.IsAbs(element.path) {
+				h.Projects[k].base = element.path
+			} else {
+				h.Projects[k].base = filepath.Join(wd, element.path)
+			}
+			if h.Legacy.Interval != 0 {
+				go h.Projects[k].watchByPolling()
+			} else {
+				go h.Projects[k].watchByNotify()
+			}
+		}
+		wg.Wait()
+		return nil
+	}
+	return err
+}
+
+// Remove a project
+func (h *Blueprint) Remove(p *cli.Context) error {
+	for key, val := range h.Projects {
+		if p.String("name") == val.Name {
+			h.Projects = append(h.Projects[:key], h.Projects[key+1:]...)
+			return nil
+		}
+	}
+	return errors.New("No project found.")
 }
