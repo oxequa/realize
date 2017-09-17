@@ -124,27 +124,31 @@ func (p *Project) watchByNotify() {
 				if event.Op&fsnotify.Chmod == fsnotify.Chmod {
 					continue
 				}
-				if _, err := os.Stat(event.Name); err == nil {
-					var ext string
-					if index := strings.Index(filepath.Ext(event.Name), "_"); index == -1 {
-						ext = filepath.Ext(event.Name)
-					} else {
-						ext = filepath.Ext(event.Name)[0:index]
+				var ext string
+				if index := strings.Index(filepath.Ext(event.Name), "_"); index == -1 {
+					ext = filepath.Ext(event.Name)
+				} else {
+					ext = filepath.Ext(event.Name)[0:index]
+				}
+				i := strings.Index(event.Name, filepath.Ext(event.Name))
+				file := event.Name[:i] + ext
+				if event.Name[:i] != "" && inArray(ext, p.Watcher.Exts) {
+					if p.Cmds.Run {
+						close(channel)
+						channel = make(chan bool)
 					}
-					i := strings.Index(event.Name, filepath.Ext(event.Name))
-					file := event.Name[:i] + ext
-					if event.Name[:i] != "" && inArray(ext, p.Watcher.Exts) {
-						if p.Cmds.Run {
-							close(channel)
-							channel = make(chan bool)
-						}
-						// repeat the initial cycle
-						msg = fmt.Sprintln(p.pname(p.Name, 4), ":", style.Magenta.Bold(strings.ToUpper(ext[1:])+" changed"), style.Magenta.Bold(file))
-						out = BufferOut{Time: time.Now(), Text: strings.ToUpper(ext[1:]) + " changed " + file}
-						p.stamp("log", out, msg, "")
+					// repeat the initial cycle
+					msg = fmt.Sprintln(p.pname(p.Name, 4), ":", style.Magenta.Bold(strings.ToUpper(ext[1:])+" changed"), style.Magenta.Bold(file))
+					out = BufferOut{Time: time.Now(), Text: strings.ToUpper(ext[1:]) + " changed " + file}
+					p.stamp("log", out, msg, "")
+
+					// check if is deleted
+					if event.Op&fsnotify.Remove == fsnotify.Remove {
+						go p.routines(&wr, channel, watcher, "")
+					}else{
 						go p.routines(&wr, channel, watcher, file)
-						p.LastChangedOn = time.Now().Truncate(time.Second)
 					}
+					p.LastChangedOn = time.Now().Truncate(time.Second)
 				}
 			}
 		case err := <-watcher.Errors:
@@ -267,7 +271,7 @@ func (p *Project) tool(path string, tool tool) error {
 				tool.options = append(tool.options, path)
 				path = p.base
 			}
-			if stream, err := p.goTools(path, tool.cmd, tool.options...); err != nil {
+			if stream, err := p.goTool(path, tool.cmd, tool.options...); err != nil {
 				msg = fmt.Sprintln(p.pname(p.Name, 2), ":", style.Red.Bold(tool.name), style.Red.Regular("there are some errors in"), ":", style.Magenta.Bold(path))
 				out = BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: tool.name, Stream: stream}
 				p.stamp("error", out, msg, stream)

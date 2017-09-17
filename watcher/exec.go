@@ -145,8 +145,8 @@ func (p *Project) goInstall() (string, error) {
 	return "", nil
 }
 
-// GoTools is used for run go methods such as fmt, test, generate...
-func (p *Project) goTools(dir string, name string, cmd ...string) (string, error) {
+// GoTool is used for run go methods such as fmt, test, generate...
+func (p *Project) goTool(dir string, name string, cmd ...string) (string, error) {
 	if s := filepath.Ext(dir); s != "" && s != ".go" {
 		return "", nil
 	}
