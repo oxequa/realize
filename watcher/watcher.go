@@ -23,16 +23,13 @@ var out BufferOut
 
 // Project defines the informations of a single project
 type Project struct {
-	settings.Settings
+	settings.Settings  `yaml:"-" json:"-"`
 	parent             *Blueprint
 	path               string
 	tools              tools
-	wr                 sync.WaitGroup
-	watcher            *fsnotify.Watcher
-	channel            chan bool
-	exit               chan os.Signal
 	base               string
-	LastChangedOn      time.Time         `yaml:"-" json:"-"`
+	paths              []string
+	lastChangedOn      time.Time
 	Name               string            `yaml:"name" json:"name"`
 	Path               string            `yaml:"path" json:"path"`
 	Environment        map[string]string `yaml:"environment,omitempty" json:"environment,omitempty"`
@@ -58,35 +55,36 @@ func (p *Project) watchByNotify() {
 	}()
 	p.cmd("before", true)
 	go p.routines(&wr, channel, watcher, "")
-	p.LastChangedOn = time.Now().Truncate(time.Second)
+	p.lastChangedOn = time.Now().Truncate(time.Second)
 L:
 	for {
 		select {
 		case event := <-watcher.Events:
-			if time.Now().Truncate(time.Second).After(p.LastChangedOn) {
-				if event.Op&fsnotify.Chmod == fsnotify.Chmod {
-					continue
-				}
-				if index := strings.Index(filepath.Ext(event.Name), "__"); index != -1 {
-					continue
-				}
-				ext := filepath.Ext(event.Name)
-				if inArray(filepath.Ext(event.Name), p.Watcher.Exts) {
-					if p.Cmds.Run {
-						close(channel)
-						channel = make(chan bool)
+			if time.Now().Truncate(time.Second).After(p.lastChangedOn) {
+				p.lastChangedOn = time.Now().Truncate(time.Second)
+				if file, err := os.Lstat(event.Name); err == nil {
+					if file.Size() > 0 {
+						p.lastChangedOn = time.Now().Truncate(time.Second)
+						ext := filepath.Ext(event.Name)
+						if inArray(ext, p.Watcher.Exts) {
+							if p.Cmds.Run {
+								close(channel)
+								channel = make(chan bool)
+							}
+							// repeat the initial cycle
+							msg = fmt.Sprintln(p.pname(p.Name, 4), ":", style.Magenta.Bold(strings.ToUpper(ext[1:])+" changed"), style.Magenta.Bold(event.Name))
+							out = BufferOut{Time: time.Now(), Text: strings.ToUpper(ext[1:]) + " changed " + event.Name}
+							p.stamp("log", out, msg, "")
+							// check if is deleted
+							if event.Op&fsnotify.Remove == fsnotify.Remove {
+								watcher.Remove(event.Name)
+								go p.routines(&wr, channel, watcher, "")
+							} else {
+								go p.routines(&wr, channel, watcher, event.Name)
+							}
+							p.lastChangedOn = time.Now().Truncate(time.Second)
+						}
 					}
-					// repeat the initial cycle
-					msg = fmt.Sprintln(p.pname(p.Name, 4), ":", style.Magenta.Bold(strings.ToUpper(ext[1:])+" changed"), style.Magenta.Bold(event.Name))
-					out = BufferOut{Time: time.Now(), Text: strings.ToUpper(ext[1:]) + " changed " + event.Name}
-					p.stamp("log", out, msg, "")
-					// check if is deleted
-					if event.Op&fsnotify.Remove == fsnotify.Remove {
-						go p.routines(&wr, channel, watcher, "")
-					} else {
-						go p.routines(&wr, channel, watcher, event.Name)
-					}
-					p.LastChangedOn = time.Now().Truncate(time.Second)
 				}
 			}
 		case err := <-watcher.Errors:
@@ -113,13 +111,13 @@ func (p *Project) watchByPolling() {
 	}()
 	p.cmd("before", true)
 	go p.routines(&wr, channel, watcher, "")
-	p.LastChangedOn = time.Now().Truncate(time.Second)
+	p.lastChangedOn = time.Now().Truncate(time.Second)
 	walk := func(changed string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		} else if !watcher.isWatching(changed) {
 			return nil
-		} else if !info.ModTime().Truncate(time.Second).After(p.LastChangedOn) {
+		} else if !info.ModTime().Truncate(time.Second).After(p.lastChangedOn) {
 			return nil
 		}
 		if index := strings.Index(filepath.Ext(changed), "__"); index != -1 {
@@ -131,7 +129,7 @@ func (p *Project) watchByPolling() {
 				close(channel)
 				channel = make(chan bool)
 			}
-			p.LastChangedOn = time.Now().Truncate(time.Second)
+			p.lastChangedOn = time.Now().Truncate(time.Second)
 			// repeat the initial cycle
 			msg = fmt.Sprintln(p.pname(p.Name, 4), ":", style.Magenta.Bold(strings.ToUpper(ext[1:])+" changed"), style.Magenta.Bold(changed))
 			out = BufferOut{Time: time.Now(), Text: strings.ToUpper(ext[1:]) + " changed " + changed}
@@ -226,6 +224,7 @@ func (p *Project) walk(watcher watcher) error {
 					return filepath.SkipDir
 				}
 				if inArray(filepath.Ext(path), p.Watcher.Exts) {
+					p.paths = append(p.paths, path)
 					files++
 				} else {
 					folders++
