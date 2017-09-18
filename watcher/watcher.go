@@ -61,29 +61,26 @@ L:
 		select {
 		case event := <-watcher.Events:
 			if time.Now().Truncate(time.Second).After(p.lastChangedOn) {
-				p.lastChangedOn = time.Now().Truncate(time.Second)
-				if file, err := os.Lstat(event.Name); err == nil {
-					if file.Size() > 0 {
-						p.lastChangedOn = time.Now().Truncate(time.Second)
-						ext := filepath.Ext(event.Name)
-						if inArray(ext, p.Watcher.Exts) {
-							if p.Cmds.Run {
-								close(channel)
-								channel = make(chan bool)
-							}
-							// repeat the initial cycle
-							msg = fmt.Sprintln(p.pname(p.Name, 4), ":", style.Magenta.Bold(strings.ToUpper(ext[1:])+" changed"), style.Magenta.Bold(event.Name))
-							out = BufferOut{Time: time.Now(), Text: strings.ToUpper(ext[1:]) + " changed " + event.Name}
-							p.stamp("log", out, msg, "")
-							// check if is deleted
-							if event.Op&fsnotify.Remove == fsnotify.Remove {
-								watcher.Remove(event.Name)
-								go p.routines(&wr, channel, watcher, "")
-							} else {
-								go p.routines(&wr, channel, watcher, event.Name)
-							}
-							p.lastChangedOn = time.Now().Truncate(time.Second)
+				file, err := os.Lstat(event.Name)
+				if (event.Op&fsnotify.Remove == fsnotify.Remove) || err == nil && file.Size() > 0 {
+					p.lastChangedOn = time.Now().Truncate(time.Second)
+					ext := filepath.Ext(event.Name)
+					if inArray(ext, p.Watcher.Exts) {
+						if p.Cmds.Run {
+							close(channel)
+							channel = make(chan bool)
 						}
+						// repeat the initial cycle
+						msg = fmt.Sprintln(p.pname(p.Name, 4), ":", style.Magenta.Bold(strings.ToUpper(ext[1:])+" changed"), style.Magenta.Bold(event.Name))
+						out = BufferOut{Time: time.Now(), Text: strings.ToUpper(ext[1:]) + " changed " + event.Name}
+						p.stamp("log", out, msg, "")
+						// check if is deleted
+						if event.Op&fsnotify.Remove == fsnotify.Remove {
+							go p.routines(&wr, channel, watcher, "")
+						} else {
+							go p.routines(&wr, channel, watcher, event.Name)
+						}
+						p.lastChangedOn = time.Now().Truncate(time.Second)
 					}
 				}
 			}
