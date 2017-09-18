@@ -3,9 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"os"
-	"time"
-
 	"github.com/fatih/color"
 	"github.com/tockins/interact"
 	"github.com/tockins/realize/server"
@@ -13,7 +10,9 @@ import (
 	"github.com/tockins/realize/style"
 	"github.com/tockins/realize/watcher"
 	cli "gopkg.in/urfave/cli.v2"
+	"os"
 	"strconv"
+	"time"
 )
 
 const (
@@ -1033,7 +1032,7 @@ func main() {
 					if err := r.Record(r); err != nil {
 						return err
 					}
-					fmt.Fprintln(style.Output, prefix(style.Green.Bold("Your configuration was successful.")))
+					fmt.Fprintln(style.Output, prefix(style.Green.Bold(" Your configuration was successful.")))
 					return nil
 				},
 				Before: before,
@@ -1147,6 +1146,9 @@ func polling(c *cli.Context, s *settings.Legacy) {
 
 // Insert a project if there isn't already one
 func insert(c *cli.Context, b *watcher.Blueprint) error {
+	if c.Bool("no-config") {
+		r.Blueprint.Projects = []watcher.Project{}
+	}
 	if len(b.Projects) <= 0 {
 		if err := b.Add(c); err != nil {
 			return err
