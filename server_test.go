@@ -1,6 +1,7 @@
-package server
+package main
 
 import (
+	"fmt"
 	"github.com/tockins/realize/settings"
 	"net/http"
 	"testing"
@@ -46,5 +47,25 @@ func TestServer_Start(t *testing.T) {
 		if err != nil || resp.StatusCode != 200 {
 			t.Fatal(err, resp.StatusCode, elm)
 		}
+	}
+}
+
+func TestOpen(t *testing.T) {
+	config := settings.Settings{
+		Server: settings.Server{
+			Open: true,
+		},
+	}
+	s := Server{
+		Settings: &config,
+	}
+	url := "open_test"
+	out, err := s.openURL(url)
+	if err == nil {
+		t.Fatal("Unexpected, invalid url", url, err)
+	}
+	output := fmt.Sprint(out)
+	if output == "" {
+		t.Fatal("Unexpected, invalid url", url, output)
 	}
 }

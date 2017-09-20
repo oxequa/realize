@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/fatih/color"
 	"github.com/tockins/interact"
-	"github.com/tockins/realize/server"
 	"github.com/tockins/realize/settings"
 	"github.com/tockins/realize/style"
 	"github.com/tockins/realize/watcher"
@@ -23,9 +22,9 @@ const (
 type realize struct {
 	settings.Settings `yaml:"settings,omitempty"`
 	Sync              chan string        `yaml:"-"`
-	Blueprint         watcher.Blueprint  `yaml:"-"`
-	Server            server.Server      `yaml:"-"`
-	Projects          *[]watcher.Project `yaml:"projects" json:"projects"`
+	blueprint         watcher.Blueprint  `yaml:"-"`
+	server            server             `yaml:"-"`
+	projects          *[]watcher.Project `yaml:"projects" json:"projects"`
 }
 
 // New realize instance
@@ -67,7 +66,7 @@ func main() {
 				},
 				Action: func(p *cli.Context) error {
 					polling(p, &r.Legacy)
-					if err := insert(p, &r.Blueprint); err != nil {
+					if err := insert(p, &r.blueprint); err != nil {
 						return err
 					}
 					if !p.Bool("no-config") {
@@ -75,10 +74,10 @@ func main() {
 							return err
 						}
 					}
-					if err := r.Server.Start(p); err != nil {
+					if err := r.server.start(p); err != nil {
 						return err
 					}
-					if err := r.Blueprint.Run(p); err != nil {
+					if err := r.blueprint.Run(p); err != nil {
 						return err
 					}
 					return nil
@@ -101,7 +100,7 @@ func main() {
 					&cli.BoolFlag{Name: "run", Aliases: []string{"r"}, Value: false, Usage: "Enable go run"},
 				},
 				Action: func(p *cli.Context) error {
-					if err := r.Blueprint.Add(p); err != nil {
+					if err := r.blueprint.Add(p); err != nil {
 						return err
 					}
 					if err := r.Record(r); err != nil {
@@ -147,11 +146,11 @@ func main() {
 											Server: settings.Server{
 												Status: false,
 												Open:   false,
-												Host:   server.Host,
-												Port:   server.Port,
+												Host:   host,
+												Port:   port,
 											},
 										}
-										r.Blueprint.Projects = r.Blueprint.Projects[len(r.Blueprint.Projects):]
+										r.blueprint.Projects = r.blueprint.Projects[len(r.blueprint.Projects):]
 									}
 									return nil
 								},
@@ -261,7 +260,7 @@ func main() {
 										Subs: []*interact.Question{
 											{
 												Before: func(d interact.Context) error {
-													d.SetDef(server.Port, style.Green.Regular("("+strconv.Itoa(server.Port)+")"))
+													d.SetDef(port, style.Green.Regular("("+strconv.Itoa(port)+")"))
 													return nil
 												},
 												Quest: interact.Quest{
@@ -279,7 +278,7 @@ func main() {
 											},
 											{
 												Before: func(d interact.Context) error {
-													d.SetDef(server.Host, style.Green.Regular("("+server.Host+")"))
+													d.SetDef(host, style.Green.Regular("("+host+")"))
 													return nil
 												},
 												Quest: interact.Quest{
@@ -344,7 +343,7 @@ func main() {
 									Resolve: func(d interact.Context) bool {
 										val, _ := d.Ans().Bool()
 										if val {
-											r.Blueprint.Add(p)
+											r.blueprint.Add(p)
 										}
 										return val
 									},
@@ -364,7 +363,7 @@ func main() {
 											if err != nil {
 												return d.Err()
 											}
-											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Name = val
+											r.blueprint.Projects[len(r.blueprint.Projects)-1].Name = val
 											return nil
 										},
 									},
@@ -383,7 +382,7 @@ func main() {
 											if err != nil {
 												return d.Err()
 											}
-											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Path = r.Settings.Path(val)
+											r.blueprint.Projects[len(r.blueprint.Projects)-1].Path = r.Settings.Path(val)
 											return nil
 										},
 									},
@@ -402,7 +401,7 @@ func main() {
 											if err != nil {
 												return d.Err()
 											}
-											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Vet = val
+											r.blueprint.Projects[len(r.blueprint.Projects)-1].Cmds.Vet = val
 											return nil
 										},
 									},
@@ -435,7 +434,7 @@ func main() {
 														return d.Err()
 													}
 													if val != "" {
-														r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Fmt.Args = append(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Fmt.Args, val)
+														r.blueprint.Projects[len(r.blueprint.Projects)-1].Cmds.Fmt.Args = append(r.blueprint.Projects[len(r.blueprint.Projects)-1].Cmds.Fmt.Args, val)
 													}
 													return nil
 												},
@@ -446,7 +445,7 @@ func main() {
 											if err != nil {
 												return d.Err()
 											}
-											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Fmt.Status = val
+											r.blueprint.Projects[len(r.blueprint.Projects)-1].Cmds.Fmt.Status = val
 											return nil
 										},
 									},
@@ -479,7 +478,7 @@ func main() {
 														return d.Err()
 													}
 													if val != "" {
-														r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Test.Args = append(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Test.Args, val)
+														r.blueprint.Projects[len(r.blueprint.Projects)-1].Cmds.Test.Args = append(r.blueprint.Projects[len(r.blueprint.Projects)-1].Cmds.Test.Args, val)
 													}
 													return nil
 												},
@@ -490,7 +489,7 @@ func main() {
 											if err != nil {
 												return d.Err()
 											}
-											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Test.Status = val
+											r.blueprint.Projects[len(r.blueprint.Projects)-1].Cmds.Test.Status = val
 											return nil
 										},
 									},
@@ -523,7 +522,7 @@ func main() {
 														return d.Err()
 													}
 													if val != "" {
-														r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Generate.Args = append(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Generate.Args, val)
+														r.blueprint.Projects[len(r.blueprint.Projects)-1].Cmds.Generate.Args = append(r.blueprint.Projects[len(r.blueprint.Projects)-1].Cmds.Generate.Args, val)
 													}
 													return nil
 												},
@@ -534,7 +533,7 @@ func main() {
 											if err != nil {
 												return d.Err()
 											}
-											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Generate.Status = val
+											r.blueprint.Projects[len(r.blueprint.Projects)-1].Cmds.Generate.Status = val
 											return nil
 										},
 									},
@@ -567,7 +566,7 @@ func main() {
 														return d.Err()
 													}
 													if val != "" {
-														r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Install.Args = append(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Install.Args, val)
+														r.blueprint.Projects[len(r.blueprint.Projects)-1].Cmds.Install.Args = append(r.blueprint.Projects[len(r.blueprint.Projects)-1].Cmds.Install.Args, val)
 													}
 													return nil
 												},
@@ -578,7 +577,7 @@ func main() {
 											if err != nil {
 												return d.Err()
 											}
-											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Install.Status = val
+											r.blueprint.Projects[len(r.blueprint.Projects)-1].Cmds.Install.Status = val
 											return nil
 										},
 									},
@@ -611,7 +610,7 @@ func main() {
 														return d.Err()
 													}
 													if val != "" {
-														r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Build.Args = append(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Build.Args, val)
+														r.blueprint.Projects[len(r.blueprint.Projects)-1].Cmds.Build.Args = append(r.blueprint.Projects[len(r.blueprint.Projects)-1].Cmds.Build.Args, val)
 													}
 													return nil
 												},
@@ -622,7 +621,7 @@ func main() {
 											if err != nil {
 												return d.Err()
 											}
-											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Build.Status = val
+											r.blueprint.Projects[len(r.blueprint.Projects)-1].Cmds.Build.Status = val
 											return nil
 										},
 									},
@@ -640,7 +639,7 @@ func main() {
 											if err != nil {
 												return d.Err()
 											}
-											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Cmds.Run = val
+											r.blueprint.Projects[len(r.blueprint.Projects)-1].Cmds.Run = val
 											return nil
 										},
 									},
@@ -655,7 +654,7 @@ func main() {
 											Resolve: func(d interact.Context) bool {
 												val, _ := d.Ans().Bool()
 												if val {
-													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Paths = r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Paths[:len(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Paths)-1]
+													r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Paths = r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Paths[:len(r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Paths)-1]
 												}
 												return val
 											},
@@ -675,7 +674,7 @@ func main() {
 													if err != nil {
 														return d.Err()
 													}
-													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Paths = append(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Paths, val)
+													r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Paths = append(r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Paths, val)
 													d.Reload()
 													return nil
 												},
@@ -700,7 +699,7 @@ func main() {
 											Resolve: func(d interact.Context) bool {
 												val, _ := d.Ans().Bool()
 												if val {
-													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Ignore = r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Ignore[:len(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Ignore)-1]
+													r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Ignore = r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Ignore[:len(r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Ignore)-1]
 												}
 												return val
 											},
@@ -720,7 +719,7 @@ func main() {
 													if err != nil {
 														return d.Err()
 													}
-													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Ignore = append(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Ignore, val)
+													r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Ignore = append(r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Ignore, val)
 													d.Reload()
 													return nil
 												},
@@ -762,7 +761,7 @@ func main() {
 													if err != nil {
 														return d.Err()
 													}
-													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Args = append(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Args, val)
+													r.blueprint.Projects[len(r.blueprint.Projects)-1].Args = append(r.blueprint.Projects[len(r.blueprint.Projects)-1].Args, val)
 													d.Reload()
 													return nil
 												},
@@ -804,7 +803,7 @@ func main() {
 													if err != nil {
 														return d.Err()
 													}
-													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts = append(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts, watcher.Command{Type: "before", Command: val})
+													r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Scripts = append(r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Scripts, watcher.Command{Type: "before", Command: val})
 													return nil
 												},
 											},
@@ -822,7 +821,7 @@ func main() {
 													if err != nil {
 														return d.Err()
 													}
-													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts[len(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts)-1].Path = val
+													r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Scripts[len(r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Scripts)-1].Path = val
 													return nil
 												},
 											},
@@ -840,7 +839,7 @@ func main() {
 													if err != nil {
 														return d.Err()
 													}
-													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts[len(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts)-1].Global = val
+													r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Scripts[len(r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Scripts)-1].Global = val
 													return nil
 												},
 											},
@@ -858,7 +857,7 @@ func main() {
 													if err != nil {
 														return d.Err()
 													}
-													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts[len(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts)-1].Output = val
+													r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Scripts[len(r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Scripts)-1].Output = val
 													return nil
 												},
 											},
@@ -902,7 +901,7 @@ func main() {
 													if err != nil {
 														return d.Err()
 													}
-													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts = append(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts, watcher.Command{Type: "after", Command: val})
+													r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Scripts = append(r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Scripts, watcher.Command{Type: "after", Command: val})
 													return nil
 												},
 											},
@@ -920,7 +919,7 @@ func main() {
 													if err != nil {
 														return d.Err()
 													}
-													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts[len(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts)-1].Path = val
+													r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Scripts[len(r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Scripts)-1].Path = val
 													return nil
 												},
 											},
@@ -938,7 +937,7 @@ func main() {
 													if err != nil {
 														return d.Err()
 													}
-													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts[len(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts)-1].Global = val
+													r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Scripts[len(r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Scripts)-1].Global = val
 													return nil
 												},
 											},
@@ -956,7 +955,7 @@ func main() {
 													if err != nil {
 														return d.Err()
 													}
-													r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts[len(r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Scripts)-1].Output = val
+													r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Scripts[len(r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Scripts)-1].Output = val
 													return nil
 												},
 											},
@@ -986,7 +985,7 @@ func main() {
 											if err != nil {
 												return d.Err()
 											}
-											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].Watcher.Preview = val
+											r.blueprint.Projects[len(r.blueprint.Projects)-1].Watcher.Preview = val
 											return nil
 										},
 									},
@@ -1004,7 +1003,7 @@ func main() {
 											if err != nil {
 												return d.Err()
 											}
-											r.Blueprint.Projects[len(r.Blueprint.Projects)-1].ErrorOutputPattern = val
+											r.blueprint.Projects[len(r.blueprint.Projects)-1].ErrorOutputPattern = val
 											return nil
 										},
 									},
@@ -1046,7 +1045,7 @@ func main() {
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: ""},
 				},
 				Action: func(p *cli.Context) error {
-					if err := r.Blueprint.Remove(p); err != nil {
+					if err := r.blueprint.Remove(p); err != nil {
 						return err
 					}
 					if err := r.Record(r); err != nil {
@@ -1063,7 +1062,7 @@ func main() {
 				Aliases:     []string{"l"},
 				Description: "Print projects list.",
 				Action: func(p *cli.Context) error {
-					return r.Blueprint.List()
+					return r.blueprint.List()
 				},
 				Before: before,
 			},
@@ -1111,21 +1110,21 @@ func before(*cli.Context) error {
 			Server: settings.Server{
 				Status: false,
 				Open:   false,
-				Host:   server.Host,
-				Port:   server.Port,
+				Host:   host,
+				Port:   port,
 			},
 		},
 	}
-	r.Blueprint = watcher.Blueprint{
+	r.blueprint = watcher.Blueprint{
 		Settings: &r.Settings,
 		Sync:     r.Sync,
 	}
-	r.Server = server.Server{
-		Blueprint: &r.Blueprint,
+	r.server = server{
+		Blueprint: &r.blueprint,
 		Settings:  &r.Settings,
 		Sync:      r.Sync,
 	}
-	r.Projects = &r.Blueprint.Projects
+	r.projects = &r.blueprint.Projects
 	// read if exist
 	r.Read(&r)
 	// increase the file limit
@@ -1147,7 +1146,7 @@ func polling(c *cli.Context, s *settings.Legacy) {
 // Insert a project if there isn't already one
 func insert(c *cli.Context, b *watcher.Blueprint) error {
 	if c.Bool("no-config") {
-		r.Blueprint.Projects = []watcher.Project{}
+		r.blueprint.Projects = []watcher.Project{}
 	}
 	if len(b.Projects) <= 0 {
 		if err := b.Add(c); err != nil {
