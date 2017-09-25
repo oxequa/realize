@@ -56,9 +56,9 @@ type (
 
 // New tries to use an fs-event watcher, and falls back to the poller if there is an error
 func Watcher() (FileWatcher, error) {
-	//if w, err := EventWatcher(); err == nil {
-	//	return w, nil
-	//}
+	if w, err := EventWatcher(); err == nil {
+		return w, nil
+	}
 	return PollingWatcher(), nil
 }
 
