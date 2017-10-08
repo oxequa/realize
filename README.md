@@ -52,7 +52,7 @@ Various operations can be programmed for each project, which can be executed at 
 - Support for most go commands (install, build, run, vet, test, fmt and much more)
 - Web panel for a smart control of the workflow
 
-v 1.5
+Next features and informations
 
 - [ ] Use cases
 - [ ] Tests
@@ -82,15 +82,15 @@ $ go get github.com/tockins/realize
     ```
     --name="name"               -> Run by name on existing configuration
     --path="realize/server"     -> Custom Path, if not specified takes the working directory name    
+    --generate                  -> Enable go generate
+    --fmt                       -> Enable go fmt
+    --test                      -> Enable go test
+    --install                   -> Enable go install
     --build                     -> Enable go build   
-    --no-run                    -> Disable go run
-    --no-install                -> Disable go install
-    --no-config                 -> Ignore an existing config / skip the creation of a new one
+    --run                       -> Enable go run
     --server                    -> Enable the web server
     --legacy                    -> Enable legacy watch instead of Fsnotify watch
-    --generate                  -> Enable go generate
-    --test                      -> Enable go test
-    --open                      -> Open in default browser
+    --no-config                 -> Ignore an existing config / skip the creation of a new one
     ```
     Examples:
     
@@ -98,7 +98,8 @@ $ go get github.com/tockins/realize
     $ realize run
     $ realize run --path="mypath"
     $ realize run --name="My Project" --build
-    $ realize run --path="realize" --no-run --no-config
+    $ realize run --path="realize" --run --no-config
+    $ realize run --install --test --fmt --no-config
     $ realize run --path="/Users/alessio/go/src/github.com/tockins/realize-examples/coin/"
     ```
     
@@ -106,7 +107,7 @@ $ go get github.com/tockins/realize
     
      **The additional arguments must go after the params**
      
-     **Run can run a project from its working directory without make a config file (--no-config).**
+     **Run command can start a project from its working directory without make a config file (--no-config).**
     
     ```
     $ realize run --path="/print/printer" --no-run yourParams --yourFlags // right

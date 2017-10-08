@@ -1,21 +1,18 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
-	"net/http"
-	"strconv"
-
+	"fmt"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
-	"github.com/tockins/realize/settings"
-	"github.com/tockins/realize/watcher"
 	"golang.org/x/net/websocket"
 	"gopkg.in/urfave/cli.v2"
 	"io"
-	"runtime"
-	"fmt"
+	"net/http"
 	"os/exec"
-	"bytes"
+	"runtime"
+	"strconv"
 )
 
 // Dafault host and port
@@ -25,50 +22,58 @@ const (
 )
 
 // Server settings
-type server struct {
-	*settings.Settings `yaml:"-"`
-	*watcher.Blueprint `yaml:"-"`
-	Sync               chan string `yaml:"-"`
+type Server struct {
+	parent *realize
+	Status bool   `yaml:"status" json:"status"`
+	Open   bool   `yaml:"open" json:"open"`
+	Host   string `yaml:"host" json:"host"`
+	Port   int    `yaml:"port" json:"port"`
 }
 
-// Render return a web pages defined in bindata
-func (s *server) render(c echo.Context, path string, mime int) error {
-	data, err := Asset(path)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusNotFound)
-	}
-	rs := c.Response()
-	// check content type by extensions
-	switch mime {
-	case 1:
-		rs.Header().Set(echo.HeaderContentType, echo.MIMETextHTMLCharsetUTF8)
-		break
-	case 2:
-		rs.Header().Set(echo.HeaderContentType, echo.MIMEApplicationJavaScriptCharsetUTF8)
-		break
-	case 3:
-		rs.Header().Set(echo.HeaderContentType, "text/css")
-		break
-	case 4:
-		rs.Header().Set(echo.HeaderContentType, "image/svg+xml")
-		break
-	case 5:
-		rs.Header().Set(echo.HeaderContentType, "image/png")
-		break
-	}
-	rs.WriteHeader(http.StatusOK)
-	rs.Write(data)
+// Websocket projects
+func (s *Server) projects(c echo.Context) error {
+	websocket.Handler(func(ws *websocket.Conn) {
+		defer ws.Close()
+		msg, _ := json.Marshal(s.parent.Schema)
+		err := websocket.Message.Send(ws, string(msg))
+		go func() {
+			for {
+				select {
+				case <-s.parent.sync:
+					msg, _ := json.Marshal(s.parent.Schema)
+					err = websocket.Message.Send(ws, string(msg))
+					if err != nil {
+						break
+					}
+				}
+			}
+		}()
+		for {
+			// Read
+			text := ""
+			err := websocket.Message.Receive(ws, &text)
+			if err != nil {
+				break
+			} else {
+				err := json.Unmarshal([]byte(text), &s.parent.Schema)
+				if err != nil {
+					s.parent.Settings.record(s.parent.Settings)
+					break
+				}
+			}
+		}
+	}).ServeHTTP(c.Response(), c.Request())
 	return nil
 }
 
 // Start the web server
-func (s *server) start(p *cli.Context) (err error) {
+func (s *Server) start(p *cli.Context) (err error) {
 	if p.Bool("server") {
-		s.Server.Status = p.Bool("server")
-		s.Server.Open = true
+		s.parent.Server.Status = p.Bool("server")
+		s.parent.Server.Open = true
 	}
 
-	if s.Server.Status {
+	if s.parent.Server.Status {
 		e := echo.New()
 		e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
 			Level: 2,
@@ -124,8 +129,8 @@ func (s *server) start(p *cli.Context) (err error) {
 
 		//websocket
 		e.GET("/ws", s.projects)
-		go e.Start(string(s.Settings.Server.Host) + ":" + strconv.Itoa(s.Settings.Server.Port))
-		_, err = s.openURL("http://" + string(s.Settings.Server.Host) + ":" + strconv.Itoa(s.Settings.Server.Port))
+		go e.Start(string(s.parent.Server.Host) + ":" + strconv.Itoa(s.parent.Server.Port))
+		_, err = s.openURL("http://" + string(s.parent.Server.Host) + ":" + strconv.Itoa(s.parent.Server.Port))
 		if err != nil {
 			return err
 		}
@@ -133,44 +138,8 @@ func (s *server) start(p *cli.Context) (err error) {
 	return nil
 }
 
-// Websocket projects
-func (s *server) projects(c echo.Context) error {
-	websocket.Handler(func(ws *websocket.Conn) {
-		defer ws.Close()
-		msg, _ := json.Marshal(s.Blueprint.Projects)
-		err := websocket.Message.Send(ws, string(msg))
-		go func() {
-			for {
-				select {
-				case <-s.Sync:
-					msg, _ := json.Marshal(s.Blueprint.Projects)
-					err = websocket.Message.Send(ws, string(msg))
-					if err != nil {
-						break
-					}
-				}
-			}
-		}()
-		for {
-			// Read
-			text := ""
-			err := websocket.Message.Receive(ws, &text)
-			if err != nil {
-				break
-			} else {
-				err := json.Unmarshal([]byte(text), &s.Blueprint.Projects)
-				if err != nil {
-					s.Record(s.Settings)
-					break
-				}
-			}
-		}
-	}).ServeHTTP(c.Response(), c.Request())
-	return nil
-}
-
 // OpenURL in a new tab of default browser
-func (s *server) openURL(url string) (io.Writer, error) {
+func (s *Server) openURL(url string) (io.Writer, error) {
 	stderr := bytes.Buffer{}
 	cmd := map[string]string{
 		"windows": "start",
@@ -189,4 +158,34 @@ func (s *server) openURL(url string) (io.Writer, error) {
 		}
 	}
 	return nil, nil
+}
+
+// Render return a web pages defined in bindata
+func (s *Server) render(c echo.Context, path string, mime int) error {
+	data, err := Asset(path)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound)
+	}
+	rs := c.Response()
+	// check content type by extensions
+	switch mime {
+	case 1:
+		rs.Header().Set(echo.HeaderContentType, echo.MIMETextHTMLCharsetUTF8)
+		break
+	case 2:
+		rs.Header().Set(echo.HeaderContentType, echo.MIMEApplicationJavaScriptCharsetUTF8)
+		break
+	case 3:
+		rs.Header().Set(echo.HeaderContentType, "text/css")
+		break
+	case 4:
+		rs.Header().Set(echo.HeaderContentType, "image/svg+xml")
+		break
+	case 5:
+		rs.Header().Set(echo.HeaderContentType, "image/png")
+		break
+	}
+	rs.WriteHeader(http.StatusOK)
+	rs.Write(data)
+	return nil
 }

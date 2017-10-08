@@ -1,4 +1,4 @@
-package watcher
+package main
 
 import (
 	"errors"
@@ -54,14 +54,6 @@ type (
 	}
 )
 
-// New tries to use an fs-event watcher, and falls back to the poller if there is an error
-func Watcher() (FileWatcher, error) {
-	if w, err := EventWatcher(); err == nil {
-		return w, nil
-	}
-	return PollingWatcher(), nil
-}
-
 // NewPollingWatcher returns a poll-based file watcher
 func PollingWatcher() FileWatcher {
 	return &filePoller{
@@ -69,6 +61,14 @@ func PollingWatcher() FileWatcher {
 		events: make(chan fsnotify.Event),
 		errors: make(chan error),
 	}
+}
+
+// New tries to use an fs-event watcher, and falls back to the poller if there is an error
+func Watcher() (FileWatcher, error) {
+	if w, err := EventWatcher(); err == nil {
+		return w, nil
+	}
+	return PollingWatcher(), nil
 }
 
 // NewEventWatcher returns an fs-event based file watcher
@@ -80,14 +80,14 @@ func EventWatcher() (FileWatcher, error) {
 	return &fsNotifyWatcher{Watcher: w}, nil
 }
 
-// Events returns the fsnotify event channel receiver
-func (w *fsNotifyWatcher) Events() <-chan fsnotify.Event {
-	return w.Watcher.Events
-}
-
 // Errors returns the fsnotify error channel receiver
 func (w *fsNotifyWatcher) Errors() <-chan error {
 	return w.Watcher.Errors
+}
+
+// Events returns the fsnotify event channel receiver
+func (w *fsNotifyWatcher) Events() <-chan fsnotify.Event {
+	return w.Watcher.Events
 }
 
 func (w *fsNotifyWatcher) Walk(path string, init bool) string {
@@ -97,18 +97,28 @@ func (w *fsNotifyWatcher) Walk(path string, init bool) string {
 	return path
 }
 
-func (w *filePoller) Walk(path string, init bool) string {
-	check := w.watches[path]
-	if err := w.Add(path); err != nil {
-		return ""
+// Close closes the poller
+// All watches are stopped, removed, and the poller cannot be added to
+func (w *filePoller) Close() error {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	if w.closed {
+		return nil
 	}
-	if check == nil && init {
-		_, err := os.Stat(path)
-		if err == nil {
-			go w.sendEvent(fsnotify.Event{Op: fsnotify.Create, Name: path}, w.watches[path])
-		}
+
+	w.closed = true
+	for name := range w.watches {
+		w.remove(name)
+		delete(w.watches, name)
 	}
-	return path
+	return nil
+}
+
+// Errors returns the errors channel
+// This is used for notifications about errors on watched files
+func (w *filePoller) Errors() <-chan error {
+	return w.errors
 }
 
 // Add adds a filename to the list of watches
@@ -142,13 +152,6 @@ func (w *filePoller) Add(name string) error {
 	return nil
 }
 
-// Remove stops and removes watch with the specified name
-func (w *filePoller) Remove(name string) error {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	return w.remove(name)
-}
-
 func (w *filePoller) remove(name string) error {
 	if w.closed {
 		return errPollerClosed
@@ -163,32 +166,39 @@ func (w *filePoller) remove(name string) error {
 	return nil
 }
 
+// Remove stops and removes watch with the specified name
+func (w *filePoller) Remove(name string) error {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	return w.remove(name)
+}
+
 // Events returns the event channel
 // This is used for notifications on events about watched files
 func (w *filePoller) Events() <-chan fsnotify.Event {
 	return w.events
 }
 
-// Errors returns the errors channel
-// This is used for notifications about errors on watched files
-func (w *filePoller) Errors() <-chan error {
-	return w.errors
+func (w *filePoller) Walk(path string, init bool) string {
+	check := w.watches[path]
+	if err := w.Add(path); err != nil {
+		return ""
+	}
+	if check == nil && init {
+		_, err := os.Stat(path)
+		if err == nil {
+			go w.sendEvent(fsnotify.Event{Op: fsnotify.Create, Name: path}, w.watches[path])
+		}
+	}
+	return path
 }
 
-// Close closes the poller
-// All watches are stopped, removed, and the poller cannot be added to
-func (w *filePoller) Close() error {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-
-	if w.closed {
-		return nil
-	}
-
-	w.closed = true
-	for name := range w.watches {
-		w.remove(name)
-		delete(w.watches, name)
+// sendErr publishes the specified error to the errors channel
+func (w *filePoller) sendErr(e error, chClose <-chan struct{}) error {
+	select {
+	case w.errors <- e:
+	case <-chClose:
+		return fmt.Errorf("closed")
 	}
 	return nil
 }
@@ -197,16 +207,6 @@ func (w *filePoller) Close() error {
 func (w *filePoller) sendEvent(e fsnotify.Event, chClose <-chan struct{}) error {
 	select {
 	case w.events <- e:
-	case <-chClose:
-		return fmt.Errorf("closed")
-	}
-	return nil
-}
-
-// sendErr publishes the specified error to the errors channel
-func (w *filePoller) sendErr(e error, chClose <-chan struct{}) error {
-	select {
-	case w.errors <- e:
 	case <-chClose:
 		return fmt.Errorf("closed")
 	}

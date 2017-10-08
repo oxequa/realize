@@ -1,4 +1,10 @@
-memo = "4f11729a341d710751e002460e3767a15151cb5aee2e11ba6f70409107016f15"
+memo = "26587affd3e0577e23a9c4afef3eaf279d9a013fe3d673c0dc1fd062f26d2d2e"
+
+[[projects]]
+  name = "github.com/Sirupsen/logrus"
+  packages = ["."]
+  revision = "f006c2ac4710855cf0f916dd6b77acf6b048dc6e"
+  version = "v1.0.3"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"
@@ -10,7 +16,7 @@ memo = "4f11729a341d710751e002460e3767a15151cb5aee2e11ba6f70409107016f15"
   branch = "master"
   name = "github.com/fatih/color"
   packages = ["."]
-  revision = "67c513e5729f918f5e69786686770c27141a4490"
+  revision = "1535ebc2637cc042c938f07fa26c6356ab8f8504"
 
 [[projects]]
   branch = "master"
@@ -19,10 +25,10 @@ memo = "4f11729a341d710751e002460e3767a15151cb5aee2e11ba6f70409107016f15"
   revision = "4da3e2cfbabc9f751898f250b49f2439785783a1"
 
 [[projects]]
+  branch = "master"
   name = "github.com/labstack/echo"
   packages = [".","middleware"]
-  revision = "cec7629194fe4bf83b0c72d9a02d340c7a1468ac"
-  version = "3.2.3"
+  revision = "a625e589cffa33eac768ab98bc21518cef786e2d"
 
 [[projects]]
   name = "github.com/labstack/gommon"
@@ -41,6 +47,12 @@ memo = "4f11729a341d710751e002460e3767a15151cb5aee2e11ba6f70409107016f15"
   packages = ["."]
   revision = "fc9e8d8ef48496124e79ae0df75490096eccf6fe"
   version = "v0.0.2"
+
+[[projects]]
+  name = "github.com/moby/moby"
+  packages = ["pkg/filenotify"]
+  revision = "092cba3727bb9b4a2f0e922cd6c0f93ea270e363"
+  version = "v1.13.1"
 
 [[projects]]
   branch = "master"
@@ -63,20 +75,20 @@ memo = "4f11729a341d710751e002460e3767a15151cb5aee2e11ba6f70409107016f15"
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
-  packages = ["acme","acme/autocert"]
-  revision = "81e90905daefcd6fd217b62423c0908922eadb30"
+  packages = ["acme","acme/autocert","ssh/terminal"]
+  revision = "7d9177d70076375b9a59c8fde23d52d9c4a7ecd5"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = ["websocket"]
-  revision = "57efc9c3d9f91fb3277f8da1cff370539c4d3dc5"
+  revision = "0744d001aa8470aaa53df28d32e5ceeb8af9bd70"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
-  packages = ["unix"]
-  revision = "2d6f6f883a06fc0d5f4b14a81e4c28705ea64c15"
+  packages = ["unix","windows"]
+  revision = "429f518978ab01db8bb6f44b66785088e7fba58b"
 
 [[projects]]
   branch = "v2"

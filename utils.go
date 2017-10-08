@@ -1,14 +1,10 @@
-package watcher
+package main
 
 import (
 	"errors"
-	"fmt"
+	"gopkg.in/urfave/cli.v2"
 	"os"
 	"path/filepath"
-	"time"
-
-	"github.com/tockins/realize/style"
-	cli "gopkg.in/urfave/cli.v2"
 	"strings"
 )
 
@@ -21,8 +17,8 @@ func getEnvPath(env string) string {
 	return path[0]
 }
 
-// Check if a string is inArray
-func inArray(str string, list []string) bool {
+// Array check if a string is in given array
+func array(str string, list []string) bool {
 	for _, v := range list {
 		if v == str {
 			return true
@@ -31,8 +27,8 @@ func inArray(str string, list []string) bool {
 	return false
 }
 
-// Argsparam parse one by one the given argumentes
-func argsParam(params *cli.Context) []string {
+// Params parse one by one the given argumentes
+func params(params *cli.Context) []string {
 	argsN := params.NArg()
 	if argsN > 0 {
 		var args []string
@@ -45,7 +41,7 @@ func argsParam(params *cli.Context) []string {
 }
 
 // Split each arguments in multiple fields
-func arguments(args, fields []string) []string {
+func split(args, fields []string) []string {
 	for _, arg := range fields {
 		arr := strings.Fields(arg)
 		args = append(args, arr...)
@@ -56,14 +52,25 @@ func arguments(args, fields []string) []string {
 // Duplicates check projects with same name or same combinations of main/path
 func duplicates(value Project, arr []Project) (Project, error) {
 	for _, val := range arr {
-		if value.Path == val.Path && val.Name == value.Name {
-			return val, errors.New("There is already a project for '" + val.Path + "'. Check your config file!")
+		if value.Path == val.Path {
+			return val, errors.New("There is already a project with path '" + val.Path + "'. Check your config file!")
+		}
+		if value.Name == val.Name {
+			return val, errors.New("There is already a project with name '" + val.Name + "'. Check your config file!")
 		}
 	}
 	return Project{}, nil
 }
 
-// Rewrite the layout of the log timestamp
-func (w logWriter) Write(bytes []byte) (int, error) {
-	return fmt.Fprint(style.Output, style.Yellow.Regular("[")+time.Now().Format("15:04:05")+style.Yellow.Regular("]")+string(bytes))
+func ext(path string) string {
+	var ext string
+	for i := len(path) - 1; i >= 0 && !os.IsPathSeparator(path[i]); i-- {
+		if path[i] == '.' {
+			ext = path[i:]
+		}
+	}
+	if ext != "" {
+		return ext[1:]
+	}
+	return ""
 }
