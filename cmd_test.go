@@ -3,33 +3,30 @@ package main
 import (
 	"flag"
 	"gopkg.in/urfave/cli.v2"
-	"os"
 	"reflect"
 	"testing"
 	"time"
 )
 
 func TestBlueprint_Clean(t *testing.T) {
-	blp := Blueprint{}
-	blp.Settings = &Settings{}
-	blp.Projects = append(blp.Projects, Project{Name: "test0"})
-	blp.Projects = append(blp.Projects, Project{Name: "test0"})
-	blp.clean()
-	if len(blp.Projects) > 1 {
+	r := realize{}
+	r.Schema = append(r.Schema, Project{Name: "test0"})
+	r.Schema = append(r.Schema, Project{Name: "test0"})
+	r.clean()
+	if len(r.Schema) > 1 {
 		t.Error("Expected only one project")
 	}
-	blp.Projects = append(blp.Projects, Project{Path: "test1"})
-	blp.Projects = append(blp.Projects, Project{Path: "test1"})
-	blp.clean()
-	if len(blp.Projects) > 2 {
+	r.Schema = append(r.Schema, Project{Path: "test1"})
+	r.Schema = append(r.Schema, Project{Path: "test1"})
+	r.clean()
+	if len(r.Schema) > 2 {
 		t.Error("Expected only one project")
 	}
 
 }
 
 func TestBlueprint_Add(t *testing.T) {
-	blp := Blueprint{}
-	blp.Settings = &Settings{}
+	r := realize{}
 	// add all flags, test with expected
 	set := flag.NewFlagSet("test", 0)
 	set.Bool("fmt", false, "")
@@ -42,7 +39,7 @@ func TestBlueprint_Add(t *testing.T) {
 	set.String("path", "", "")
 	c := cli.NewContext(nil, set, nil)
 	set.Parse([]string{"--path=test_path", "--fmt", "--install", "--run", "--build", "--generate", "--test", "--vet"})
-	blp.add(c)
+	r.add(c)
 	expected := Project{
 		Name: "test_path",
 		Path: "test_path",
@@ -73,39 +70,37 @@ func TestBlueprint_Add(t *testing.T) {
 			Exts:   []string{"go"},
 		},
 	}
-	if !reflect.DeepEqual(blp.Projects[0], expected) {
+	if !reflect.DeepEqual(r.Schema[0], expected) {
 		t.Error("Expected equal struct")
 	}
 }
 
 func TestBlueprint_Check(t *testing.T) {
-	blp := Blueprint{}
-	blp.Settings = &Settings{}
-	err := blp.check()
+	r := realize{}
+	err := r.check()
 	if err == nil {
 		t.Error("There is no project, error expected")
 	}
-	blp.Projects = append(blp.Projects, Project{Name: "test0"})
-	err = blp.check()
+	r.Schema = append(r.Schema, Project{Name: "test0"})
+	err = r.check()
 	if err != nil {
 		t.Error("There is a project, error unexpected", err)
 	}
 }
 
 func TestBlueprint_Remove(t *testing.T) {
-	blp := Blueprint{}
-	blp.Settings = &Settings{}
+	r := realize{}
 	set := flag.NewFlagSet("name", 0)
 	set.String("name", "", "")
 	c := cli.NewContext(nil, set, nil)
 	set.Parse([]string{"--name=test0"})
-	err := blp.remove(c)
+	err := r.remove(c)
 	if err == nil {
 		t.Error("Expected an error, there are no projects")
 	}
 	// Append a new project
-	blp.Projects = append(blp.Projects, Project{Name: "test0"})
-	err = blp.remove(c)
+	r.Schema = append(r.Schema, Project{Name: "test0"})
+	err = r.remove(c)
 	if err != nil {
 		t.Error("Error unexpected, the project should be remove", err)
 	}
@@ -116,26 +111,21 @@ func TestBlueprint_Run(t *testing.T) {
 	params := cli.NewContext(nil, set, nil)
 	m := make(map[string]string)
 	m["test"] = "test"
-	projects := Blueprint{}
-	projects.Settings = &Settings{}
-	projects.Projects = []Project{
+	r := realize{}
+	r.Schema = []Project{
 		{
-			Name:        "test0",
-			Path:        ".",
-			Environment: m,
-		},
-		{
-			Name: "test1",
+			Name: "test0",
 			Path: ".",
 		},
 		{
 			Name: "test1",
-			Path: ".",
+			Path: "/test",
+		},
+		{
+			Name: "test2",
+			Path: "/test",
 		},
 	}
-	go projects.run(params)
-	if os.Getenv("test") != "test" {
-		t.Error("Env variable seems different from that given", os.Getenv("test"), "expected", m["test"])
-	}
-	time.Sleep(5 * time.Second)
+	go r.run(params)
+	time.Sleep(1 * time.Millisecond)
 }
