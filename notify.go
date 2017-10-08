@@ -1,5 +1,9 @@
 package main
 
+// this code is imported from moby, unfortunately i can't import it directly from its repo,
+// cause there was a problem with moby vendor and fsnotify
+// i have just added only walk methods and some little changes to polling interval, originally set as static.
+
 import (
 	"errors"
 	"fmt"
