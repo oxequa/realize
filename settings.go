@@ -14,12 +14,12 @@ import (
 
 // settings const
 const (
-	Permission = 0775
-	Directory  = ".realize"
-	File       = "realize.yaml"
-	FileOut    = "outputs.log"
-	FileErr    = "errors.log"
-	FileLog    = "logs.log"
+	permission = 0775
+	directory  = ".realize"
+	file       = "realize.yaml"
+	fileOut    = "outputs.log"
+	fileErr    = "errors.log"
+	fileLog    = "logs.log"
 )
 
 // random string preference
@@ -77,7 +77,7 @@ func random(n int) string {
 	return string(b)
 }
 
-// Wdir return the current working Directory
+// Wdir return the current working directory
 func (s Settings) wdir() string {
 	dir, err := os.Getwd()
 	s.validate(err)
@@ -122,7 +122,7 @@ func (s Settings) validate(err error) error {
 func (s *Settings) read(out interface{}) error {
 	localConfigPath := s.file
 	// backward compatibility
-	path := filepath.Join(Directory, s.file)
+	path := filepath.Join(directory, s.file)
 	if _, err := os.Stat(path); err == nil {
 		localConfigPath = path
 	}
@@ -140,12 +140,12 @@ func (s *Settings) record(out interface{}) error {
 	if err != nil {
 		return err
 	}
-	if _, err := os.Stat(Directory); os.IsNotExist(err) {
-		if err = os.Mkdir(Directory, Permission); err != nil {
+	if _, err := os.Stat(directory); os.IsNotExist(err) {
+		if err = os.Mkdir(directory, permission); err != nil {
 			return s.write(s.file, y)
 		}
 	}
-	return s.write(filepath.Join(Directory, s.file), y)
+	return s.write(filepath.Join(directory, s.file), y)
 }
 
 // Stream return a byte stream of a given file
@@ -170,7 +170,7 @@ func (s Settings) fatal(err error, msg ...interface{}) {
 
 // Write a file
 func (s Settings) write(name string, data []byte) error {
-	err := ioutil.WriteFile(name, data, Permission)
+	err := ioutil.WriteFile(name, data, permission)
 	return s.validate(err)
 }
 
@@ -187,12 +187,12 @@ func (s Settings) name(name string, path string) string {
 // Create a new file and return its pointer
 func (s Settings) create(path string, name string) *os.File {
 	var file string
-	if _, err := os.Stat(Directory); err == nil {
-		file = filepath.Join(path, Directory, name)
+	if _, err := os.Stat(directory); err == nil {
+		file = filepath.Join(path, directory, name)
 	} else {
 		file = filepath.Join(path, name)
 	}
-	out, err := os.OpenFile(file, os.O_APPEND|os.O_WRONLY|os.O_CREATE|os.O_SYNC, Permission)
+	out, err := os.OpenFile(file, os.O_APPEND|os.O_WRONLY|os.O_CREATE|os.O_SYNC, permission)
 	s.validate(err)
 	return out
 }
