@@ -153,7 +153,7 @@ func (r *realize) run(p *cli.Context) error {
 				Status:   elm.Cmds.Install.Status,
 				Args:     append([]string{"install"}, elm.Cmds.Install.Args...),
 				name:     "Go Install",
-				startTxt: "Instaling...",
+				startTxt: "Installing...",
 				endTxt:   "Installed",
 			}
 			r.Schema[k].Cmds.Build = Cmd{
@@ -208,7 +208,7 @@ func (r *realize) remove(p *cli.Context) error {
 
 // Insert a project if there isn't already one
 func (r *realize) insert(c *cli.Context) error {
-	if !c.Bool("config") {
+	if c.Bool("no-config") {
 		r.Schema = []Project{}
 	}
 	if len(r.Schema) <= 0 {
