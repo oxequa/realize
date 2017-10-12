@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	version = "1.4.1"
+	version = "1.5.0"
 )
 
 // New realize instance
@@ -45,30 +45,30 @@ func main() {
 				Email: "conventi@hastega.it",
 			},
 		},
-		Description: "A Go build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths",
+		Description: "Go build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths",
 		Commands: []*cli.Command{
 			{
 				Name:        "start",
 				Aliases:     []string{"r"},
 				Description: "Start a toolchain on a project or a list of projects. If not exist a config file it creates a new one",
 				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "path", Aliases: []string{"p"}, Value: "", Usage: "Project base path."},
-					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "", Usage: "Run a project by its name."},
-					&cli.BoolFlag{Name: "fmt", Aliases: []string{"f"}, Value: false, Usage: "Enable go fmt."},
-					&cli.BoolFlag{Name: "vet", Aliases: []string{"v"}, Value: false, Usage: "Enable go vet."},
-					&cli.BoolFlag{Name: "test", Aliases: []string{"t"}, Value: false, Usage: "Enable go test."},
-					&cli.BoolFlag{Name: "generate", Aliases: []string{"g"}, Value: false, Usage: "Enable go generate."},
-					&cli.BoolFlag{Name: "server", Aliases: []string{"s"}, Value: false, Usage: "Enable server and open into the default browser."},
-					&cli.BoolFlag{Name: "install", Aliases: []string{"i"}, Value: false, Usage: "Enable go install."},
-					&cli.BoolFlag{Name: "build", Aliases: []string{"b"}, Value: false, Usage: "Enable go build."},
+					&cli.StringFlag{Name: "path", Aliases: []string{"p"}, Value: "", Usage: "Project base path"},
+					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "", Usage: "Run a project by its name"},
+					&cli.BoolFlag{Name: "fmt", Aliases: []string{"f"}, Value: false, Usage: "Enable go fmt"},
+					&cli.BoolFlag{Name: "vet", Aliases: []string{"v"}, Value: false, Usage: "Enable go vet"},
+					&cli.BoolFlag{Name: "test", Aliases: []string{"t"}, Value: false, Usage: "Enable go test"},
+					&cli.BoolFlag{Name: "generate", Aliases: []string{"g"}, Value: false, Usage: "Enable go generate"},
+					&cli.BoolFlag{Name: "server", Aliases: []string{"s"}, Value: false, Usage: "Enable server and open into the default browser"},
+					&cli.BoolFlag{Name: "install", Aliases: []string{"i"}, Value: false, Usage: "Enable go install"},
+					&cli.BoolFlag{Name: "build", Aliases: []string{"b"}, Value: false, Usage: "Enable go build"},
 					&cli.BoolFlag{Name: "run", Aliases: []string{"nr"}, Value: false, Usage: "Enable go run"},
-					&cli.BoolFlag{Name: "config", Aliases: []string{"nc"}, Value: false, Usage: "Use a config if exist or save a new one"},
+					&cli.BoolFlag{Name: "no-config", Aliases: []string{"nc"}, Value: false, Usage: "Ignore existing config and doesn't create a new one"},
 				},
 				Action: func(p *cli.Context) error {
 					if err := r.insert(p); err != nil {
 						return err
 					}
-					if p.Bool("config") {
+					if !p.Bool("no-config") {
 						if err := r.Settings.record(r); err != nil {
 							return err
 						}
@@ -87,15 +87,16 @@ func main() {
 				Name:        "add",
 				Category:    "Configuration",
 				Aliases:     []string{"a"},
-				Description: "Add a project to an existing config file or create a new one.",
+				Description: "Add a project to an existing config file or create a new one",
 				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "path", Aliases: []string{"p"}, Value: "", Usage: "Project base path."},
-					&cli.BoolFlag{Name: "test", Aliases: []string{"t"}, Value: false, Usage: "Enable go test."},
-					&cli.BoolFlag{Name: "generate", Aliases: []string{"g"}, Value: false, Usage: "Enable go generate."},
-					&cli.BoolFlag{Name: "server", Aliases: []string{"s"}, Value: false, Usage: "Enable server and open into the default browser."},
+					&cli.StringFlag{Name: "path", Aliases: []string{"p"}, Value: "", Usage: "Project base path"},
+					&cli.BoolFlag{Name: "fmt", Aliases: []string{"f"}, Value: false, Usage: "Enable go fmt"},
+					&cli.BoolFlag{Name: "vet", Aliases: []string{"v"}, Value: false, Usage: "Enable go vet"},
+					&cli.BoolFlag{Name: "test", Aliases: []string{"t"}, Value: false, Usage: "Enable go test"},
+					&cli.BoolFlag{Name: "generate", Aliases: []string{"g"}, Value: false, Usage: "Enable go generate"},
 					&cli.BoolFlag{Name: "install", Aliases: []string{"i"}, Value: false, Usage: "Enable go install"},
 					&cli.BoolFlag{Name: "build", Aliases: []string{"b"}, Value: false, Usage: "Enable go build"},
-					&cli.BoolFlag{Name: "run", Aliases: []string{"r"}, Value: false, Usage: "Enable go run"},
+					&cli.BoolFlag{Name: "run", Aliases: []string{"nr"}, Value: false, Usage: "Enable go run"},
 				},
 				Action: func(p *cli.Context) error {
 					if err := r.add(p); err != nil {
@@ -104,7 +105,7 @@ func main() {
 					if err := r.Settings.record(r); err != nil {
 						return err
 					}
-					fmt.Fprintln(output, prefix(green.bold("Your project was successfully added.")))
+					fmt.Fprintln(output, prefix(green.bold("Your project was successfully added")))
 					return nil
 				},
 				Before: before,
@@ -124,7 +125,7 @@ func main() {
 						Questions: []*interact.Question{
 							{
 								Before: func(d interact.Context) error {
-									if _, err := os.Stat(Directory + "/" + File); err != nil {
+									if _, err := os.Stat(directory + "/" + file); err != nil {
 										d.Skip()
 									}
 									d.SetDef(false, green.regular("(n)"))
@@ -132,23 +133,14 @@ func main() {
 								},
 								Quest: interact.Quest{
 									Options: yellow.regular("[y/n]"),
-									Msg:     "Would you want to overwrite the existing " + magenta.bold("Realize") + " config?",
+									Msg:     "Would you want to overwrite existing " + magenta.bold("Realize") + " config?",
 								},
 								Action: func(d interact.Context) interface{} {
 									val, err := d.Ans().Bool()
 									if err != nil {
 										return d.Err()
 									} else if val {
-										r.Settings = Settings{
-											file: File,
-										}
-										r.Server = Server{
-											Status: false,
-											Open:   false,
-											Host:   host,
-											Port:   port,
-										}
-										r.Schema = r.Schema[len(r.Schema):]
+										r = new()
 									}
 									return nil
 								},
@@ -160,7 +152,7 @@ func main() {
 								},
 								Quest: interact.Quest{
 									Options: yellow.regular("[y/n]"),
-									Msg:     "Would you want to customize the " + ("settings") + "?",
+									Msg:     "Would you want to customize settings?",
 									Resolve: func(d interact.Context) bool {
 										val, _ := d.Ans().Bool()
 										return val
@@ -174,7 +166,7 @@ func main() {
 										},
 										Quest: interact.Quest{
 											Options: yellow.regular("[int]"),
-											Msg:     "Max number of open files (root required)",
+											Msg:     "Set max number of open files (root required)",
 										},
 										Action: func(d interact.Context) interface{} {
 											val, err := d.Ans().Int()
@@ -192,6 +184,48 @@ func main() {
 										},
 										Quest: interact.Quest{
 											Options: yellow.regular("[y/n]"),
+											Msg:     "Force polling watcher?",
+											Resolve: func(d interact.Context) bool {
+												val, _ := d.Ans().Bool()
+												return val
+											},
+										},
+										Subs: []*interact.Question{
+											{
+												Before: func(d interact.Context) error {
+													d.SetDef(100, green.regular("(100ms)"))
+													return nil
+												},
+												Quest: interact.Quest{
+													Options: yellow.regular("[int]"),
+													Msg:     "Set polling interval",
+												},
+												Action: func(d interact.Context) interface{} {
+													val, err := d.Ans().Int()
+													if err != nil {
+														return d.Err()
+													}
+													r.Settings.Legacy.Interval = time.Duration(int(val)) * time.Millisecond
+													return nil
+												},
+											},
+										},
+										Action: func(d interact.Context) interface{} {
+											val, err := d.Ans().Bool()
+											if err != nil {
+												return d.Err()
+											}
+											r.Settings.Legacy.Force = val
+											return nil
+										},
+									},
+									{
+										Before: func(d interact.Context) error {
+											d.SetDef(false, green.regular("(n)"))
+											return nil
+										},
+										Quest: interact.Quest{
+											Options: yellow.regular("[y/n]"),
 											Msg:     "Enable logging files",
 										},
 										Action: func(d interact.Context) interface{} {
@@ -199,9 +233,9 @@ func main() {
 											if err != nil {
 												return d.Err()
 											}
-											r.Settings.Files.Errors = Resource{Name: FileErr, Status: val}
-											r.Settings.Files.Outputs = Resource{Name: FileOut, Status: val}
-											r.Settings.Files.Logs = Resource{Name: FileLog, Status: val}
+											r.Settings.Files.Errors = Resource{Name: fileErr, Status: val}
+											r.Settings.Files.Outputs = Resource{Name: fileOut, Status: val}
+											r.Settings.Files.Logs = Resource{Name: fileLog, Status: val}
 											return nil
 										},
 									},
@@ -262,7 +296,7 @@ func main() {
 												},
 												Quest: interact.Quest{
 													Options: yellow.regular("[y/n]"),
-													Msg:     "Open in the current browser",
+													Msg:     "Open in current browser",
 												},
 												Action: func(d interact.Context) interface{} {
 													val, err := d.Ans().Bool()
@@ -633,7 +667,7 @@ func main() {
 										},
 										Quest: interact.Quest{
 											Options: yellow.regular("[y/n]"),
-											Msg:     "Customize watched paths",
+											Msg:     "Customize watching paths",
 											Resolve: func(d interact.Context) bool {
 												val, _ := d.Ans().Bool()
 												if val {
@@ -678,7 +712,7 @@ func main() {
 										},
 										Quest: interact.Quest{
 											Options: yellow.regular("[y/n]"),
-											Msg:     "Customize ignored paths",
+											Msg:     "Customize ignore paths",
 											Resolve: func(d interact.Context) bool {
 												val, _ := d.Ans().Bool()
 												if val {
@@ -961,7 +995,7 @@ func main() {
 										},
 										Quest: interact.Quest{
 											Options: yellow.regular("[y/n]"),
-											Msg:     "Enable watcher files preview",
+											Msg:     "Print watched files on startup",
 										},
 										Action: func(d interact.Context) interface{} {
 											val, err := d.Ans().Bool()
@@ -1003,7 +1037,7 @@ func main() {
 						},
 						After: func(d interact.Context) error {
 							if val, _ := d.Qns().Get(0).Ans().Bool(); val {
-								actErr = r.Settings.del(Directory)
+								actErr = r.Settings.del(directory)
 								if actErr != nil {
 									return actErr
 								}
@@ -1014,7 +1048,7 @@ func main() {
 					if err := r.Settings.record(r); err != nil {
 						return err
 					}
-					fmt.Fprintln(output, prefix(green.bold(" Your configuration was successful.")))
+					fmt.Fprintln(output, prefix(green.bold(" Your configuration was successful")))
 					return nil
 				},
 				Before: before,
@@ -1023,7 +1057,7 @@ func main() {
 				Name:        "remove",
 				Category:    "Configuration",
 				Aliases:     []string{"r"},
-				Description: "Remove a project from a realize configuration.",
+				Description: "Remove a project from a realize configuration",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: ""},
 				},
@@ -1034,7 +1068,7 @@ func main() {
 					if err := r.Settings.record(r); err != nil {
 						return err
 					}
-					fmt.Fprintln(output, prefix(green.bold("Your project was successfully removed.")))
+					fmt.Fprintln(output, prefix(green.bold("Your project was successfully removed")))
 					return nil
 				},
 				Before: before,
@@ -1043,12 +1077,12 @@ func main() {
 				Name:        "clean",
 				Category:    "Configuration",
 				Aliases:     []string{"c"},
-				Description: "Remove realize folder.",
+				Description: "Remove realize folder",
 				Action: func(p *cli.Context) error {
-					if err := r.Settings.del(Directory); err != nil {
+					if err := r.Settings.del(directory); err != nil {
 						return err
 					}
-					fmt.Fprintln(output, prefix(green.bold("Realize folder successfully removed.")))
+					fmt.Fprintln(output, prefix(green.bold("Realize folder successfully removed")))
 					return nil
 				},
 				Before: before,
@@ -1056,8 +1090,28 @@ func main() {
 		},
 	}
 	if err := app.Run(os.Args); err != nil {
-		print(red.bold(err))
+		fmt.Fprintln(output, prefix(red.bold(err)))
 		os.Exit(1)
+	}
+}
+
+// New return default realize config
+func new() realize {
+	return realize{
+		sync: make(chan string),
+		Settings: Settings{
+			file: file,
+			Legacy: Legacy{
+				Interval: 100 * time.Millisecond,
+			},
+		},
+		Server: Server{
+			parent: &r,
+			Status: false,
+			Open:   false,
+			Host:   host,
+			Port:   port,
+		},
 	}
 }
 
@@ -1073,28 +1127,14 @@ func prefix(s string) string {
 func before(*cli.Context) error {
 	// custom log
 	log.SetFlags(0)
-	log.SetOutput(new(logWriter))
+	log.SetOutput(logWriter{})
 	// Before of every exec of a cli method
 	gopath := os.Getenv("GOPATH")
 	if gopath == "" {
 		return errors.New("$GOPATH isn't set properly")
 	}
-	r = realize{
-		sync: make(chan string),
-		Settings: Settings{
-			file: File,
-			Legacy: Legacy{
-				Interval: 100 * time.Millisecond,
-			},
-		},
-		Server: Server{
-			parent: &r,
-			Status: false,
-			Open:   false,
-			Host:   host,
-			Port:   port,
-		},
-	}
+	// new realize instance
+	r = new()
 	// read if exist
 	r.Settings.read(&r)
 	// increase the file limit
