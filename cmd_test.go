@@ -20,7 +20,7 @@ func TestMain(m *testing.M) {
 	log.SetOutput(logT{})
 }
 
-func TestBlueprint_Clean(t *testing.T) {
+func TestRealize_Clean(t *testing.T) {
 	r := realize{}
 	r.Schema = append(r.Schema, Project{Name: "test0"})
 	r.Schema = append(r.Schema, Project{Name: "test0"})
@@ -37,7 +37,7 @@ func TestBlueprint_Clean(t *testing.T) {
 
 }
 
-func TestBlueprint_Add(t *testing.T) {
+func TestRealize_Add(t *testing.T) {
 	r := realize{}
 	// add all flags, test with expected
 	set := flag.NewFlagSet("test", 0)
@@ -87,7 +87,7 @@ func TestBlueprint_Add(t *testing.T) {
 	}
 }
 
-func TestBlueprint_Check(t *testing.T) {
+func TestRealize_Check(t *testing.T) {
 	r := realize{}
 	err := r.check()
 	if err == nil {
@@ -100,7 +100,7 @@ func TestBlueprint_Check(t *testing.T) {
 	}
 }
 
-func TestBlueprint_Remove(t *testing.T) {
+func TestRealize_Remove(t *testing.T) {
 	r := realize{}
 	set := flag.NewFlagSet("name", 0)
 	set.String("name", "", "")
@@ -118,7 +118,7 @@ func TestBlueprint_Remove(t *testing.T) {
 	}
 }
 
-func TestBlueprint_Run(t *testing.T) {
+func TestRealize_Run(t *testing.T) {
 	set := flag.NewFlagSet("test", 0)
 	params := cli.NewContext(nil, set, nil)
 	m := make(map[string]string)
