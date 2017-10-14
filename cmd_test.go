@@ -3,10 +3,22 @@ package main
 import (
 	"flag"
 	"gopkg.in/urfave/cli.v2"
+	"log"
 	"reflect"
 	"testing"
 	"time"
 )
+
+type logT struct{}
+
+func (logT) Write(bytes []byte) (int, error) {
+	return 0, nil
+}
+
+func TestMain(m *testing.M) {
+	log.SetFlags(0)
+	log.SetOutput(logT{})
+}
 
 func TestBlueprint_Clean(t *testing.T) {
 	r := realize{}
@@ -127,5 +139,5 @@ func TestBlueprint_Run(t *testing.T) {
 		},
 	}
 	go r.run(params)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(1 * time.Second)
 }
