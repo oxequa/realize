@@ -34,13 +34,13 @@ type Server struct {
 func (s *Server) projects(c echo.Context) error {
 	websocket.Handler(func(ws *websocket.Conn) {
 		defer ws.Close()
-		msg, _ := json.Marshal(s.parent.Schema)
+		msg, _ := json.Marshal(s.parent)
 		err := websocket.Message.Send(ws, string(msg))
 		go func() {
 			for {
 				select {
 				case <-s.parent.sync:
-					msg, _ := json.Marshal(s.parent.Schema)
+					msg, _ := json.Marshal(s.parent)
 					err = websocket.Message.Send(ws, string(msg))
 					if err != nil {
 						break
@@ -52,12 +52,13 @@ func (s *Server) projects(c echo.Context) error {
 			// Read
 			text := ""
 			err := websocket.Message.Receive(ws, &text)
+			fmt.Println("receive")
 			if err != nil {
 				break
 			} else {
-				err := json.Unmarshal([]byte(text), &s.parent.Schema)
-				if err != nil {
-					s.parent.Settings.record(s.parent.Settings)
+				err := json.Unmarshal([]byte(text), &s.parent)
+				if err == nil {
+					s.parent.Settings.record(s.parent)
 					break
 				}
 			}
@@ -129,6 +130,7 @@ func (s *Server) start(p *cli.Context) (err error) {
 
 		//websocket
 		e.GET("/ws", s.projects)
+		e.HideBanner = true
 		go e.Start(string(s.parent.Server.Host) + ":" + strconv.Itoa(s.parent.Server.Port))
 		_, err = s.openURL("http://" + string(s.parent.Server.Host) + ":" + strconv.Itoa(s.parent.Server.Port))
 		if err != nil {
