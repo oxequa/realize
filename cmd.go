@@ -33,6 +33,8 @@ type Cmds struct {
 type Cmd struct {
 	Status                 bool     `yaml:"status,omitempty" json:"status,omitempty"`
 	Args                   []string `yaml:"args,omitempty" json:"args,omitempty"`
+	Method                 []string `yaml:"method,omitempty" json:"method,omitempty"`
+	method                 []string
 	name, startTxt, endTxt string
 }
 
@@ -151,14 +153,16 @@ func (r *realize) run(p *cli.Context) error {
 			// default settings
 			r.Schema[k].Cmds.Install = Cmd{
 				Status:   elm.Cmds.Install.Status,
-				Args:     append([]string{"install"}, elm.Cmds.Install.Args...),
+				Args:     append([]string{}, elm.Cmds.Install.Args...),
+				method:   []string{"go", "install"},
 				name:     "Go Install",
 				startTxt: "Installing...",
 				endTxt:   "Installed",
 			}
 			r.Schema[k].Cmds.Build = Cmd{
 				Status:   elm.Cmds.Build.Status,
-				Args:     append([]string{"build"}, elm.Cmds.Build.Args...),
+				Args:     append([]string{}, elm.Cmds.Build.Args...),
+				method:   []string{"go", "build"},
 				name:     "Go Build",
 				startTxt: "Bulding...",
 				endTxt:   "Built",
@@ -206,7 +210,7 @@ func (r *realize) remove(p *cli.Context) error {
 	return errors.New("no project found")
 }
 
-// Insert a project if there isn't already one
+// Insert current project if there isn't already one
 func (r *realize) insert(c *cli.Context) error {
 	if c.Bool("no-config") {
 		r.Schema = []Project{}

@@ -21,12 +21,12 @@ var (
 	wg  sync.WaitGroup
 )
 
-// Watcher struct defines the livereload's logic
+// Watch struct defines options for livereload
 type Watch struct {
+	Preview bool      `yaml:"preview,omitempty" json:"preview,omitempty"`
 	Paths   []string  `yaml:"paths" json:"paths"`
 	Exts    []string  `yaml:"extensions" json:"extensions"`
 	Ignore  []string  `yaml:"ignored_paths,omitempty" json:"ignored_paths,omitempty"`
-	Preview bool      `yaml:"preview,omitempty" json:"preview,omitempty"`
 	Scripts []Command `yaml:"scripts,omitempty" json:"scripts,omitempty"`
 }
 
@@ -83,7 +83,7 @@ type BufferOut struct {
 	Errors []string  `json:"errors"`
 }
 
-// Watch the project by fsnotify
+// Watch the project
 func (p *Project) watch() {
 	p.watcher, _ = Watcher()
 	stop, exit := make(chan bool), make(chan os.Signal, 2)
@@ -166,7 +166,7 @@ func (p *Project) err(err error) {
 	p.stamp("error", out, msg, "")
 }
 
-// Cmd calls an wrapper for execute the commands after/before
+// Cmd calls the method that execute commands after/before and display the results
 func (p *Project) cmd(stop <-chan bool, flag string, global bool) {
 	done := make(chan bool)
 	// cmds are scheduled in sequence
@@ -214,7 +214,10 @@ func (p *Project) compile(stop <-chan bool, cmd Cmd) error {
 		channel := make(chan Result)
 		go func() {
 			log.Println(p.pname(p.Name, 1), ":", cmd.startTxt)
-			stream, err := p.goCompile(stop, cmd.Args)
+			if len(cmd.Method) > 0 {
+				cmd.method = cmd.Method
+			}
+			stream, err := p.goCompile(stop, cmd.method, cmd.Args)
 			if stream != "killed" {
 				channel <- Result{stream, err}
 			}
