@@ -9,12 +9,12 @@ func TestProject_GoCompile(t *testing.T) {
 	p := Project{}
 	stop := make(chan bool)
 	response := make(chan string)
-	result, err := p.goCompile(stop, []string{"echo", "test"})
+	result, err := p.goCompile(stop, []string{"echo"}, []string{"test"})
 	if err != nil {
 		t.Error("Unexpected", err)
 	}
 	go func() {
-		result, err = p.goCompile(stop, []string{"sleep", "20s"})
+		result, err = p.goCompile(stop, []string{"sleep"}, []string{"20s"})
 		response <- result
 	}()
 	close(stop)

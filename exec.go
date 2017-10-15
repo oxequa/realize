@@ -15,7 +15,7 @@ import (
 )
 
 // GoCompile is used for compile a project
-func (p *Project) goCompile(stop <-chan bool, args []string) (string, error) {
+func (p *Project) goCompile(stop <-chan bool, method []string, args []string) (string, error) {
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	done := make(chan error)
@@ -23,8 +23,12 @@ func (p *Project) goCompile(stop <-chan bool, args []string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	cmd := exec.Command("go", args...)
-	cmd.Dir = p.base
+	args = append(method, args...)
+	cmd := exec.Command(args[0], args[1:]...)
+	if _, err := os.Stat(filepath.Join(p.base, p.path)); err == nil {
+		p.path = filepath.Join(p.base, p.path)
+	}
+	cmd.Dir = p.path
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 	// Start command
@@ -62,9 +66,13 @@ func (p *Project) goRun(stop <-chan bool, runner chan bool) {
 			return errRegexp.MatchString(t)
 		}
 	}
+
 	for _, arg := range p.Args {
-		arr := strings.Fields(arg)
-		args = append(args, arr...)
+		a := strings.FieldsFunc(arg, func(i rune) bool {
+			return i == '"' || i == '=' || i == '\''
+		})
+		args = append(args, a...)
+
 	}
 
 	if _, err := os.Stat(filepath.Join(p.base, p.path)); err == nil {
@@ -174,15 +182,15 @@ func (p *Project) command(stop <-chan bool, cmd Command) (string, string) {
 func (p *Project) goTool(wg *sync.WaitGroup, stop <-chan bool, result chan<- tool, path string, tool tool) {
 	defer wg.Done()
 	if tool.status {
+		if tool.dir {
+			path = filepath.Dir(path)
+		}
 		if strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "") {
 			if strings.HasSuffix(path, ".go") {
 				tool.options = append(tool.options, path)
 				path = p.base
 			}
 			if s := ext(path); s == "" || s == "go" {
-				if tool.dir {
-					path = filepath.Dir(path)
-				}
 				var out, stderr bytes.Buffer
 				done := make(chan error)
 				cmd := exec.Command(tool.cmd, tool.options...)
