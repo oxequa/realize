@@ -4,20 +4,22 @@ import (
 	"flag"
 	"gopkg.in/urfave/cli.v2"
 	"log"
+	"os"
 	"reflect"
 	"testing"
 	"time"
 )
 
-type logT struct{}
+type loggerT struct{}
 
-func (logT) Write(bytes []byte) (int, error) {
+func (loggerT) Write(bytes []byte) (int, error) {
 	return 0, nil
 }
 
 func TestMain(m *testing.M) {
 	log.SetFlags(0)
-	log.SetOutput(logT{})
+	log.SetOutput(loggerT{})
+	os.Exit(m.Run())
 }
 
 func TestRealize_Clean(t *testing.T) {
@@ -35,6 +37,19 @@ func TestRealize_Clean(t *testing.T) {
 		t.Error("Expected only one project")
 	}
 
+}
+
+func TestRealize_Check(t *testing.T) {
+	r := realize{}
+	err := r.check()
+	if err == nil {
+		t.Error("There is no project, error expected")
+	}
+	r.Schema = append(r.Schema, Project{Name: "test0"})
+	err = r.check()
+	if err != nil {
+		t.Error("There is a project, error unexpected", err)
+	}
 }
 
 func TestRealize_Add(t *testing.T) {
@@ -87,37 +102,6 @@ func TestRealize_Add(t *testing.T) {
 	}
 }
 
-func TestRealize_Check(t *testing.T) {
-	r := realize{}
-	err := r.check()
-	if err == nil {
-		t.Error("There is no project, error expected")
-	}
-	r.Schema = append(r.Schema, Project{Name: "test0"})
-	err = r.check()
-	if err != nil {
-		t.Error("There is a project, error unexpected", err)
-	}
-}
-
-func TestRealize_Remove(t *testing.T) {
-	r := realize{}
-	set := flag.NewFlagSet("name", 0)
-	set.String("name", "", "")
-	c := cli.NewContext(nil, set, nil)
-	set.Parse([]string{"--name=test0"})
-	err := r.remove(c)
-	if err == nil {
-		t.Error("Expected an error, there are no projects")
-	}
-	// Append a new project
-	r.Schema = append(r.Schema, Project{Name: "test0"})
-	err = r.remove(c)
-	if err != nil {
-		t.Error("Error unexpected, the project should be remove", err)
-	}
-}
-
 func TestRealize_Run(t *testing.T) {
 	set := flag.NewFlagSet("test", 0)
 	params := cli.NewContext(nil, set, nil)
@@ -140,4 +124,45 @@ func TestRealize_Run(t *testing.T) {
 	}
 	go r.run(params)
 	time.Sleep(1 * time.Second)
+}
+
+func TestRealize_Remove(t *testing.T) {
+	r := realize{}
+	set := flag.NewFlagSet("name", 0)
+	set.String("name", "", "")
+	c := cli.NewContext(nil, set, nil)
+	set.Parse([]string{"--name=test0"})
+	err := r.remove(c)
+	if err == nil {
+		t.Error("Expected an error, there are no projects")
+	}
+	// Append a new project
+	r.Schema = append(r.Schema, Project{Name: "test0"})
+	err = r.remove(c)
+	if err != nil {
+		t.Error("Error unexpected, the project should be remove", err)
+	}
+}
+
+func TestRealize_Insert(t *testing.T) {
+	r := realize{}
+	// add all flags, test with expected
+	set := flag.NewFlagSet("test", 0)
+	set.Bool("no-config", false, "")
+	c := cli.NewContext(nil, set, nil)
+	set.Parse([]string{"--no-config"})
+
+	r.insert(c)
+	if len(r.Schema) != 1 {
+		t.Error("Expected one project instead", len(r.Schema))
+	}
+
+	r.Schema = []Project{}
+	r.Schema = append(r.Schema, Project{})
+	r.Schema = append(r.Schema, Project{})
+	c = cli.NewContext(nil, set, nil)
+	r.insert(c)
+	if len(r.Schema) != 1 {
+		t.Error("Expected one project instead", len(r.Schema))
+	}
 }

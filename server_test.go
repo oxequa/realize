@@ -1,26 +1,19 @@
 package main
 
-//
 //import (
 //	"fmt"
-//	"github.com/tockins/realize/settings"
 //	"net/http"
 //	"testing"
 //)
 //
 //func TestServer_Start(t *testing.T) {
-//	s := settings.Settings{
-//		Server: settings.Server{
-//			Status: true,
-//			Open:   false,
-//			Host:   "localhost",
-//			Port:   5000,
-//		},
+//	s := Server{
+//		Status: true,
+//		Open:   false,
+//		Host:   "localhost",
+//		Port:   5000,
 //	}
-//	server := Server{
-//		Settings: &s,
-//	}
-//	err := server.Start(nil)
+//	err := s.start(nil)
 //	if err != nil {
 //		t.Fatal(err)
 //	}
@@ -51,17 +44,12 @@ package main
 //	}
 //}
 //
-//func TestOpen(t *testing.T) {
-//	config := settings.Settings{
-//		Server: settings.Server{
-//			Open: true,
-//		},
-//	}
-//	s := Server{
-//		Settings: &config,
+//func TestServer_Open(t *testing.T) {
+//	c := Server{
+//		Open: true,
 //	}
 //	url := "open_test"
-//	out, err := s.openURL(url)
+//	out, err := c.openURL(url)
 //	if err == nil {
 //		t.Fatal("Unexpected, invalid url", url, err)
 //	}
