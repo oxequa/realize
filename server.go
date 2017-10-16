@@ -131,6 +131,7 @@ func (s *Server) start(p *cli.Context) (err error) {
 		//websocket
 		e.GET("/ws", s.projects)
 		e.HideBanner = true
+		e.Debug = false
 		go e.Start(string(s.parent.Server.Host) + ":" + strconv.Itoa(s.parent.Server.Port))
 		_, err = s.openURL("http://" + string(s.parent.Server.Host) + ":" + strconv.Itoa(s.parent.Server.Port))
 		if err != nil {
