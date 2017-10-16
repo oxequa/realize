@@ -23,7 +23,7 @@ var (
 
 const (
 	msgStop    = "killed"
-	extWindows = extWindows
+	extWindows = ".exe"
 )
 
 // Watch struct defines options for livereload
