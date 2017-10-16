@@ -31,12 +31,6 @@ type (
 		Errors() <-chan error
 		Events() <-chan fsnotify.Event
 	}
-	filewatcher struct {
-		// force polling instead event watcher
-		polling bool
-		// polling interval express in milliseconds
-		interval time.Duration
-	}
 	// fsNotifyWatcher wraps the fsnotify package to satisfy the FileNotifier interface
 	fsNotifyWatcher struct {
 		*fsnotify.Watcher
@@ -55,24 +49,31 @@ type (
 		mu sync.Mutex
 		// closed is used to specify when the poller has already closed
 		closed bool
+		// polling interval
+		interval time.Duration
 	}
 )
 
 // NewPollingWatcher returns a poll-based file watcher
-func PollingWatcher() FileWatcher {
+func PollingWatcher(interval time.Duration) FileWatcher {
+	if interval == 0 {
+		interval = 100 * time.Millisecond
+	}
 	return &filePoller{
-		//interval: f.interval * time.Millisecond,
-		events: make(chan fsnotify.Event),
-		errors: make(chan error),
+		interval: interval,
+		events:   make(chan fsnotify.Event),
+		errors:   make(chan error),
 	}
 }
 
 // New tries to use an fs-event watcher, and falls back to the poller if there is an error
-func Watcher() (FileWatcher, error) {
-	if w, err := EventWatcher(); err == nil {
-		return w, nil
+func Watcher(force bool, interval time.Duration) (FileWatcher, error) {
+	if !force {
+		if w, err := EventWatcher(); err == nil {
+			return w, nil
+		}
 	}
-	return PollingWatcher(), nil
+	return PollingWatcher(interval), nil
 }
 
 // NewEventWatcher returns an fs-event based file watcher
@@ -222,7 +223,7 @@ func (w *filePoller) sendEvent(e fsnotify.Event, chClose <-chan struct{}) error 
 func (w *filePoller) watch(f *os.File, lastFi os.FileInfo, chClose chan struct{}) {
 	defer f.Close()
 	for {
-		time.Sleep(200 * time.Millisecond)
+		time.Sleep(w.interval)
 		select {
 		case <-chClose:
 			logrus.Debugf("watch for %s closed", f.Name())

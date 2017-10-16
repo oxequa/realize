@@ -10,8 +10,12 @@ import (
 	"time"
 )
 
+const (
+	interval = 100 * time.Millisecond
+)
+
 func TestPoller_AddRemove(t *testing.T) {
-	w := PollingWatcher()
+	w := PollingWatcher(interval)
 
 	if err := w.Add("no-such-file"); err == nil {
 		t.Fatal("should have gotten error when adding a non-existent file")
@@ -39,7 +43,7 @@ func TestPoller_Event(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("No chmod on Windows")
 	}
-	w := PollingWatcher()
+	w := PollingWatcher(interval)
 
 	f, err := ioutil.TempFile("", "test-poller")
 	if err != nil {
@@ -83,7 +87,7 @@ func TestPoller_Event(t *testing.T) {
 }
 
 func TestPoller_Close(t *testing.T) {
-	w := PollingWatcher()
+	w := PollingWatcher(interval)
 	if err := w.Close(); err != nil {
 		t.Fatal(err)
 	}
