@@ -75,12 +75,12 @@ func (p *Project) goRun(stop <-chan bool, runner chan bool) {
 
 	}
 
-	if _, err := os.Stat(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.path))); err == nil {
-		build = exec.Command(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.path)), args...)
-	} else if _, err := os.Stat(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.path)) + extWindows); err == nil {
-		build = exec.Command(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.path))+extWindows, args...)
+	if _, err := os.Stat(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.base))); err == nil {
+		build = exec.Command(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.base)), args...)
+	} else if _, err := os.Stat(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.base)) + extWindows); err == nil {
+		build = exec.Command(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.base))+extWindows, args...)
 	} else {
-		path := filepath.Join(p.base, filepath.Base(p.path))
+		path := filepath.Join(p.base, filepath.Base(p.base))
 		if _, err = os.Stat(path); err == nil {
 			build = exec.Command(path, args...)
 		} else if _, err = os.Stat(path + extWindows); err == nil {
@@ -90,7 +90,6 @@ func (p *Project) goRun(stop <-chan bool, runner chan bool) {
 			p.fatal(nil, "Can't run a not compiled project", ":")
 		}
 	}
-
 	defer func() {
 		if err := build.Process.Kill(); err != nil {
 			p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Failed to stop: " + err.Error()})
