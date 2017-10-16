@@ -52,15 +52,15 @@ Various operations can be programmed for each project, which can be executed at 
 - Support for most go commands (install, build, run, vet, test, fmt and much more)
 - Web panel for a smart control of the workflow
 
-v 1.5
+Next features and informations
 
-- [ ] Use cases
-- [ ] Tests
+- [ ] More use cases
+- [ ] Complete tests
 - [ ] Watch gopath dependencies 
 - [ ] Web panel, download logs
 - [ ] Multiple configurations (dev, production)
 - [ ] Support to ignore paths and files in gititnore
-- [ ] Input redirection (wait for an input and redirect)
+- [ ] Input redirection (wait for an input and redirect) useful for cli scripts
 
 #### Installation
 Run this to get/install:
@@ -72,50 +72,51 @@ $ go get github.com/tockins/realize
 - ##### Run
     From project/projects root execute:
     ```
-    $ realize run
+    $ realize start
     ```
     
-    It will create a realize.yaml file if it doesn't exist already, add the working directory as project and run the pipeline.
+    It will create a realize.yaml file if it doesn't exist already, add the working directory as project and run your workflow.
     
-    The Run command supports the following custom parameters:
+    "Start" command supports the following custom parameters:
     
     ```
     --name="name"               -> Run by name on existing configuration
     --path="realize/server"     -> Custom Path, if not specified takes the working directory name    
-    --build                     -> Enable go build   
-    --no-run                    -> Disable go run
-    --no-install                -> Disable go install
-    --no-config                 -> Ignore an existing config / skip the creation of a new one
-    --server                    -> Enable the web server
-    --legacy                    -> Enable legacy watch instead of Fsnotify watch
     --generate                  -> Enable go generate
+    --fmt                       -> Enable go fmt
     --test                      -> Enable go test
-    --open                      -> Open in default browser
+    --vet                       -> Enable go vet
+    --install                   -> Enable go install
+    --build                     -> Enable go build   
+    --run                       -> Enable go run
+    --server                    -> Enable the web server
+    --no-config                 -> Ignore an existing config / skip the creation of a new one
     ```
     Examples:
     
     ```
-    $ realize run
-    $ realize run --path="mypath"
-    $ realize run --name="My Project" --build
-    $ realize run --path="realize" --no-run --no-config
-    $ realize run --path="/Users/alessio/go/src/github.com/tockins/realize-examples/coin/"
+    $ realize start
+    $ realize start --path="mypath"
+    $ realize start --name="realize" --build
+    $ realize start --path="realize" --run --no-config
+    $ realize start --install --test --fmt --no-config
+    $ realize start --path="/Users/alessio/go/src/github.com/tockins/realize-examples/coin/"
     ```
     
     If you want, you can specify additional arguments for your project.
     
      **The additional arguments must go after the params**
      
-     **Run can run a project from its working directory without make a config file (--no-config).**
+     **Start command can be used with a project from its working directory without make a config file (--no-config).**
     
     ```
-    $ realize run --path="/print/printer" --no-run yourParams --yourFlags // right
-    $ realize run yourParams --yourFlags --path="/print/printer" --no-run // wrong
+    $ realize start --path="/print/printer" --run yourParams --yourFlags // right
+    $ realize start yourParams --yourFlags --path="/print/printer" --run // wrong
     ```
 - ##### Add 
-    Add a project to an existing config file or create a new one without run the pipeline. 
+    Add a project to an existing config file or create a new one.
     
-    "Add" supports the same parameters of the "Run" command.
+    "Add" supports the same parameters of "Start" command.
     
     ```
     $ realize add
@@ -124,7 +125,7 @@ $ go get github.com/tockins/realize
 - ##### Init 
     Like add, but with this command you can create a configuration step by step and customize each option. 
     
-    **Init is the only command that supports a complete customization of all the options supported**
+    **Init is the only command that supports a complete customization of all supported options**
     
     ```
     $ realize init
@@ -134,12 +135,6 @@ $ go get github.com/tockins/realize
     Remove a project by its name
     ```
     $ realize remove --name="myname"
-    ```
-
-- ##### List
-    Projects list in cli
-    ```
-    $ realize list
     ```
 
 - #### Color reference
@@ -155,59 +150,66 @@ $ go get github.com/tockins/realize
     
     ```
     settings:
-     legacy:
-       status: true           // enable polling watcher instead fsnotifiy
-       interval: 10s          // polling interval
-      resources:              // files names
-        outputs: outputs.log
-        logs: logs.log
-        errors: errors.log
-      server:
-        status: false         // server status 
-        open: false           // open browser at start  
-        host: localhost       // server host
-        port: 5001            // server port  
-    projects:
+        legacy:
+            force: true             // force polling watcher instead fsnotifiy
+            interval: 100ms         // polling interval
+        resources:                  // files names
+            outputs: outputs.log
+            logs: logs.log
+            errors: errors.log
+    server:
+        status: false               // server status
+        open: false                 // open browser at start
+        host: localhost             // server host
+        port: 5001                  // server port
+    schema:
     - name: coin
       path: coin              // project path
       environment:            // env variables available at startup
-        test: test
-        myvar: value
+            test: test
+            myvar: value
       commands:               // go commands supported
-        vet: true
-        fmt: true
-        test: false
-        generate: false
-        bin:
-          status: true
+        vet:
+            status: true
+        fmt:
+            status: true
+            args:
+            - -s
+            - -w
+        test:
+            status: true
+            method: gb test    // support differents build tool
+        generate:
+            status: true
+        install:
+            status: true
         build:
-          status: false
-          args:                // additional params for the command
+            status: false
+            method: gb build    // support differents build tool
+            args:               // additional params for the command
             - -race
         run: true
-      args:                    // arguments to pass at the project
-        - --myarg
+      args:                     // arguments to pass at the project
+      - --myarg
       watcher:
-        preview: false         // watched files preview
-        paths:                 // watched paths 
-        - /
-        ignore_paths:          // ignored paths 
-        - vendor
-        exts:                  // watched extensions
-        - .go
-        scripts:               // custom scripts
-        - type: before         // type (after/before)
-          command: ./ls -l     // command
-          changed: true        // relaunch when a file change
-          startup: true        // launch at start
-        - type: after
-          command: ./ls
-          changed: true
-      streams:                 // save logs/errors/outputs on files
-         file_out: false
-         file_log: false
-         file_err: false    
-             ```
+          preview: false         // watched files preview
+          paths:                 // watched paths
+          - /
+          ignore_paths:          // ignored paths
+          - vendor
+          extensions:                  // watched extensions
+          - go
+          - html
+          scripts:               // custom scripts
+          - type: before         // type (after/before)
+            command: ./ls -l     // command
+            changed: true        // relaunch when a file change
+            startup: true        // launch at start
+          - type: after
+            command: ./ls
+            changed: true
+          errorOutputPattern: mypattern   //custom error pattern
+    ```
          
 #### Support us and suggest an improvement
 - Chat with us [Gitter](https://gitter.im/tockins/realize)
