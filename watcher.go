@@ -21,6 +21,11 @@ var (
 	wg  sync.WaitGroup
 )
 
+const (
+	msgStop    = "killed"
+	extWindows = extWindows
+)
+
 // Watch struct defines options for livereload
 type Watch struct {
 	Preview bool      `yaml:"preview,omitempty" json:"preview,omitempty"`
@@ -215,7 +220,7 @@ func (p *Project) compile(stop <-chan bool, cmd Cmd) error {
 		go func() {
 			log.Println(p.pname(p.Name, 1), ":", cmd.startTxt)
 			stream, err := p.goCompile(stop, cmd.method, cmd.Args)
-			if stream != "killed" {
+			if stream != msgStop {
 				channel <- Result{stream, err}
 			}
 		}()

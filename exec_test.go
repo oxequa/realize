@@ -20,7 +20,7 @@ func TestProject_GoCompile(t *testing.T) {
 	close(stop)
 	select {
 	case v := <-response:
-		if v != "killed" {
+		if v != msgStop {
 			t.Error("Unexpected result", response)
 		}
 	case <-time.After(2 * time.Second):
