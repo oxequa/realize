@@ -12,9 +12,9 @@ import (
 type tool struct {
 	dir     bool
 	status  bool
-	cmd     string
 	name    string
 	err     string
+	cmd     []string
 	options []string
 }
 
@@ -24,7 +24,7 @@ type Cmds struct {
 	Fmt      Cmd  `yaml:"fmt,omitempty" json:"fmt,omitempty"`
 	Test     Cmd  `yaml:"test,omitempty" json:"test,omitempty"`
 	Generate Cmd  `yaml:"generate,omitempty" json:"generate,omitempty"`
-	Install  Cmd  `yaml:"install" json:"install"`
+	Install  Cmd  `yaml:"install,omitempty" json:"install,omitempty"`
 	Build    Cmd  `yaml:"build,omitempty" json:"build,omitempty"`
 	Run      bool `yaml:"run,omitempty" json:"run,omitempty"`
 }
@@ -32,8 +32,8 @@ type Cmds struct {
 // Cmd
 type Cmd struct {
 	Status                 bool     `yaml:"status,omitempty" json:"status,omitempty"`
+	Method                 string   `yaml:"method,omitempty" json:"method,omitempty"`
 	Args                   []string `yaml:"args,omitempty" json:"args,omitempty"`
-	Method                 []string `yaml:"method,omitempty" json:"method,omitempty"`
 	method                 []string
 	name, startTxt, endTxt string
 }
@@ -118,35 +118,35 @@ func (r *realize) run(p *cli.Context) error {
 				}
 				r.Schema[k].tools = append(r.Schema[k].tools, tool{
 					status:  elm.Cmds.Fmt.Status,
-					cmd:     "gofmt",
+					cmd:     replace([]string{"gofmt"}, r.Schema[k].Cmds.Fmt.Method),
 					options: split([]string{}, elm.Cmds.Fmt.Args),
-					name:    "Go Fmt",
+					name:    "Fmt",
 				})
 			}
 			if elm.Cmds.Generate.Status {
 				r.Schema[k].tools = append(r.Schema[k].tools, tool{
 					status:  elm.Cmds.Generate.Status,
-					cmd:     "go",
-					options: split([]string{"generate"}, elm.Cmds.Generate.Args),
-					name:    "Go Generate",
+					cmd:     replace([]string{"go", "generate"}, r.Schema[k].Cmds.Generate.Method),
+					options: split([]string{}, elm.Cmds.Generate.Args),
+					name:    "Generate",
 					dir:     true,
 				})
 			}
 			if elm.Cmds.Test.Status {
 				r.Schema[k].tools = append(r.Schema[k].tools, tool{
 					status:  elm.Cmds.Test.Status,
-					cmd:     "go",
-					options: split([]string{"test"}, elm.Cmds.Test.Args),
-					name:    "Go Test",
+					cmd:     replace([]string{"go", "test"}, r.Schema[k].Cmds.Test.Method),
+					options: split([]string{}, elm.Cmds.Test.Args),
+					name:    "Test",
 					dir:     true,
 				})
 			}
 			if elm.Cmds.Vet.Status {
 				r.Schema[k].tools = append(r.Schema[k].tools, tool{
 					status:  elm.Cmds.Vet.Status,
-					cmd:     "go",
-					options: split([]string{"vet"}, elm.Cmds.Vet.Args),
-					name:    "Go Vet",
+					cmd:     replace([]string{"go", "vet"}, r.Schema[k].Cmds.Vet.Method),
+					options: split([]string{}, elm.Cmds.Vet.Args),
+					name:    "Vet",
 					dir:     true,
 				})
 			}
@@ -154,16 +154,16 @@ func (r *realize) run(p *cli.Context) error {
 			r.Schema[k].Cmds.Install = Cmd{
 				Status:   elm.Cmds.Install.Status,
 				Args:     append([]string{}, elm.Cmds.Install.Args...),
-				method:   []string{"go", "install"},
-				name:     "Go Install",
+				method:   replace([]string{"go", "install"}, r.Schema[k].Cmds.Install.Method),
+				name:     "Install",
 				startTxt: "Installing...",
 				endTxt:   "Installed",
 			}
 			r.Schema[k].Cmds.Build = Cmd{
 				Status:   elm.Cmds.Build.Status,
 				Args:     append([]string{}, elm.Cmds.Build.Args...),
-				method:   []string{"go", "build"},
-				name:     "Go Build",
+				method:   replace([]string{"go", "build"}, r.Schema[k].Cmds.Build.Method),
+				name:     "Build",
 				startTxt: "Bulding...",
 				endTxt:   "Built",
 			}

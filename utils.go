@@ -62,6 +62,7 @@ func duplicates(value Project, arr []Project) (Project, error) {
 	return Project{}, nil
 }
 
+// Get file extensions
 func ext(path string) string {
 	var ext string
 	for i := len(path) - 1; i >= 0 && !os.IsPathSeparator(path[i]); i-- {
@@ -73,4 +74,12 @@ func ext(path string) string {
 		return ext[1:]
 	}
 	return ""
+}
+
+// Replace if isn't empty and create a new array
+func replace(a []string, b string) []string {
+	if len(b) > 0 {
+		return strings.Fields(b)
+	}
+	return a
 }

@@ -214,9 +214,6 @@ func (p *Project) compile(stop <-chan bool, cmd Cmd) error {
 		channel := make(chan Result)
 		go func() {
 			log.Println(p.pname(p.Name, 1), ":", cmd.startTxt)
-			if len(cmd.Method) > 0 {
-				cmd.method = cmd.Method
-			}
 			stream, err := p.goCompile(stop, cmd.method, cmd.Args)
 			if stream != "killed" {
 				channel <- Result{stream, err}

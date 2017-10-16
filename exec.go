@@ -193,7 +193,8 @@ func (p *Project) goTool(wg *sync.WaitGroup, stop <-chan bool, result chan<- too
 			if s := ext(path); s == "" || s == "go" {
 				var out, stderr bytes.Buffer
 				done := make(chan error)
-				cmd := exec.Command(tool.cmd, tool.options...)
+				tool.cmd = append(tool.cmd, tool.options...)
+				cmd := exec.Command(tool.cmd[0], tool.cmd[1:]...)
 				cmd.Dir = path
 				cmd.Stdout = &out
 				cmd.Stderr = &stderr
