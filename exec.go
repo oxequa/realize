@@ -182,7 +182,7 @@ func (p *Project) command(stop <-chan bool, cmd Command) (string, string) {
 func (p *Project) goTool(wg *sync.WaitGroup, stop <-chan bool, result chan<- tool, path string, tool tool) {
 	defer wg.Done()
 	if tool.status {
-		if tool.dir {
+		if tool.dir && filepath.Ext(path) != "" {
 			path = filepath.Dir(path)
 		}
 		if strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "") {
