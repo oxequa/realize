@@ -90,7 +90,7 @@ type BufferOut struct {
 
 // Watch the project
 func (p *Project) watch() {
-	p.watcher, _ = Watcher()
+	p.watcher, _ = Watcher(r.Settings.Legacy.Force, r.Settings.Legacy.Interval)
 	stop, exit := make(chan bool), make(chan os.Signal, 2)
 	signal.Notify(exit, os.Interrupt, syscall.SIGTERM)
 	// before global commands

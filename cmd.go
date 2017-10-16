@@ -137,7 +137,7 @@ func (r *realize) run(p *cli.Context) error {
 			//}
 			if elm.Cmds.Fmt.Status {
 				if len(elm.Cmds.Fmt.Args) == 0 {
-					elm.Cmds.Fmt.Args = []string{"-s", "-w", "-e", "./.."}
+					elm.Cmds.Fmt.Args = []string{"-s", "-w", "-e", "./"}
 				}
 				r.Schema[k].tools = append(r.Schema[k].tools, tool{
 					status:  elm.Cmds.Fmt.Status,
