@@ -24,9 +24,9 @@ type logWriter struct{}
 
 // Realize struct contains the general app informations
 type realize struct {
-	Settings Settings  `yaml:"settings"`
-	Server   Server    `yaml:"server"`
-	Schema   []Project `yaml:"schema"`
+	Settings Settings  `yaml:"settings" json:"settings"`
+	Server   Server    `yaml:"server" json:"server"`
+	Schema   []Project `yaml:"schema" json:"schema"`
 	sync     chan string
 }
 
@@ -384,7 +384,7 @@ func main() {
 
 									{
 										Before: func(d interact.Context) error {
-											d.SetDef(true, green.regular("(y)"))
+											d.SetDef(false, green.regular("(n)"))
 											return nil
 										},
 										Quest: interact.Quest{
@@ -424,7 +424,7 @@ func main() {
 									},
 									{
 										Before: func(d interact.Context) error {
-											d.SetDef(true, green.regular("(y)"))
+											d.SetDef(false, green.regular("(n)"))
 											return nil
 										},
 										Quest: interact.Quest{
@@ -468,7 +468,7 @@ func main() {
 									},
 									{
 										Before: func(d interact.Context) error {
-											d.SetDef(true, green.regular("(y)"))
+											d.SetDef(false, green.regular("(n)"))
 											return nil
 										},
 										Quest: interact.Quest{
