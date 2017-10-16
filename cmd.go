@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// Tool options customizable
+// Tool options customizable, should be moved in Cmd
 type tool struct {
 	dir     bool
 	status  bool
@@ -35,6 +35,7 @@ type Cmd struct {
 	Method                 string   `yaml:"method,omitempty" json:"method,omitempty"`
 	Args                   []string `yaml:"args,omitempty" json:"args,omitempty"`
 	method                 []string
+	tool                   bool
 	name, startTxt, endTxt string
 }
 
@@ -109,9 +110,31 @@ func (r *realize) run(p *cli.Context) error {
 			wg.Add(len(r.Schema))
 		}
 		for k, elm := range r.Schema {
+			// command start using name flag
 			if p.String("name") != "" && r.Schema[k].Name != p.String("name") {
 				continue
 			}
+			//fields := reflect.Indirect(reflect.ValueOf(&r.Schema[k].Cmds))
+			//// Loop struct Cmds fields
+			//for i := 0; i < fields.NumField(); i++ {
+			//	field := fields.Type().Field(i).Name
+			//	if fields.FieldByName(field).Type().Name() == "Cmd" {
+			//		v := fields.FieldByName(field)
+			//		// Loop struct Cmd
+			//		for i := 0; i < v.NumField(); i++ {
+			//			f := v.Field(i)
+			//			if f.IsValid() {
+			//				if f.CanSet() {
+			//					switch f.Kind() {
+			//					case reflect.Bool:
+			//					case reflect.String:
+			//					case reflect.Slice:
+			//					}
+			//				}
+			//			}
+			//		}
+			//	}
+			//}
 			if elm.Cmds.Fmt.Status {
 				if len(elm.Cmds.Fmt.Args) == 0 {
 					elm.Cmds.Fmt.Args = []string{"-s", "-w", "-e", "./.."}
@@ -164,7 +187,7 @@ func (r *realize) run(p *cli.Context) error {
 				Args:     append([]string{}, elm.Cmds.Build.Args...),
 				method:   replace([]string{"go", "build"}, r.Schema[k].Cmds.Build.Method),
 				name:     "Build",
-				startTxt: "Bulding...",
+				startTxt: "Building...",
 				endTxt:   "Built",
 			}
 
