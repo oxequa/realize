@@ -407,13 +407,17 @@ func (p *Project) routines(stop <-chan bool, watcher FileWatcher, path string) {
 		// Prevent fake events on polling startup
 		p.init = true
 	}
+	// prevent errors using realize without config with only run flag
+	if !p.Cmds.Install.Status && !p.Cmds.Build.Status {
+		p.Cmds.Install.Status = true
+	}
 	if !done {
 		install = p.compile(stop, p.Cmds.Install)
 	}
 	if !done {
 		build = p.compile(stop, p.Cmds.Build)
 	}
-	if !done && (install == nil || build == nil) {
+	if !done && (install == nil && build == nil) {
 		if p.Cmds.Run {
 			start := time.Now()
 			runner := make(chan bool, 1)
