@@ -32,7 +32,7 @@ const (
 
 // Settings defines a group of general settings and options
 type Settings struct {
-	file      string `yaml:"-" json:"-"`
+	file      string
 	Files     `yaml:"files,omitempty" json:"files,omitempty"`
 	FileLimit int64  `yaml:"flimit,omitempty" json:"flimit,omitempty"`
 	Legacy    Legacy `yaml:"legacy" json:"legacy"`
@@ -90,7 +90,7 @@ func (s *Settings) flimit() error {
 	rLimit.Max = uint64(s.FileLimit)
 	rLimit.Cur = uint64(s.FileLimit)
 
-	return  syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit)
+	return syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit)
 }
 
 // Delete realize folder
