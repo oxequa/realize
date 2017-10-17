@@ -76,10 +76,7 @@ func main() {
 					if err := r.Server.start(p); err != nil {
 						return err
 					}
-					if err := r.run(p); err != nil {
-						return err
-					}
-					return nil
+					return r.run(p)
 				},
 				Before: before,
 			},

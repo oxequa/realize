@@ -18,7 +18,7 @@ type tool struct {
 	options []string
 }
 
-// Cmds
+// Cmds list of go commands
 type Cmds struct {
 	Vet      Cmd  `yaml:"vet,omitempty" json:"vet,omitempty"`
 	Fmt      Cmd  `yaml:"fmt,omitempty" json:"fmt,omitempty"`
@@ -29,7 +29,7 @@ type Cmds struct {
 	Run      bool `yaml:"run,omitempty" json:"run,omitempty"`
 }
 
-// Cmd
+// Cmd single command fields and options
 type Cmd struct {
 	Status                 bool     `yaml:"status,omitempty" json:"status,omitempty"`
 	Method                 string   `yaml:"method,omitempty" json:"method,omitempty"`
