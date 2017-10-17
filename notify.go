@@ -54,7 +54,7 @@ type (
 	}
 )
 
-// NewPollingWatcher returns a poll-based file watcher
+// PollingWatcher returns a poll-based file watcher
 func PollingWatcher(interval time.Duration) FileWatcher {
 	if interval == 0 {
 		interval = 100 * time.Millisecond
@@ -66,7 +66,7 @@ func PollingWatcher(interval time.Duration) FileWatcher {
 	}
 }
 
-// New tries to use an fs-event watcher, and falls back to the poller if there is an error
+// Watcher tries to use an fs-event watcher, and falls back to the poller if there is an error
 func Watcher(force bool, interval time.Duration) (FileWatcher, error) {
 	if !force {
 		if w, err := EventWatcher(); err == nil {
@@ -76,7 +76,7 @@ func Watcher(force bool, interval time.Duration) (FileWatcher, error) {
 	return PollingWatcher(interval), nil
 }
 
-// NewEventWatcher returns an fs-event based file watcher
+// EventWatcher returns an fs-event based file watcher
 func EventWatcher() (FileWatcher, error) {
 	w, err := fsnotify.NewWatcher()
 	if err != nil {

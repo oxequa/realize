@@ -90,10 +90,7 @@ func (s *Settings) flimit() error {
 	rLimit.Max = uint64(s.FileLimit)
 	rLimit.Cur = uint64(s.FileLimit)
 
-	if err := syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit); err != nil {
-		return err
-	}
-	return nil
+	return  syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit)
 }
 
 // Delete realize folder
