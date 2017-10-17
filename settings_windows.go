@@ -137,7 +137,6 @@ func (s *Settings) record(out interface{}) error {
 		}
 	}
 	return s.write(filepath.Join(Directory, s.File), y)
-	return nil
 }
 
 // Stream return a byte stream of a given file

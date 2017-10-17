@@ -14,7 +14,7 @@ func TestProject_GoCompile(t *testing.T) {
 		t.Error("Unexpected", err)
 	}
 	go func() {
-		result, err = p.goCompile(stop, []string{"sleep"}, []string{"20s"})
+		result, _ = p.goCompile(stop, []string{"sleep"}, []string{"20s"})
 		response <- result
 	}()
 	close(stop)
