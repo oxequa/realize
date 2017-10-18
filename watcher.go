@@ -122,7 +122,7 @@ L:
 				case fsnotify.Chmod:
 				case fsnotify.Remove:
 					ext := ext(event.Name)
-					if !strings.Contains(ext, "_") && ext != "" {
+					if !strings.Contains(ext, "_") && !strings.Contains(ext, ".") && array(ext, p.Watcher.Exts) {
 						close(stop)
 						stop = make(chan bool)
 						p.changed(event, stop) // stop
@@ -134,15 +134,13 @@ L:
 						continue
 					}
 					if file.IsDir() {
-						if time.Now().Truncate(time.Second).After(p.lastTime) {
-							filepath.Walk(event.Name, p.walk)
-						}
+						filepath.Walk(event.Name, p.walk)
 					} else if file.Size() > 0 {
 						if p.parent.Settings.Recovery {
 							log.Println(event)
 						}
 						ext := ext(event.Name)
-						if (!strings.Contains(ext, "_") || !strings.Contains(ext, ".")) && array(ext, p.Watcher.Exts) {
+						if !strings.Contains(ext, "_") && !strings.Contains(ext, ".") && array(ext, p.Watcher.Exts) {
 							// change watched
 							close(stop)
 							stop = make(chan bool)
