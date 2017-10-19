@@ -146,9 +146,9 @@ $ go get github.com/tockins/realize
     
     ```
     settings:
-     legacy:                
-       status: true           // legacy watch status
-       interval: 10s          // polling interval
+      legacy:                
+        status: true           // legacy watch status
+        interval: 10s          // polling interval
       resources:              // files names related to streams
         outputs: outputs.log
         logs: logs.log
@@ -198,8 +198,9 @@ $ go get github.com/tockins/realize
          cli_out: true
          file_out: false
          file_log: false
-         file_err: false    
-         
+         file_err: false
+    ```
+
 #### Support us and suggest an improvement
 - Chat with us [Gitter](https://gitter.im/tockins/realize)
 - Suggest a new [Feature](https://github.com/tockins/realize/issues/new)
