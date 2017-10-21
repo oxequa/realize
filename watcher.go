@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/fsnotify/fsnotify"
 	"log"
 	"math/big"
 	"os"
@@ -13,6 +12,8 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/fsnotify/fsnotify"
 )
 
 var (
@@ -315,7 +316,7 @@ func (p *Project) walk(path string, info os.FileInfo, err error) error {
 			return nil
 		}
 	}
-	if !strings.Contains(path, "/.") && !strings.HasPrefix(path, ".") && (info.IsDir() || array(ext(path), p.Watcher.Exts)) {
+	if !strings.HasPrefix(path, ".") && (info.IsDir() || array(ext(path), p.Watcher.Exts)) {
 		result := p.watcher.Walk(path, p.init)
 		if result != "" {
 			if info.IsDir() {
