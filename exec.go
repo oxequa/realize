@@ -12,6 +12,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"github.com/pkg/errors"
 )
 
 // GoCompile is used for compile a project
@@ -84,10 +85,11 @@ func (p *Project) goRun(stop <-chan bool, runner chan bool) {
 		} else if _, err = os.Stat(path + extWindows); err == nil {
 			build = exec.Command(path+extWindows, args...)
 		} else {
-			p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Can't run a not compiled project"})
-			p.fatal(nil, "Can't run a not compiled project", ":")
+			p.err(errors.New("Build not found"))
+			return
 		}
 	}
+
 	defer func() {
 		if err := build.Process.Kill(); err != nil {
 			p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Failed to stop: " + err.Error()})
