@@ -344,7 +344,7 @@ func main() {
 								Subs: []*interact.Question{
 									{
 										Before: func(d interact.Context) error {
-											d.SetDef(r.Settings.wdir(), green.regular("("+r.Settings.wdir()+")"))
+											d.SetDef(wdir(), green.regular("("+wdir()+")"))
 											return nil
 										},
 										Quest: interact.Quest{
@@ -1142,15 +1142,6 @@ func before(*cli.Context) error {
 		}
 	}
 	return nil
-}
-
-// Wdir return current working directory
-func wdir() string {
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatal(prefix(err.Error()))
-	}
-	return dir
 }
 
 // Rewrite the layout of the log timestamp

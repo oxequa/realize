@@ -4,19 +4,9 @@ import (
 	"errors"
 	"gopkg.in/urfave/cli.v2"
 	"os"
-	"path/filepath"
 	"strings"
 	"log"
 )
-
-// getEnvPath returns the first path found in env or empty string
-func getEnvPath(env string) string {
-	path := filepath.SplitList(os.Getenv(env))
-	if len(path) == 0 {
-		return ""
-	}
-	return path[0]
-}
 
 // Array check if a string is in given array
 func array(str string, list []string) bool {

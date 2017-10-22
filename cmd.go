@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+	"reflect"
 )
 
 // Tool options customizable, should be moved in Cmd
@@ -50,15 +51,6 @@ func (r *realize) clean() {
 	}
 }
 
-// Check whether there is a project
-func (r *realize) check() error {
-	if len(r.Schema) > 0 {
-		r.clean()
-		return nil
-	}
-	return errors.New("there are no projects")
-}
-
 // Add a new project
 func (r *realize) add(p *cli.Context) error {
 	project := Project{
@@ -88,7 +80,7 @@ func (r *realize) add(p *cli.Context) error {
 		Args: params(p),
 		Watcher: Watch{
 			Paths:  []string{"/"},
-			Ignore: []string{"vendor"},
+			Ignore: []string{".git",".realize","vendor"},
 			Exts:   []string{"go"},
 		},
 	}
@@ -102,127 +94,133 @@ func (r *realize) add(p *cli.Context) error {
 // Run launches the toolchain for each project
 func (r *realize) run(p *cli.Context) error {
 	var match bool
-	err := r.check()
-	if err == nil {
-		// loop projects
-		if p.String("name") != "" {
-			wg.Add(1)
-		} else {
-			wg.Add(len(r.Schema))
-		}
-		for k, elm := range r.Schema {
-			// command start using name flag
-			if p.String("name") != "" && r.Schema[k].Name != p.String("name") {
-				continue
-			}
-			//fields := reflect.Indirect(reflect.ValueOf(&r.Schema[k].Cmds))
-			//// Loop struct Cmds fields
-			//for i := 0; i < fields.NumField(); i++ {
-			//	field := fields.Type().Field(i).Name
-			//	if fields.FieldByName(field).Type().Name() == "Cmd" {
-			//		v := fields.FieldByName(field)
-			//		// Loop struct Cmd
-			//		for i := 0; i < v.NumField(); i++ {
-			//			f := v.Field(i)
-			//			if f.IsValid() {
-			//				if f.CanSet() {
-			//					switch f.Kind() {
-			//					case reflect.Bool:
-			//					case reflect.String:
-			//					case reflect.Slice:
-			//					}
-			//				}
-			//			}
-			//		}
-			//	}
-			//}
-			if elm.Cmds.Fmt.Status {
-				if len(elm.Cmds.Fmt.Args) == 0 {
-					elm.Cmds.Fmt.Args = []string{"-s", "-w", "-e", "./"}
-				}
-				r.Schema[k].tools = append(r.Schema[k].tools, tool{
-					status:  elm.Cmds.Fmt.Status,
-					cmd:     replace([]string{"gofmt"}, r.Schema[k].Cmds.Fmt.Method),
-					options: split([]string{}, elm.Cmds.Fmt.Args),
-					name:    "Fmt",
-				})
-			}
-			if elm.Cmds.Generate.Status {
-				r.Schema[k].tools = append(r.Schema[k].tools, tool{
-					status:  elm.Cmds.Generate.Status,
-					cmd:     replace([]string{"go", "generate"}, r.Schema[k].Cmds.Generate.Method),
-					options: split([]string{}, elm.Cmds.Generate.Args),
-					name:    "Generate",
-					dir:     true,
-				})
-			}
-			if elm.Cmds.Test.Status {
-				r.Schema[k].tools = append(r.Schema[k].tools, tool{
-					status:  elm.Cmds.Test.Status,
-					cmd:     replace([]string{"go", "test"}, r.Schema[k].Cmds.Test.Method),
-					options: split([]string{}, elm.Cmds.Test.Args),
-					name:    "Test",
-					dir:     true,
-				})
-			}
-			if elm.Cmds.Vet.Status {
-				r.Schema[k].tools = append(r.Schema[k].tools, tool{
-					status:  elm.Cmds.Vet.Status,
-					cmd:     replace([]string{"go", "vet"}, r.Schema[k].Cmds.Vet.Method),
-					options: split([]string{}, elm.Cmds.Vet.Args),
-					name:    "Vet",
-					dir:     true,
-				})
-			}
-			// default settings
-			r.Schema[k].Cmds.Install = Cmd{
-				Status:   elm.Cmds.Install.Status,
-				Args:     append([]string{}, elm.Cmds.Install.Args...),
-				method:   replace([]string{"go", "install"}, r.Schema[k].Cmds.Install.Method),
-				name:     "Install",
-				startTxt: "Installing...",
-				endTxt:   "Installed",
-			}
-			r.Schema[k].Cmds.Build = Cmd{
-				Status:   elm.Cmds.Build.Status,
-				Args:     append([]string{}, elm.Cmds.Build.Args...),
-				method:   replace([]string{"go", "build"}, r.Schema[k].Cmds.Build.Method),
-				name:     "Build",
-				startTxt: "Building...",
-				endTxt:   "Built",
-			}
-
-			r.Schema[k].parent = r
-			r.Schema[k].path = r.Schema[k].Path
-
-			// env variables
-			for key, item := range r.Schema[k].Environment {
-				if err := os.Setenv(key, item); err != nil {
-					r.Schema[k].Buffer.StdErr = append(r.Schema[k].Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error(), Type: "Env error", Stream: ""})
-				}
-			}
-
-			// base path of the project
-			wd, err := os.Getwd()
-			if err != nil {
-				return err
-			}
-			if elm.path == "." || elm.path == "/" {
-				r.Schema[k].base = wd
-				r.Schema[k].path = elm.wdir()
-			} else if filepath.IsAbs(elm.path) {
-				r.Schema[k].base = elm.path
-			} else {
-				r.Schema[k].base = filepath.Join(wd, elm.path)
-			}
-			match = true
-			go r.Schema[k].watch()
-		}
-		if !match {
-			return errors.New("there is no project with the given name")
-		}
-		wg.Wait()
+	// check projects and remove duplicates
+	if len(r.Schema) > 0 {
+		r.clean()
+	}else{
+		return errors.New("there are no projects")
 	}
+	// set gobin
+	err := os.Setenv("GOBIN", filepath.Join(os.Getenv("GOPATH"), "bin"))
+	if err != nil {
+		return err
+	}
+	// loop projects
+	if p.String("name") != "" {
+		wg.Add(1)
+	} else {
+		wg.Add(len(r.Schema))
+	}
+	for k, elm := range r.Schema {
+		// command start using name flag
+		if p.String("name") != "" && r.Schema[k].Name != p.String("name") {
+			continue
+		}
+		// validate project path, if invalid get wdir or clean current
+		if !filepath.IsAbs(elm.path){
+			r.Schema[k].path = wdir()
+		}else{
+			r.Schema[k].path = filepath.Clean(elm.path)
+		}
+		// env variables
+		for key, item := range r.Schema[k].Environment {
+			if err := os.Setenv(key, item); err != nil {
+				r.Schema[k].Buffer.StdErr = append(r.Schema[k].Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error(), Type: "Env error", Stream: ""})
+			}
+		}
+		// get basepath name
+		r.Schema[k].name = filepath.Base(r.Schema[k].path)
+
+		fields := reflect.Indirect(reflect.ValueOf(&r.Schema[k].Cmds))
+		// Loop struct Cmds fields
+		for i := 0; i < fields.NumField(); i++ {
+			field := fields.Type().Field(i).Name
+			if fields.FieldByName(field).Type().Name() == "Cmd" {
+				v := fields.FieldByName(field)
+				// Loop struct Cmd
+				for i := 0; i < v.NumField(); i++ {
+					//f := v.Type().Field(i).Name
+					//fmt.Println(f)
+					//if f.IsValid() {
+					//	if f.CanSet() {
+					//		fmt.Println(f.)
+					//		//switch f.Kind() {
+					//		//case reflect.Bool:
+					//		//case reflect.String:
+					//		//case reflect.Slice:
+					//		//}
+					//	}
+					//}
+				}
+			}
+		}
+
+		if elm.Cmds.Fmt.Status {
+			if len(elm.Cmds.Fmt.Args) == 0 {
+				elm.Cmds.Fmt.Args = []string{"-s", "-w", "-e", "./"}
+			}
+			r.Schema[k].tools = append(r.Schema[k].tools, tool{
+				status:  elm.Cmds.Fmt.Status,
+				cmd:     replace([]string{"gofmt"}, r.Schema[k].Cmds.Fmt.Method),
+				options: split([]string{}, elm.Cmds.Fmt.Args),
+				name:    "Fmt",
+			})
+		}
+		if elm.Cmds.Generate.Status {
+			r.Schema[k].tools = append(r.Schema[k].tools, tool{
+				status:  elm.Cmds.Generate.Status,
+				cmd:     replace([]string{"go", "generate"}, r.Schema[k].Cmds.Generate.Method),
+				options: split([]string{}, elm.Cmds.Generate.Args),
+				name:    "Generate",
+				dir:     true,
+			})
+		}
+		if elm.Cmds.Test.Status {
+			r.Schema[k].tools = append(r.Schema[k].tools, tool{
+				status:  elm.Cmds.Test.Status,
+				cmd:     replace([]string{"go", "test"}, r.Schema[k].Cmds.Test.Method),
+				options: split([]string{}, elm.Cmds.Test.Args),
+				name:    "Test",
+				dir:     true,
+			})
+		}
+		if elm.Cmds.Vet.Status {
+			r.Schema[k].tools = append(r.Schema[k].tools, tool{
+				status:  elm.Cmds.Vet.Status,
+				cmd:     replace([]string{"go", "vet"}, r.Schema[k].Cmds.Vet.Method),
+				options: split([]string{}, elm.Cmds.Vet.Args),
+				name:    "Vet",
+				dir:     true,
+			})
+		}
+		// default settings
+		r.Schema[k].Cmds.Install = Cmd{
+			Status:   elm.Cmds.Install.Status,
+			Args:     append([]string{}, elm.Cmds.Install.Args...),
+			method:   replace([]string{"go", "install"}, r.Schema[k].Cmds.Install.Method),
+			name:     "Install",
+			startTxt: "Installing...",
+			endTxt:   "Installed",
+		}
+		r.Schema[k].Cmds.Build = Cmd{
+			Status:   elm.Cmds.Build.Status,
+			Args:     append([]string{}, elm.Cmds.Build.Args...),
+			method:   replace([]string{"go", "build"}, r.Schema[k].Cmds.Build.Method),
+			name:     "Build",
+			startTxt: "Building...",
+			endTxt:   "Built",
+		}
+
+		r.Schema[k].parent = r
+		r.Schema[k].path = r.Schema[k].Path
+
+		match = true
+		go r.Schema[k].watch()
+	}
+	if !match {
+		return errors.New("there is no project with the given name")
+	}
+	wg.Wait()
 	return err
 }
 

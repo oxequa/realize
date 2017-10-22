@@ -70,6 +70,7 @@ func (p *Project) goRun(stop <-chan bool, runner chan bool) {
 		args = append(args, a...)
 	}
 
+
 	gobin := os.Getenv("GOBIN")
 	path := filepath.Join(gobin, p.name)
 	if _, err := os.Stat(path); err == nil {

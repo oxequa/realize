@@ -55,7 +55,7 @@ type Project struct {
 	watcher              FileWatcher
 	init                 bool
 	files, folders       int64
-	base, path, lastFile string
+	name, path, lastFile string
 	tools                []tool
 	paths                []string
 	lastTime             time.Time
@@ -98,7 +98,7 @@ func (p *Project) watch() {
 	p.cmd(stop, "before", true)
 	// indexing files and dirs
 	for _, dir := range p.Watcher.Paths {
-		base := filepath.Join(p.base, dir)
+		base := filepath.Join(p.path, dir)
 		if _, err := os.Stat(base); err == nil {
 			if err := filepath.Walk(base, p.walk); err == nil {
 				p.tool(stop, base)
@@ -312,7 +312,8 @@ func (p *Project) changed(event fsnotify.Event, stop chan bool) {
 // Watch the files tree of a project
 func (p *Project) walk(path string, info os.FileInfo, err error) error {
 	for _, v := range p.Watcher.Ignore {
-		if strings.Contains(path, filepath.Join(p.base, v)) {
+		s := append([]string{p.path},strings.Split(v,string(os.PathSeparator))...)
+		if strings.Contains(path, filepath.Join(s...)) {
 			return nil
 		}
 	}
@@ -338,7 +339,7 @@ func (p *Project) stamp(t string, o BufferOut, msg string, stream string) {
 	case "out":
 		p.Buffer.StdOut = append(p.Buffer.StdOut, o)
 		if p.Files.Outputs.Status {
-			f := p.create(p.base, p.Files.Outputs.Name)
+			f := p.create(p.path, p.Files.Outputs.Name)
 			t := time.Now()
 			s := []string{t.Format("2006-01-02 15:04:05"), strings.ToUpper(p.Name), ":", o.Text, "\r\n"}
 			if _, err := f.WriteString(strings.Join(s, " ")); err != nil {
@@ -348,7 +349,7 @@ func (p *Project) stamp(t string, o BufferOut, msg string, stream string) {
 	case "log":
 		p.Buffer.StdLog = append(p.Buffer.StdLog, o)
 		if p.Files.Logs.Status {
-			f := p.create(p.base, p.Files.Logs.Name)
+			f := p.create(p.path, p.Files.Logs.Name)
 			t := time.Now()
 			s := []string{t.Format("2006-01-02 15:04:05"), strings.ToUpper(p.Name), ":", o.Text, "\r\n"}
 			if stream != "" {
@@ -361,7 +362,7 @@ func (p *Project) stamp(t string, o BufferOut, msg string, stream string) {
 	case "error":
 		p.Buffer.StdErr = append(p.Buffer.StdErr, o)
 		if p.Files.Errors.Status {
-			f := p.create(p.base, p.Files.Errors.Name)
+			f := p.create(p.path, p.Files.Errors.Name)
 			t := time.Now()
 			s := []string{t.Format("2006-01-02 15:04:05"), strings.ToUpper(p.Name), ":", o.Type, o.Text, o.Path, "\r\n"}
 			if stream != "" {
