@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"log"
 )
 
 // getEnvPath returns the first path found in env or empty string
@@ -82,4 +83,13 @@ func replace(a []string, b string) []string {
 		return strings.Fields(b)
 	}
 	return a
+}
+
+// Wdir return current working directory
+func wdir() string {
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatal(prefix(err.Error()))
+	}
+	return dir
 }

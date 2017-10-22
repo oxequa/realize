@@ -76,13 +76,6 @@ func random(n int) string {
 	return string(b)
 }
 
-// Wdir return the current working directory
-func (s Settings) wdir() string {
-	dir, err := os.Getwd()
-	s.validate(err)
-	return filepath.Base(dir)
-}
-
 // Flimit defines the max number of watched files
 func (s *Settings) flimit() error {
 	var rLimit syscall.Rlimit
