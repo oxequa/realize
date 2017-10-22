@@ -22,7 +22,7 @@ func (p *Project) goCompile(stop <-chan bool, method []string, args []string) (s
 	done := make(chan error)
 	args = append(method, args...)
 	cmd := exec.Command(args[0], args[1:]...)
-	cmd.Dir = p.path
+	cmd.Dir = p.Path
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 	// Start command
@@ -79,7 +79,7 @@ func (p *Project) goRun(stop <-chan bool, runner chan bool) {
 	} else if _, err := os.Stat(path + extWindows); err == nil {
 		build = exec.Command(path+extWindows, args...)
 	} else {
-		path := filepath.Join(p.path, p.name)
+		path := filepath.Join(p.Path, p.name)
 		if _, err = os.Stat(path); err == nil {
 			build = exec.Command(path, args...)
 		} else if _, err = os.Stat(path + extWindows); err == nil {
@@ -150,13 +150,13 @@ func (p *Project) command(stop <-chan bool, cmd Command) (string, string) {
 	done := make(chan error)
 	args := strings.Split(strings.Replace(strings.Replace(cmd.Command, "'", "", -1), "\"", "", -1), " ")
 	exec := exec.Command(args[0], args[1:]...)
-	exec.Dir = p.path
+	exec.Dir = p.Path
 	// make cmd path
 	if cmd.Path != "" {
-		if strings.Contains(cmd.Path, p.path) {
+		if strings.Contains(cmd.Path, p.Path) {
 			exec.Dir = cmd.Path
 		} else {
-			exec.Dir = filepath.Join(p.path, cmd.Path)
+			exec.Dir = filepath.Join(p.Path, cmd.Path)
 		}
 	}
 	exec.Stdout = &stdout
@@ -189,7 +189,7 @@ func (p *Project) goTool(wg *sync.WaitGroup, stop <-chan bool, result chan<- too
 		if strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "") {
 			if strings.HasSuffix(path, ".go") {
 				tool.options = append(tool.options, path)
-				path = p.path
+				path = p.Path
 			}
 			if s := ext(path); s == "" || s == "go" {
 				var out, stderr bytes.Buffer

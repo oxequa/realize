@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"time"
 	"reflect"
+	"fmt"
 )
 
 // Tool options customizable, should be moved in Cmd
@@ -117,10 +118,11 @@ func (r *realize) run(p *cli.Context) error {
 			continue
 		}
 		// validate project path, if invalid get wdir or clean current
-		if !filepath.IsAbs(elm.path){
-			r.Schema[k].path = wdir()
+		if !filepath.IsAbs(elm.Path){
+			r.Schema[k].Path = wdir()
 		}else{
-			r.Schema[k].path = filepath.Clean(elm.path)
+			r.Schema[k].Path = filepath.Clean(elm.Path)
+			fmt.Println(r.Schema[k].Path )
 		}
 		// env variables
 		for key, item := range r.Schema[k].Environment {
@@ -129,7 +131,7 @@ func (r *realize) run(p *cli.Context) error {
 			}
 		}
 		// get basepath name
-		r.Schema[k].name = filepath.Base(r.Schema[k].path)
+		r.Schema[k].name = filepath.Base(r.Schema[k].Path)
 
 		fields := reflect.Indirect(reflect.ValueOf(&r.Schema[k].Cmds))
 		// Loop struct Cmds fields
@@ -210,9 +212,7 @@ func (r *realize) run(p *cli.Context) error {
 			startTxt: "Building...",
 			endTxt:   "Built",
 		}
-
 		r.Schema[k].parent = r
-		r.Schema[k].path = r.Schema[k].Path
 
 		match = true
 		go r.Schema[k].watch()
