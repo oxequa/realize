@@ -407,7 +407,7 @@ func (p *Project) routines(stop <-chan bool, watcher FileWatcher, path string) {
 		p.init = true
 	}
 	// prevent errors using realize without config with only run flag
-	if !p.Cmds.Install.Status && !p.Cmds.Build.Status {
+	if p.Cmds.Run && !p.Cmds.Install.Status && !p.Cmds.Build.Status {
 		p.Cmds.Install.Status = true
 	}
 	if !done {
