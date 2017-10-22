@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
@@ -100,18 +99,6 @@ func TestSettings_Record(t *testing.T) {
 	s.del(filepath.Join(directory, s.file))
 }
 
-func TestSettings_Wdir(t *testing.T) {
-	s := Settings{}
-	expected, err := os.Getwd()
-	if err != nil {
-		t.Error(err)
-	}
-	result := s.wdir()
-	if result != filepath.Base(expected) {
-		t.Error("Expected", filepath.Base(expected), "instead", result)
-	}
-}
-
 func TestSettings_Validate(t *testing.T) {
 	s := Settings{}
 	input := errors.New("")
@@ -121,28 +108,7 @@ func TestSettings_Validate(t *testing.T) {
 	}
 }
 
-func TestSettings_Name(t *testing.T) {
+func TestSettings_Fatal(t *testing.T){
 	s := Settings{}
-	name := random(8)
-	path := random(5)
-	dir, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
-	}
-	result := s.name(name, path)
-	if result != dir && result != filepath.Base(path) {
-		t.Fatal("Expected", dir, "or", filepath.Base(path), "instead", result)
-	}
-
-}
-
-func TestSettings_Path(t *testing.T) {
-	s := Settings{}
-	path := random(5)
-	expected := strings.Replace(filepath.Clean(path), "\\", "/", -1)
-	result := s.path(path)
-	if result != expected {
-		t.Fatal("Expected", expected, "instead", result)
-	}
-
+	s.fatal(nil,"test")
 }

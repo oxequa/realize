@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"testing"
 	"time"
+	"path/filepath"
 )
 
 type loggerT struct{}
@@ -39,19 +40,6 @@ func TestRealize_Clean(t *testing.T) {
 
 }
 
-func TestRealize_Check(t *testing.T) {
-	r := realize{}
-	err := r.check()
-	if err == nil {
-		t.Error("There is no project, error expected")
-	}
-	r.Schema = append(r.Schema, Project{Name: "test0"})
-	err = r.check()
-	if err != nil {
-		t.Error("There is a project, error unexpected", err)
-	}
-}
-
 func TestRealize_Add(t *testing.T) {
 	r := realize{}
 	// add all flags, test with expected
@@ -63,13 +51,13 @@ func TestRealize_Add(t *testing.T) {
 	set.Bool("run", false, "")
 	set.Bool("build", false, "")
 	set.Bool("generate", false, "")
-	set.String("path", "", "")
+	set.String("path", wdir(), "")
 	c := cli.NewContext(nil, set, nil)
-	set.Parse([]string{"--path=test_path", "--fmt", "--install", "--run", "--build", "--generate", "--test", "--vet"})
+	set.Parse([]string{"--fmt", "--install", "--run", "--build", "--generate", "--test", "--vet"})
 	r.add(c)
 	expected := Project{
-		Name: "test_path",
-		Path: "test_path",
+		Name: filepath.Base(wdir()),
+		Path: wdir(),
 		Cmds: Cmds{
 			Fmt: Cmd{
 				Status: true,
@@ -93,7 +81,7 @@ func TestRealize_Add(t *testing.T) {
 		},
 		Watcher: Watch{
 			Paths:  []string{"/"},
-			Ignore: []string{"vendor"},
+			Ignore: []string{".git",".realize","vendor"},
 			Exts:   []string{"go"},
 		},
 	}

@@ -29,7 +29,7 @@ func TestWalk(t *testing.T) {
 			Ignore: []string{"vendor"},
 			Exts:   []string{"go"},
 		},
-		base:    "/go/project",
+		Path:    "/go/project",
 		watcher: &fileWatcherMock{},
 		init:    true,
 	}
