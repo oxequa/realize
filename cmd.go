@@ -62,8 +62,8 @@ func (r *realize) check() error {
 // Add a new project
 func (r *realize) add(p *cli.Context) error {
 	project := Project{
-		Name: r.Settings.name(p.String("name"), p.String("path")),
-		Path: r.Settings.path(p.String("path")),
+		Name: filepath.Base(filepath.Clean(p.String("path"))),
+		Path: filepath.Clean(p.String("path")),
 		Cmds: Cmds{
 			Vet: Cmd{
 				Status: p.Bool("vet"),
@@ -101,6 +101,7 @@ func (r *realize) add(p *cli.Context) error {
 
 // Run launches the toolchain for each project
 func (r *realize) run(p *cli.Context) error {
+	var match bool
 	err := r.check()
 	if err == nil {
 		// loop projects
@@ -214,10 +215,13 @@ func (r *realize) run(p *cli.Context) error {
 			} else {
 				r.Schema[k].base = filepath.Join(wd, elm.path)
 			}
+			match = true
 			go r.Schema[k].watch()
 		}
+		if !match {
+			return errors.New("there is no project with the given name")
+		}
 		wg.Wait()
-		return nil
 	}
 	return err
 }

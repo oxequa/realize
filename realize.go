@@ -8,6 +8,7 @@ import (
 	"gopkg.in/urfave/cli.v2"
 	"log"
 	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 )
@@ -52,7 +53,7 @@ func main() {
 				Aliases:     []string{"r"},
 				Description: "Start a toolchain on a project or a list of projects. If not exist a config file it creates a new one",
 				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "path", Aliases: []string{"p"}, Value: "", Usage: "Project base path"},
+					&cli.StringFlag{Name: "path", Aliases: []string{"p"}, Value: wdir(), Usage: "Project base path"},
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "", Usage: "Run a project by its name"},
 					&cli.BoolFlag{Name: "fmt", Aliases: []string{"f"}, Value: false, Usage: "Enable go fmt"},
 					&cli.BoolFlag{Name: "vet", Aliases: []string{"v"}, Value: false, Usage: "Enable go vet"},
@@ -68,7 +69,7 @@ func main() {
 					if err := r.insert(p); err != nil {
 						return err
 					}
-					if !p.Bool("no-config") {
+					if !p.Bool("no-config") && p.String("name") == ""{
 						if err := r.Settings.record(r); err != nil {
 							return err
 						}
@@ -86,7 +87,7 @@ func main() {
 				Aliases:     []string{"a"},
 				Description: "Add a project to an existing config file or create a new one",
 				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "path", Aliases: []string{"p"}, Value: "", Usage: "Project base path"},
+					&cli.StringFlag{Name: "path", Aliases: []string{"p"}, Value: wdir(), Usage: "Project base path"},
 					&cli.BoolFlag{Name: "fmt", Aliases: []string{"f"}, Value: false, Usage: "Enable go fmt"},
 					&cli.BoolFlag{Name: "vet", Aliases: []string{"v"}, Value: false, Usage: "Enable go vet"},
 					&cli.BoolFlag{Name: "test", Aliases: []string{"t"}, Value: false, Usage: "Enable go test"},
@@ -102,7 +103,7 @@ func main() {
 					if err := r.Settings.record(r); err != nil {
 						return err
 					}
-					fmt.Fprintln(output, prefix(green.bold("Your project was successfully added")))
+					log.Println(prefix(green.bold("Your project was successfully added")))
 					return nil
 				},
 				Before: before,
@@ -116,7 +117,7 @@ func main() {
 					interact.Run(&interact.Interact{
 						Before: func(context interact.Context) error {
 							context.SetErr(red.bold("INVALID INPUT"))
-							context.SetPrfx(color.Output, yellow.bold("[")+"REALIZE"+yellow.bold("]"))
+							context.SetPrfx(color.Output, yellow.regular("[") + time.Now().Format("15:04:05") + yellow.regular("]") + yellow.bold("[")+"REALIZE"+yellow.bold("]"))
 							return nil
 						},
 						Questions: []*interact.Question{
@@ -361,7 +362,7 @@ func main() {
 									},
 									{
 										Before: func(d interact.Context) error {
-											dir, _ := os.Getwd()
+											dir := wdir()
 											d.SetDef(dir, green.regular("("+dir+")"))
 											return nil
 										},
@@ -374,7 +375,7 @@ func main() {
 											if err != nil {
 												return d.Err()
 											}
-											r.Schema[len(r.Schema)-1].Path = r.Settings.path(val)
+											r.Schema[len(r.Schema)-1].Path = filepath.Clean(val)
 											return nil
 										},
 									},
@@ -1045,7 +1046,7 @@ func main() {
 					if err := r.Settings.record(r); err != nil {
 						return err
 					}
-					fmt.Fprintln(output, prefix(green.bold(" Your configuration was successful")))
+					log.Println(prefix(green.bold("Your configuration was successful")))
 					return nil
 				},
 				Before: before,
@@ -1065,7 +1066,7 @@ func main() {
 					if err := r.Settings.record(r); err != nil {
 						return err
 					}
-					fmt.Fprintln(output, prefix(green.bold("Your project was successfully removed")))
+					log.Println(prefix(green.bold("Your project was successfully removed")))
 					return nil
 				},
 				Before: before,
@@ -1079,7 +1080,7 @@ func main() {
 					if err := r.Settings.del(directory); err != nil {
 						return err
 					}
-					fmt.Fprintln(output, prefix(green.bold("Realize folder successfully removed")))
+					log.Println(prefix(green.bold("Realize folder successfully removed")))
 					return nil
 				},
 				Before: before,
@@ -1087,7 +1088,7 @@ func main() {
 		},
 	}
 	if err := app.Run(os.Args); err != nil {
-		fmt.Fprintln(output, prefix(red.bold(err)))
+		log.Println(prefix(red.bold(err)))
 		os.Exit(1)
 	}
 }
@@ -1115,7 +1116,7 @@ func new() realize {
 // Prefix a given string
 func prefix(s string) string {
 	if s != "" {
-		return fmt.Sprint(yellow.bold("["), "REALIZE", yellow.bold("]"), s)
+		return fmt.Sprint(yellow.bold("["), "REALIZE", yellow.bold("]"), " : ", s)
 	}
 	return ""
 }
@@ -1143,7 +1144,16 @@ func before(*cli.Context) error {
 	return nil
 }
 
+// Wdir return current working directory
+func wdir() string {
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatal(prefix(err.Error()))
+	}
+	return dir
+}
+
 // Rewrite the layout of the log timestamp
 func (w logWriter) Write(bytes []byte) (int, error) {
-	return fmt.Fprint(output, yellow.regular("["), time.Now().Format("15:04:05"), yellow.regular("]")+string(bytes))
+	return fmt.Fprint(output, yellow.regular("["), time.Now().Format("15:04:05"), yellow.regular("]"), string(bytes))
 }
