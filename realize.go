@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	version = "1.5.0"
+	version = "1.5.1"
 )
 
 // New realize instance
@@ -111,7 +111,7 @@ func main() {
 			{
 				Name:        "init",
 				Category:    "Configuration",
-				Aliases:     []string{"a"},
+				Aliases:     []string{"i"},
 				Description: "Define a new config file with all options step by step",
 				Action: func(p *cli.Context) (actErr error) {
 					interact.Run(&interact.Interact{
@@ -1081,6 +1081,16 @@ func main() {
 						return err
 					}
 					log.Println(prefix(green.bold("Realize folder successfully removed")))
+					return nil
+				},
+				Before: before,
+			},
+			{
+				Name:        "version",
+				Aliases:     []string{"v"},
+				Description: "Realize version",
+				Action: func(p *cli.Context) error {
+					log.Println(prefix(green.bold(version)))
 					return nil
 				},
 				Before: before,
