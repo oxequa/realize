@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"time"
 	"reflect"
-	"fmt"
 )
 
 // Tool options customizable, should be moved in Cmd
