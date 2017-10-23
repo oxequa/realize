@@ -122,7 +122,6 @@ func (r *realize) run(p *cli.Context) error {
 			r.Schema[k].Path = wdir()
 		}else{
 			r.Schema[k].Path = filepath.Clean(elm.Path)
-			fmt.Println(r.Schema[k].Path )
 		}
 		// env variables
 		for key, item := range r.Schema[k].Environment {
