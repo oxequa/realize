@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/fatih/color"
 	"github.com/tockins/interact"
+	"go/build"
 	"gopkg.in/urfave/cli.v2"
 	"log"
 	"os"
@@ -1126,9 +1127,12 @@ func before(*cli.Context) error {
 	log.SetFlags(0)
 	log.SetOutput(logWriter{})
 	// Before of every exec of a cli method
-	gopath := os.Getenv("GOPATH")
+	gopath := build.Default.GOPATH
 	if gopath == "" {
 		return errors.New("$GOPATH isn't set properly")
+	}
+	if err := os.Setenv("GOPATH", gopath); err != nil {
+		return err
 	}
 	// new realize instance
 	r = new()
