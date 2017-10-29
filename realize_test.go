@@ -9,7 +9,7 @@ import (
 
 func TestPrefix(t *testing.T) {
 	input := random(10)
-	value := fmt.Sprint(yellow.bold("[")+"REALIZE"+yellow.bold("]"), input)
+	value := fmt.Sprint(yellow.bold("["), "REALIZE", yellow.bold("]"), " : ", input)
 	result := prefix(input)
 	if result == "" {
 		t.Fatal("Expected a string")
@@ -28,7 +28,6 @@ func TestBefore(t *testing.T) {
 
 func TestNew(t *testing.T) {
 	r := new()
-	t.Log(reflect.TypeOf(r).String())
 	if reflect.TypeOf(r).String() != "main.realize" {
 		t.Error("Expected a realize struct")
 	}

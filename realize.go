@@ -5,15 +5,17 @@ import (
 	"fmt"
 	"github.com/fatih/color"
 	"github.com/tockins/interact"
+	"go/build"
 	"gopkg.in/urfave/cli.v2"
 	"log"
 	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 )
 
 const (
-	version = "1.5.0"
+	version = "1.5.1"
 )
 
 // New realize instance
@@ -52,7 +54,7 @@ func main() {
 				Aliases:     []string{"r"},
 				Description: "Start a toolchain on a project or a list of projects. If not exist a config file it creates a new one",
 				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "path", Aliases: []string{"p"}, Value: "", Usage: "Project base path"},
+					&cli.StringFlag{Name: "path", Aliases: []string{"p"}, Value: wdir(), Usage: "Project base path"},
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "", Usage: "Run a project by its name"},
 					&cli.BoolFlag{Name: "fmt", Aliases: []string{"f"}, Value: false, Usage: "Enable go fmt"},
 					&cli.BoolFlag{Name: "vet", Aliases: []string{"v"}, Value: false, Usage: "Enable go vet"},
@@ -68,7 +70,7 @@ func main() {
 					if err := r.insert(p); err != nil {
 						return err
 					}
-					if !p.Bool("no-config") {
+					if !p.Bool("no-config") && p.String("name") == ""{
 						if err := r.Settings.record(r); err != nil {
 							return err
 						}
@@ -86,7 +88,7 @@ func main() {
 				Aliases:     []string{"a"},
 				Description: "Add a project to an existing config file or create a new one",
 				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "path", Aliases: []string{"p"}, Value: "", Usage: "Project base path"},
+					&cli.StringFlag{Name: "path", Aliases: []string{"p"}, Value: wdir(), Usage: "Project base path"},
 					&cli.BoolFlag{Name: "fmt", Aliases: []string{"f"}, Value: false, Usage: "Enable go fmt"},
 					&cli.BoolFlag{Name: "vet", Aliases: []string{"v"}, Value: false, Usage: "Enable go vet"},
 					&cli.BoolFlag{Name: "test", Aliases: []string{"t"}, Value: false, Usage: "Enable go test"},
@@ -102,7 +104,7 @@ func main() {
 					if err := r.Settings.record(r); err != nil {
 						return err
 					}
-					fmt.Fprintln(output, prefix(green.bold("Your project was successfully added")))
+					log.Println(prefix(green.bold("Your project was successfully added")))
 					return nil
 				},
 				Before: before,
@@ -110,13 +112,13 @@ func main() {
 			{
 				Name:        "init",
 				Category:    "Configuration",
-				Aliases:     []string{"a"},
+				Aliases:     []string{"i"},
 				Description: "Define a new config file with all options step by step",
 				Action: func(p *cli.Context) (actErr error) {
 					interact.Run(&interact.Interact{
 						Before: func(context interact.Context) error {
 							context.SetErr(red.bold("INVALID INPUT"))
-							context.SetPrfx(color.Output, yellow.bold("[")+"REALIZE"+yellow.bold("]"))
+							context.SetPrfx(color.Output, yellow.regular("[") + time.Now().Format("15:04:05") + yellow.regular("]") + yellow.bold("[")+"REALIZE"+yellow.bold("]"))
 							return nil
 						},
 						Questions: []*interact.Question{
@@ -343,7 +345,7 @@ func main() {
 								Subs: []*interact.Question{
 									{
 										Before: func(d interact.Context) error {
-											d.SetDef(r.Settings.wdir(), green.regular("("+r.Settings.wdir()+")"))
+											d.SetDef(wdir(), green.regular("("+wdir()+")"))
 											return nil
 										},
 										Quest: interact.Quest{
@@ -361,7 +363,7 @@ func main() {
 									},
 									{
 										Before: func(d interact.Context) error {
-											dir, _ := os.Getwd()
+											dir := wdir()
 											d.SetDef(dir, green.regular("("+dir+")"))
 											return nil
 										},
@@ -374,7 +376,7 @@ func main() {
 											if err != nil {
 												return d.Err()
 											}
-											r.Schema[len(r.Schema)-1].Path = r.Settings.path(val)
+											r.Schema[len(r.Schema)-1].Path = filepath.Clean(val)
 											return nil
 										},
 									},
@@ -1045,7 +1047,7 @@ func main() {
 					if err := r.Settings.record(r); err != nil {
 						return err
 					}
-					fmt.Fprintln(output, prefix(green.bold(" Your configuration was successful")))
+					log.Println(prefix(green.bold("Your configuration was successful")))
 					return nil
 				},
 				Before: before,
@@ -1065,7 +1067,7 @@ func main() {
 					if err := r.Settings.record(r); err != nil {
 						return err
 					}
-					fmt.Fprintln(output, prefix(green.bold("Your project was successfully removed")))
+					log.Println(prefix(green.bold("Your project was successfully removed")))
 					return nil
 				},
 				Before: before,
@@ -1079,7 +1081,17 @@ func main() {
 					if err := r.Settings.del(directory); err != nil {
 						return err
 					}
-					fmt.Fprintln(output, prefix(green.bold("Realize folder successfully removed")))
+					log.Println(prefix(green.bold("Realize folder successfully removed")))
+					return nil
+				},
+				Before: before,
+			},
+			{
+				Name:        "version",
+				Aliases:     []string{"v"},
+				Description: "Realize version",
+				Action: func(p *cli.Context) error {
+					log.Println(prefix(green.bold(version)))
 					return nil
 				},
 				Before: before,
@@ -1087,7 +1099,7 @@ func main() {
 		},
 	}
 	if err := app.Run(os.Args); err != nil {
-		fmt.Fprintln(output, prefix(red.bold(err)))
+		log.Println(prefix(red.bold(err)))
 		os.Exit(1)
 	}
 }
@@ -1115,7 +1127,7 @@ func new() realize {
 // Prefix a given string
 func prefix(s string) string {
 	if s != "" {
-		return fmt.Sprint(yellow.bold("["), "REALIZE", yellow.bold("]"), s)
+		return fmt.Sprint(yellow.bold("["), "REALIZE", yellow.bold("]"), " : ", s)
 	}
 	return ""
 }
@@ -1126,9 +1138,12 @@ func before(*cli.Context) error {
 	log.SetFlags(0)
 	log.SetOutput(logWriter{})
 	// Before of every exec of a cli method
-	gopath := os.Getenv("GOPATH")
+	gopath := build.Default.GOPATH
 	if gopath == "" {
 		return errors.New("$GOPATH isn't set properly")
+	}
+	if err := os.Setenv("GOPATH", gopath); err != nil {
+		return err
 	}
 	// new realize instance
 	r = new()
@@ -1145,5 +1160,5 @@ func before(*cli.Context) error {
 
 // Rewrite the layout of the log timestamp
 func (w logWriter) Write(bytes []byte) (int, error) {
-	return fmt.Fprint(output, yellow.regular("["), time.Now().Format("15:04:05"), yellow.regular("]")+string(bytes))
+	return fmt.Fprint(output, yellow.regular("["), time.Now().Format("15:04:05"), yellow.regular("]"), string(bytes))
 }

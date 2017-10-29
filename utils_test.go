@@ -53,10 +53,13 @@ func TestInArray(t *testing.T) {
 	}
 }
 
-func TestGetEnvPath(t *testing.T) {
-	expected := filepath.SplitList(os.Getenv("GOPATH"))[0]
-	result := getEnvPath("GOPATH")
-	if expected != result {
-		t.Fatal("Expected", expected, "instead", result)
+func TestWdir(t *testing.T) {
+	expected, err := os.Getwd()
+	if err != nil {
+		t.Error(err)
+	}
+	result := wdir()
+	if result != expected {
+		t.Error("Expected", filepath.Base(expected), "instead", result)
 	}
 }

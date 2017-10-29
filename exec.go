@@ -12,6 +12,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"github.com/pkg/errors"
 )
 
 // GoCompile is used for compile a project
@@ -19,16 +20,9 @@ func (p *Project) goCompile(stop <-chan bool, method []string, args []string) (s
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	done := make(chan error)
-	err := os.Setenv("GOBIN", filepath.Join(getEnvPath("GOPATH"), "bin"))
-	if err != nil {
-		return "", err
-	}
 	args = append(method, args...)
 	cmd := exec.Command(args[0], args[1:]...)
-	if _, err := os.Stat(filepath.Join(p.base, p.path)); err == nil {
-		p.path = filepath.Join(p.base, p.path)
-	}
-	cmd.Dir = p.path
+	cmd.Dir = p.Path
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 	// Start command
@@ -53,6 +47,8 @@ func (p *Project) goCompile(stop <-chan bool, method []string, args []string) (s
 func (p *Project) goRun(stop <-chan bool, runner chan bool) {
 	var build *exec.Cmd
 	var args []string
+
+	// custom error pattern
 	isErrorText := func(string) bool {
 		return false
 	}
@@ -67,29 +63,33 @@ func (p *Project) goRun(stop <-chan bool, runner chan bool) {
 		}
 	}
 
+	// add additional arguments
 	for _, arg := range p.Args {
 		a := strings.FieldsFunc(arg, func(i rune) bool {
 			return i == '"' || i == '=' || i == '\''
 		})
 		args = append(args, a...)
-
 	}
 
-	if _, err := os.Stat(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.base))); err == nil {
-		build = exec.Command(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.base)), args...)
-	} else if _, err := os.Stat(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.base)) + extWindows); err == nil {
-		build = exec.Command(filepath.Join(getEnvPath("GOBIN"), filepath.Base(p.base))+extWindows, args...)
+
+	gobin := os.Getenv("GOBIN")
+	path := filepath.Join(gobin, p.name)
+	if _, err := os.Stat(path); err == nil {
+		build = exec.Command(path, args...)
+	} else if _, err := os.Stat(path + extWindows); err == nil {
+		build = exec.Command(path+extWindows, args...)
 	} else {
-		path := filepath.Join(p.base, filepath.Base(p.base))
+		path := filepath.Join(p.Path, p.name)
 		if _, err = os.Stat(path); err == nil {
 			build = exec.Command(path, args...)
 		} else if _, err = os.Stat(path + extWindows); err == nil {
 			build = exec.Command(path+extWindows, args...)
 		} else {
-			p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Can't run a not compiled project"})
-			p.fatal(nil, "Can't run a not compiled project", ":")
+			p.err(errors.New("Build not found"))
+			return
 		}
 	}
+
 	defer func() {
 		if err := build.Process.Kill(); err != nil {
 			p.Buffer.StdLog = append(p.Buffer.StdLog, BufferOut{Time: time.Now(), Text: "Failed to stop: " + err.Error()})
@@ -100,6 +100,7 @@ func (p *Project) goRun(stop <-chan bool, runner chan bool) {
 		p.stamp("log", out, msg, "")
 	}()
 
+	// scan project stream
 	stdout, err := build.StdoutPipe()
 	stderr, err := build.StderrPipe()
 	if err != nil {
@@ -149,12 +150,13 @@ func (p *Project) command(stop <-chan bool, cmd Command) (string, string) {
 	done := make(chan error)
 	args := strings.Split(strings.Replace(strings.Replace(cmd.Command, "'", "", -1), "\"", "", -1), " ")
 	exec := exec.Command(args[0], args[1:]...)
-	exec.Dir = p.base
+	exec.Dir = p.Path
+	// make cmd path
 	if cmd.Path != "" {
-		if strings.Contains(cmd.Path, p.base) {
+		if strings.Contains(cmd.Path, p.Path) {
 			exec.Dir = cmd.Path
 		} else {
-			exec.Dir = filepath.Join(p.base, cmd.Path)
+			exec.Dir = filepath.Join(p.Path, cmd.Path)
 		}
 	}
 	exec.Stdout = &stdout
@@ -187,7 +189,7 @@ func (p *Project) goTool(wg *sync.WaitGroup, stop <-chan bool, result chan<- too
 		if strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "") {
 			if strings.HasSuffix(path, ".go") {
 				tool.options = append(tool.options, path)
-				path = p.base
+				path = p.Path
 			}
 			if s := ext(path); s == "" || s == "go" {
 				var out, stderr bytes.Buffer

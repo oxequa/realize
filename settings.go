@@ -7,7 +7,6 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
-	"strings"
 	"syscall"
 	"time"
 )
@@ -77,13 +76,6 @@ func random(n int) string {
 	return string(b)
 }
 
-// Wdir return the current working directory
-func (s Settings) wdir() string {
-	dir, err := os.Getwd()
-	s.validate(err)
-	return filepath.Base(dir)
-}
-
 // Flimit defines the max number of watched files
 func (s *Settings) flimit() error {
 	var rLimit syscall.Rlimit
@@ -100,11 +92,6 @@ func (s *Settings) del(d string) error {
 		return os.RemoveAll(d)
 	}
 	return err
-}
-
-// Path cleaner
-func (s Settings) path(path string) string {
-	return strings.Replace(filepath.Clean(path), "\\", "/", -1)
 }
 
 // Validate checks a fatal error
@@ -169,16 +156,6 @@ func (s Settings) fatal(err error, msg ...interface{}) {
 func (s Settings) write(name string, data []byte) error {
 	err := ioutil.WriteFile(name, data, permission)
 	return s.validate(err)
-}
-
-// Name return the project name or the path of the working dir
-func (s Settings) name(name string, path string) string {
-	if name == "" && path == "" {
-		return s.wdir()
-	} else if path != "/" {
-		return filepath.Base(path)
-	}
-	return name
 }
 
 // Create a new file and return its pointer
