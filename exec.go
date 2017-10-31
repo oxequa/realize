@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"github.com/pkg/errors"
 	"log"
 	"os"
 	"os/exec"
@@ -12,7 +13,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"github.com/pkg/errors"
 )
 
 // GoCompile is used for compile a project
@@ -70,7 +70,6 @@ func (p *Project) goRun(stop <-chan bool, runner chan bool) {
 		})
 		args = append(args, a...)
 	}
-
 
 	gobin := os.Getenv("GOBIN")
 	path := filepath.Join(gobin, p.name)

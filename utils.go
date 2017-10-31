@@ -3,9 +3,9 @@ package main
 import (
 	"errors"
 	"gopkg.in/urfave/cli.v2"
+	"log"
 	"os"
 	"strings"
-	"log"
 )
 
 // Array check if a string is in given array
