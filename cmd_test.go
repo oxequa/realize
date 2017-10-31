@@ -5,10 +5,10 @@ import (
 	"gopkg.in/urfave/cli.v2"
 	"log"
 	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 	"time"
-	"path/filepath"
 )
 
 type loggerT struct{}
@@ -34,8 +34,8 @@ func TestRealize_Clean(t *testing.T) {
 	r.Schema = append(r.Schema, Project{Path: "test1"})
 	r.Schema = append(r.Schema, Project{Path: "test1"})
 	r.clean()
-	if len(r.Schema) > 2 {
-		t.Error("Expected only one project")
+	if len(r.Schema) != 2 {
+		t.Error("Expected two projects")
 	}
 
 }
@@ -81,7 +81,7 @@ func TestRealize_Add(t *testing.T) {
 		},
 		Watcher: Watch{
 			Paths:  []string{"/"},
-			Ignore: []string{".git",".realize","vendor"},
+			Ignore: []string{".git", ".realize", "vendor"},
 			Exts:   []string{"go"},
 		},
 	}
