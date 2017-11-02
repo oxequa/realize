@@ -7,7 +7,6 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
-	"syscall"
 	"time"
 )
 
@@ -74,15 +73,6 @@ func random(n int) string {
 		remain--
 	}
 	return string(b)
-}
-
-// Flimit defines the max number of watched files
-func (s *Settings) flimit() error {
-	var rLimit syscall.Rlimit
-	rLimit.Max = uint64(s.FileLimit)
-	rLimit.Cur = uint64(s.FileLimit)
-
-	return syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit)
 }
 
 // Delete realize folder
