@@ -57,9 +57,13 @@ func (r *realize) clean() error {
 
 // Add a new project
 func (r *realize) add(p *cli.Context) error {
+	path, err := filepath.Abs(p.String("path"))
+	if err != nil{
+		return err
+	}
 	project := Project{
 		Name: filepath.Base(filepath.Clean(p.String("path"))),
-		Path: filepath.Clean(p.String("path")),
+		Path: path,
 		Cmds: Cmds{
 			Vet: Cmd{
 				Status: p.Bool("vet"),
