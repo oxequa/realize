@@ -51,23 +51,23 @@ type Buffer struct {
 
 // Project defines the informations of a single project
 type Project struct {
-	parent               *realize
-	watcher              FileWatcher
-	init                 bool
-	files, folders       int64
-	name, lastFile string
-	tools                []tool
-	paths                []string
-	lastTime             time.Time
-	Settings             `yaml:"-" json:"-"`
-	Name                 string            `yaml:"name" json:"name"`
-	Path                 string            `yaml:"path" json:"path"`
-	Environment          map[string]string `yaml:"environment,omitempty" json:"environment,omitempty"`
-	Cmds                 Cmds              `yaml:"commands" json:"commands"`
-	Args                 []string          `yaml:"args,omitempty" json:"args,omitempty"`
-	Watcher              Watch             `yaml:"watcher" json:"watcher"`
-	Buffer               Buffer            `yaml:"-" json:"buffer"`
-	ErrorOutputPattern   string            `yaml:"errorOutputPattern,omitempty" json:"errorOutputPattern,omitempty"`
+	parent             *realize
+	watcher            FileWatcher
+	init               bool
+	files, folders     int64
+	name, lastFile     string
+	tools              []tool
+	paths              []string
+	lastTime           time.Time
+	Settings           `yaml:"-" json:"-"`
+	Name               string            `yaml:"name" json:"name"`
+	Path               string            `yaml:"path" json:"path"`
+	Environment        map[string]string `yaml:"environment,omitempty" json:"environment,omitempty"`
+	Cmds               Cmds              `yaml:"commands" json:"commands"`
+	Args               []string          `yaml:"args,omitempty" json:"args,omitempty"`
+	Watcher            Watch             `yaml:"watcher" json:"watcher"`
+	Buffer             Buffer            `yaml:"-" json:"buffer"`
+	ErrorOutputPattern string            `yaml:"errorOutputPattern,omitempty" json:"errorOutputPattern,omitempty"`
 }
 
 // Command options
@@ -168,6 +168,84 @@ func (p *Project) err(err error) {
 	msg = fmt.Sprintln(p.pname(p.Name, 2), ":", red.regular(err.Error()))
 	out = BufferOut{Time: time.Now(), Text: err.Error()}
 	p.stamp("error", out, msg, "")
+}
+
+// Config project init
+func (p *Project) config(r *realize) {
+	// validate project path, if invalid get wdir or clean current
+	if !filepath.IsAbs(p.Path) {
+		p.Path = wdir()
+	} else {
+		p.Path = filepath.Clean(p.Path)
+	}
+	// get basepath name
+	p.name = filepath.Base(p.Path)
+	// env variables
+	for key, item := range p.Environment {
+		if err := os.Setenv(key, item); err != nil {
+			p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error(), Type: "Env error", Stream: ""})
+		}
+	}
+	// init commands
+	if len(p.Cmds.Fmt.Args) == 0 {
+		p.Cmds.Fmt.Args = []string{"-s", "-w", "-e", "./"}
+	}
+	p.tools = append(p.tools, tool{
+		status:  p.Cmds.Fix.Status,
+		cmd:     replace([]string{"go fix"}, p.Cmds.Fix.Method),
+		options: split([]string{}, p.Cmds.Fix.Args),
+		name:    "Fix",
+	})
+	p.tools = append(p.tools, tool{
+		status:  p.Cmds.Clean.Status,
+		cmd:     replace([]string{"go clean"}, p.Cmds.Clean.Method),
+		options: split([]string{}, p.Cmds.Clean.Args),
+		name:    "Clean",
+	})
+	p.tools = append(p.tools, tool{
+		status:  p.Cmds.Fmt.Status,
+		cmd:     replace([]string{"gofmt"}, p.Cmds.Fmt.Method),
+		options: split([]string{}, p.Cmds.Fmt.Args),
+		name:    "Fmt",
+	})
+	p.tools = append(p.tools, tool{
+		status:  p.Cmds.Generate.Status,
+		cmd:     replace([]string{"go", "generate"}, p.Cmds.Generate.Method),
+		options: split([]string{}, p.Cmds.Generate.Args),
+		name:    "Generate",
+		dir:     true,
+	})
+	p.tools = append(p.tools, tool{
+		status:  p.Cmds.Test.Status,
+		cmd:     replace([]string{"go", "test"}, p.Cmds.Test.Method),
+		options: split([]string{}, p.Cmds.Test.Args),
+		name:    "Test",
+		dir:     true,
+	})
+	p.tools = append(p.tools, tool{
+		status:  p.Cmds.Vet.Status,
+		cmd:     replace([]string{"go", "vet"}, p.Cmds.Vet.Method),
+		options: split([]string{}, p.Cmds.Vet.Args),
+		name:    "Vet",
+		dir:     true,
+	})
+	p.Cmds.Install = Cmd{
+		Status:   p.Cmds.Install.Status,
+		Args:     append([]string{}, p.Cmds.Install.Args...),
+		method:   replace([]string{"go", "install"}, p.Cmds.Install.Method),
+		name:     "Install",
+		startTxt: "Installing...",
+		endTxt:   "Installed",
+	}
+	p.Cmds.Build = Cmd{
+		Status:   p.Cmds.Build.Status,
+		Args:     append([]string{}, p.Cmds.Build.Args...),
+		method:   replace([]string{"go", "build"}, p.Cmds.Build.Method),
+		name:     "Build",
+		startTxt: "Building...",
+		endTxt:   "Built",
+	}
+	p.parent = r
 }
 
 // Cmd calls the method that execute commands after/before and display the results
@@ -312,7 +390,7 @@ func (p *Project) changed(event fsnotify.Event, stop chan bool) {
 // Watch the files tree of a project
 func (p *Project) walk(path string, info os.FileInfo, err error) error {
 	for _, v := range p.Watcher.Ignore {
-		s := append([]string{p.Path},strings.Split(v,string(os.PathSeparator))...)
+		s := append([]string{p.Path}, strings.Split(v, string(os.PathSeparator))...)
 		if strings.Contains(path, filepath.Join(s...)) {
 			return nil
 		}

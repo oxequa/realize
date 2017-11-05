@@ -108,7 +108,7 @@ func TestSettings_Validate(t *testing.T) {
 	}
 }
 
-func TestSettings_Fatal(t *testing.T){
+func TestSettings_Fatal(t *testing.T) {
 	s := Settings{}
-	s.fatal(nil,"test")
+	s.fatal(nil, "test")
 }

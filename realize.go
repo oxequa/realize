@@ -70,7 +70,7 @@ func main() {
 					if err := r.insert(p); err != nil {
 						return err
 					}
-					if !p.Bool("no-config") && p.String("name") == ""{
+					if !p.Bool("no-config") && p.String("name") == "" {
 						if err := r.Settings.record(r); err != nil {
 							return err
 						}
@@ -118,7 +118,7 @@ func main() {
 					interact.Run(&interact.Interact{
 						Before: func(context interact.Context) error {
 							context.SetErr(red.bold("INVALID INPUT"))
-							context.SetPrfx(color.Output, yellow.regular("[") + time.Now().Format("15:04:05") + yellow.regular("]") + yellow.bold("[")+"REALIZE"+yellow.bold("]"))
+							context.SetPrfx(color.Output, yellow.regular("[")+time.Now().Format("15:04:05")+yellow.regular("]")+yellow.bold("[")+"REALIZE"+yellow.bold("]"))
 							return nil
 						},
 						Questions: []*interact.Question{
