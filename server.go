@@ -52,7 +52,6 @@ func (s *Server) projects(c echo.Context) error {
 			// Read
 			text := ""
 			err := websocket.Message.Receive(ws, &text)
-			fmt.Println("receive")
 			if err != nil {
 				break
 			} else {
