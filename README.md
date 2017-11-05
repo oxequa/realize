@@ -49,7 +49,7 @@ Various operations can be programmed for each project, which can be executed at 
 - Custom arguments to pass at each project
 - Docker support (only with polling watcher)
 - Live reload on file change (extensions and paths customizable)
-- Support for most go commands (install, build, run, vet, test, fmt and much more)
+- Support for most go commands (install, build, run, vet, test, fmt, fix, clean)
 - Web panel for a smart control of the workflow
 
 Next features and informations

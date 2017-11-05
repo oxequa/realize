@@ -516,6 +516,94 @@ func main() {
 										},
 										Quest: interact.Quest{
 											Options: yellow.regular("[y/n]"),
+											Msg:     "Enable go fix",
+											Resolve: func(d interact.Context) bool {
+												val, _ := d.Ans().Bool()
+												return val
+											},
+										},
+										Subs: []*interact.Question{
+											{
+												Before: func(d interact.Context) error {
+													d.SetDef("", green.regular("(none)"))
+													return nil
+												},
+												Quest: interact.Quest{
+													Options: yellow.regular("[string]"),
+													Msg:     "Fix additional arguments",
+												},
+												Action: func(d interact.Context) interface{} {
+													val, err := d.Ans().String()
+													if err != nil {
+														return d.Err()
+													}
+													if val != "" {
+														r.Schema[len(r.Schema)-1].Cmds.Fix.Args = append(r.Schema[len(r.Schema)-1].Cmds.Fix.Args, val)
+													}
+													return nil
+												},
+											},
+										},
+										Action: func(d interact.Context) interface{} {
+											val, err := d.Ans().Bool()
+											if err != nil {
+												return d.Err()
+											}
+											r.Schema[len(r.Schema)-1].Cmds.Fix.Status = val
+											return nil
+										},
+									},
+									{
+										Before: func(d interact.Context) error {
+											d.SetDef(false, green.regular("(n)"))
+											return nil
+										},
+										Quest: interact.Quest{
+											Options: yellow.regular("[y/n]"),
+											Msg:     "Enable go clean",
+											Resolve: func(d interact.Context) bool {
+												val, _ := d.Ans().Bool()
+												return val
+											},
+										},
+										Subs: []*interact.Question{
+											{
+												Before: func(d interact.Context) error {
+													d.SetDef("", green.regular("(none)"))
+													return nil
+												},
+												Quest: interact.Quest{
+													Options: yellow.regular("[string]"),
+													Msg:     "Clean additional arguments",
+												},
+												Action: func(d interact.Context) interface{} {
+													val, err := d.Ans().String()
+													if err != nil {
+														return d.Err()
+													}
+													if val != "" {
+														r.Schema[len(r.Schema)-1].Cmds.Clean.Args = append(r.Schema[len(r.Schema)-1].Cmds.Clean.Args, val)
+													}
+													return nil
+												},
+											},
+										},
+										Action: func(d interact.Context) interface{} {
+											val, err := d.Ans().Bool()
+											if err != nil {
+												return d.Err()
+											}
+											r.Schema[len(r.Schema)-1].Cmds.Clean.Status = val
+											return nil
+										},
+									},
+									{
+										Before: func(d interact.Context) error {
+											d.SetDef(false, green.regular("(n)"))
+											return nil
+										},
+										Quest: interact.Quest{
+											Options: yellow.regular("[y/n]"),
 											Msg:     "Enable go generate",
 											Resolve: func(d interact.Context) bool {
 												val, _ := d.Ans().Bool()
