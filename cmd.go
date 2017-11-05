@@ -58,7 +58,7 @@ func (r *realize) clean() error {
 // Add a new project
 func (r *realize) add(p *cli.Context) error {
 	path, err := filepath.Abs(p.String("path"))
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	project := Project{

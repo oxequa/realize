@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	version = "1.5.1"
+	version = "1.5.1r2"
 )
 
 // New realize instance
