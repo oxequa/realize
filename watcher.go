@@ -191,6 +191,18 @@ func (p *Project) config(r *realize) {
 		p.Cmds.Fmt.Args = []string{"-s", "-w", "-e", "./"}
 	}
 	p.tools = append(p.tools, tool{
+		status:  p.Cmds.Fix.Status,
+		cmd:     replace([]string{"go fix"}, p.Cmds.Fix.Method),
+		options: split([]string{}, p.Cmds.Fix.Args),
+		name:    "Fix",
+	})
+	p.tools = append(p.tools, tool{
+		status:  p.Cmds.Clean.Status,
+		cmd:     replace([]string{"go clean"}, p.Cmds.Clean.Method),
+		options: split([]string{}, p.Cmds.Clean.Args),
+		name:    "Clean",
+	})
+	p.tools = append(p.tools, tool{
 		status:  p.Cmds.Fmt.Status,
 		cmd:     replace([]string{"gofmt"}, p.Cmds.Fmt.Method),
 		options: split([]string{}, p.Cmds.Fmt.Args),
