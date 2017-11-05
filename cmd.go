@@ -19,6 +19,8 @@ type tool struct {
 
 // Cmds list of go commands
 type Cmds struct {
+	Fix      Cmd  `yaml:"fix,omitempty" json:"fix,omitempty"`
+	Clean    Cmd  `yaml:"clean,omitempty" json:"clean,omitempty"`
 	Vet      Cmd  `yaml:"vet,omitempty" json:"vet,omitempty"`
 	Fmt      Cmd  `yaml:"fmt,omitempty" json:"fmt,omitempty"`
 	Test     Cmd  `yaml:"test,omitempty" json:"test,omitempty"`
