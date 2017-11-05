@@ -1,13 +1,13 @@
 ## Realize
 
-[![GoDoc](https://img.shields.io/badge/documentation-godoc-blue.svg)](https://godoc.org/github.com/tockins/realize)
-[![TeamCity CodeBetter](https://travis-ci.org/tockins/realize.svg?branch=v1)](https://travis-ci.org/tockins/realize)
-[![AUR](https://img.shields.io/aur/license/yaourt.svg?maxAge=2592000?style=flat-square)](https://raw.githubusercontent.com/tockins/realize/v1/LICENSE)
-[![](https://img.shields.io/badge/realize-examples-yellow.svg)](https://github.com/tockins/realize-examples)
-[![Join the chat at https://gitter.im/tockins/realize](https://badges.gitter.im/tockins/realize.svg)](https://gitter.im/tockins/realize?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Go Report Card](https://goreportcard.com/badge/github.com/tockins/realize)](https://goreportcard.com/report/github.com/tockins/realize)
-[![OpenCollective](https://opencollective.com/realize/backers/badge.svg)](#backers) 
-[![OpenCollective](https://opencollective.com/realize/sponsors/badge.svg)](#sponsors)
+[![GoDoc](https://img.shields.io/badge/documentation-godoc-blue.svg?style=flat-square)](https://godoc.org/github.com/tockins/realize)
+[![Travis](https://img.shields.io/travis/tockins/realize.svg?style=flat-square)](https://travis-ci.org/tockins/realize)
+[![AUR](https://img.shields.io/aur/license/yaourt.svg?style=flat-square)](https://raw.githubusercontent.com/tockins/realize/v1/LICENSE)
+[![](https://img.shields.io/badge/realize-examples-yellow.svg?style=flat-square)](https://github.com/tockins/realize-examples)
+[![Gitter](https://img.shields.io/gitter/room/tockins/realize.svg?style=flat-square)](https://gitter.im/tockins/realize?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Go Report Card](https://goreportcard.com/badge/github.com/tockins/realize?style=flat-square)](https://goreportcard.com/report/github.com/tockins/realize)
+[![OpenCollective](https://opencollective.com/realize/backers/badge.svg?style=flat-square)](#backers) 
+[![OpenCollective](https://opencollective.com/realize/sponsors/badge.svg?style=flat-square)](#sponsors)
 
 <p align="center">
 <img src="http://i.imgur.com/pkMDtrl.png" width="350px">
@@ -25,10 +25,10 @@ Various operations can be programmed for each project, which can be executed at 
 </p>
 
 
-#### Wiki
+#### Content
 
 - [Features list](#features)
-- [Getting Started](#installation)
+- [Get started](#get-started)
 - [Config sample](#config-sample) - Sample config file
 - [Run cmd](#run) - Run a project
 - [Add cmd](#add) - Add a new project
@@ -62,8 +62,8 @@ Next features and informations
 - [ ] Support to ignore paths and files in gititnore
 - [ ] Input redirection (wait for an input and redirect) useful for cli scripts
 
-#### Installation
-Run this to get/install:
+#### Get started
+Run this to get and install:
 ```
 $ go get github.com/tockins/realize
 ```
