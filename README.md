@@ -228,8 +228,4 @@ Support us with a monthly donation and help us continue our activities. [[Become
 
 Become a sponsor and get your logo on our README on Github with a link to your site. [[Become a sponsor](https://opencollective.com/realize#sponsor)]
 
-<a href="https://opencollective.com/realize" target="_blank"><img src="https://opencollective.com/realize/sponsor/0/avatar.svg"></a>
-<a href="https://opencollective.com/realize" target="_blank"><img src="https://opencollective.com/realize/sponsor/1/avatar.svg"></a>
-<a href="https://opencollective.com/realize" target="_blank"><img src="https://opencollective.com/realize/sponsor/2/avatar.svg"></a>
-<a href="https://opencollective.com/realize" target="_blank"><img src="https://opencollective.com/realize/sponsor/3/avatar.svg"></a>
 
