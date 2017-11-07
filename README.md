@@ -10,7 +10,7 @@
 [![OpenCollective](https://opencollective.com/realize/sponsors/badge.svg?style=flat-square)](#sponsors)
 
 <p align="center">
-<img src="http://i.imgur.com/pkMDtrl.png" width="350px">
+    <img src="https://i.imgur.com/7XiZyR1.png" width="200px">
 </p>
 
 #### Realize is the Go tool that is focused to speed up and improve developers workflow.
@@ -21,7 +21,7 @@ Various operations can be programmed for each project, which can be executed at 
 
 
 <p align="center">
-<img src="http://i.imgur.com/KpMSLnE.png">
+    <img src="http://i.imgur.com/KpMSLnE.png">
 </p>
 
 
