@@ -10,7 +10,7 @@
 [![OpenCollective](https://opencollective.com/realize/sponsors/badge.svg?style=flat-square)](#sponsors)
 
 <p align="center">
-    <img src="https://i.imgur.com/7XiZyR1.png">
+    <img src="https://i.imgur.com/7XiZyR1.png" width="350px">
 </p>
 
 #### Realize is the Go tool that is focused to speed up and improve developers workflow.
