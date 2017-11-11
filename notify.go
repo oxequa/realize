@@ -95,6 +95,7 @@ func (w *fsNotifyWatcher) Events() <-chan fsnotify.Event {
 	return w.Watcher.Events
 }
 
+// Walk fsnotify
 func (w *fsNotifyWatcher) Walk(path string, init bool) string {
 	if err := w.Add(path); err != nil {
 		return ""
@@ -157,6 +158,7 @@ func (w *filePoller) Add(name string) error {
 	return nil
 }
 
+// Remove poller
 func (w *filePoller) remove(name string) error {
 	if w.closed {
 		return errPollerClosed
@@ -184,6 +186,7 @@ func (w *filePoller) Events() <-chan fsnotify.Event {
 	return w.events
 }
 
+// Walk poller
 func (w *filePoller) Walk(path string, init bool) string {
 	check := w.watches[path]
 	if err := w.Add(path); err != nil {
