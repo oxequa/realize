@@ -227,15 +227,16 @@ func (w *filePoller) watch(f *os.File, lastFi os.FileInfo, chClose chan struct{}
 	defer f.Close()
 	for {
 		time.Sleep(w.interval)
-		fi, err := os.Stat(f.Name())
 		select {
 		case <-chClose:
 			logrus.Debugf("watch for %s closed", f.Name())
 			return
-		case err != nil:
-			if lastFi == nil {
-				continue
-			}
+		default:
+		}
+
+		fi, err := os.Stat(f.Name())
+		switch {
+		case err != nil && lastFi != nil:
 			// If it doesn't exist at this point, it must have been removed
 			// no need to send the error here since this is a valid operation
 			if os.IsNotExist(err) {
@@ -243,12 +244,10 @@ func (w *filePoller) watch(f *os.File, lastFi os.FileInfo, chClose chan struct{}
 					return
 				}
 				lastFi = nil
-				continue
 			}
 			// at this point, send the error
-			if err := w.sendErr(err, chClose); err != nil {
-				return
-			}
+			w.sendErr(err, chClose)
+			return
 		case lastFi == nil:
 			if err := w.sendEvent(fsnotify.Event{Op: fsnotify.Create, Name: f.Name()}, chClose); err != nil {
 				return
@@ -264,7 +263,6 @@ func (w *filePoller) watch(f *os.File, lastFi os.FileInfo, chClose chan struct{}
 				return
 			}
 			lastFi = fi
-			continue
 		}
 	}
 }
