@@ -227,17 +227,12 @@ func (w *filePoller) watch(f *os.File, lastFi os.FileInfo, chClose chan struct{}
 	defer f.Close()
 	for {
 		time.Sleep(w.interval)
+		fi, err := os.Stat(f.Name())
 		select {
 		case <-chClose:
 			logrus.Debugf("watch for %s closed", f.Name())
 			return
-		default:
-		}
-
-		fi, err := os.Stat(f.Name())
-		if err != nil {
-			// if we got an error here and lastFi is not set, we can presume that nothing has changed
-			// This should be safe since before `watch()` is called, a stat is performed, there is any error `watch` is not called
+		case err != nil:
 			if lastFi == nil {
 				continue
 			}
@@ -254,26 +249,17 @@ func (w *filePoller) watch(f *os.File, lastFi os.FileInfo, chClose chan struct{}
 			if err := w.sendErr(err, chClose); err != nil {
 				return
 			}
-			continue
-		}
-
-		if lastFi == nil {
+		case lastFi == nil:
 			if err := w.sendEvent(fsnotify.Event{Op: fsnotify.Create, Name: f.Name()}, chClose); err != nil {
 				return
 			}
 			lastFi = fi
-			continue
-		}
-
-		if fi.Mode() != lastFi.Mode() {
+		case fi.Mode() != lastFi.Mode():
 			if err := w.sendEvent(fsnotify.Event{Op: fsnotify.Chmod, Name: f.Name()}, chClose); err != nil {
 				return
 			}
 			lastFi = fi
-			continue
-		}
-
-		if fi.ModTime() != lastFi.ModTime() || fi.Size() != lastFi.Size() {
+		case fi.ModTime() != lastFi.ModTime() || fi.Size() != lastFi.Size():
 			if err := w.sendEvent(fsnotify.Event{Op: fsnotify.Write, Name: f.Name()}, chClose); err != nil {
 				return
 			}
