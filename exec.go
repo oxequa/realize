@@ -148,26 +148,26 @@ func (p *Project) command(stop <-chan bool, cmd Command) (string, string) {
 	var stderr bytes.Buffer
 	done := make(chan error)
 	args := strings.Split(strings.Replace(strings.Replace(cmd.Command, "'", "", -1), "\"", "", -1), " ")
-	exec := exec.Command(args[0], args[1:]...)
-	exec.Dir = p.Path
+	ex := exec.Command(args[0], args[1:]...)
+	ex.Dir = p.Path
 	// make cmd path
 	if cmd.Path != "" {
 		if strings.Contains(cmd.Path, p.Path) {
-			exec.Dir = cmd.Path
+			ex.Dir = cmd.Path
 		} else {
-			exec.Dir = filepath.Join(p.Path, cmd.Path)
+			ex.Dir = filepath.Join(p.Path, cmd.Path)
 		}
 	}
-	exec.Stdout = &stdout
-	exec.Stderr = &stderr
+	ex.Stdout = &stdout
+	ex.Stderr = &stderr
 	// Start command
-	exec.Start()
-	go func() { done <- exec.Wait() }()
+	ex.Start()
+	go func() { done <- ex.Wait() }()
 	// Wait a result
 	select {
 	case <-stop:
 		// Stop running command
-		exec.Process.Kill()
+		ex.Process.Kill()
 		return "", ""
 	case err := <-done:
 		// Command completed
