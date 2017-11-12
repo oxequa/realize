@@ -9,12 +9,9 @@ import (
 
 // Tool options customizable, should be moved in Cmd
 type tool struct {
-	dir     bool
-	status  bool
-	name    string
-	err     string
-	cmd     []string
-	options []string
+	dir, status     bool
+	name, err    	string
+	cmd, options    []string
 }
 
 // Cmds list of go commands
@@ -56,13 +53,21 @@ func (r *realize) clean() error {
 }
 
 // Add a new project
-func (r *realize) add(p *cli.Context) error {
-	path, err := filepath.Abs(p.String("path"))
-	if err != nil {
-		return err
+func (r *realize) add(p *cli.Context)  (err error) {
+	var path string
+	// #118 get relative and if not exist try to get abs
+	if _, err = os.Stat(p.String("path")); os.IsNotExist(err) {
+		// path doesn't exist
+		path, err = filepath.Abs(p.String("path"))
+		if err != nil {
+			return err
+		}
+	}else{
+		path = filepath.Clean(p.String("path"))
 	}
+
 	project := Project{
-		Name: filepath.Base(filepath.Clean(p.String("path"))),
+		Name: filepath.Base(wdir()),
 		Path: path,
 		Cmds: Cmds{
 			Vet: Cmd{
