@@ -9,9 +9,9 @@ import (
 
 // Tool options customizable, should be moved in Cmd
 type tool struct {
-	dir, status     bool
-	name, err    	string
-	cmd, options    []string
+	name, err    string
+	cmd, options []string
+	dir, status  bool
 }
 
 // Cmds list of go commands
@@ -29,11 +29,11 @@ type Cmds struct {
 
 // Cmd single command fields and options
 type Cmd struct {
-	Status                 bool     `yaml:"status,omitempty" json:"status,omitempty"`
 	Method                 string   `yaml:"method,omitempty" json:"method,omitempty"`
 	Args                   []string `yaml:"args,omitempty" json:"args,omitempty"`
-	method                 []string
+	Status                 bool     `yaml:"status,omitempty" json:"status,omitempty"`
 	tool                   bool
+	method                 []string
 	name, startTxt, endTxt string
 }
 
@@ -53,7 +53,7 @@ func (r *realize) clean() error {
 }
 
 // Add a new project
-func (r *realize) add(p *cli.Context)  (err error) {
+func (r *realize) add(p *cli.Context) (err error) {
 	var path string
 	// #118 get relative and if not exist try to get abs
 	if _, err = os.Stat(p.String("path")); os.IsNotExist(err) {
@@ -62,7 +62,7 @@ func (r *realize) add(p *cli.Context)  (err error) {
 		if err != nil {
 			return err
 		}
-	}else{
+	} else {
 		path = filepath.Clean(p.String("path"))
 	}
 

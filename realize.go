@@ -35,8 +35,8 @@ type realize struct {
 // Cli commands
 func main() {
 	app := &cli.App{
-		Name:    "Realize",
-		Version: version,
+		Name:        "Realize",
+		Version:     version,
 		Description: "Go build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths",
 		Commands: []*cli.Command{
 			{
@@ -162,7 +162,7 @@ func main() {
 											if err != nil {
 												return d.Err()
 											}
-											r.Settings.FileLimit = int8(val)
+											r.Settings.FileLimit = int32(val)
 											return nil
 										},
 									},

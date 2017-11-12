@@ -206,7 +206,7 @@ func (p *Project) goTool(wg *sync.WaitGroup, stop <-chan bool, result chan<- too
 				case <-stop:
 					// Stop running command
 					cmd.Process.Kill()
-					break
+					return
 				case err := <-done:
 					// Command completed
 					if err != nil {
@@ -214,7 +214,7 @@ func (p *Project) goTool(wg *sync.WaitGroup, stop <-chan bool, result chan<- too
 						// send command result
 						result <- tool
 					}
-					break
+					return
 				}
 
 			}

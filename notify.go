@@ -107,9 +107,8 @@ func (w *fsNotifyWatcher) Walk(path string, init bool) string {
 // All watches are stopped, removed, and the poller cannot be added to
 func (w *filePoller) Close() error {
 	w.mu.Lock()
-	defer w.mu.Unlock()
-
 	if w.closed {
+		w.mu.Unlock()
 		return nil
 	}
 
@@ -118,6 +117,7 @@ func (w *filePoller) Close() error {
 		w.remove(name)
 		delete(w.watches, name)
 	}
+	w.mu.Unlock()
 	return nil
 }
 
