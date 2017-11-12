@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
+	"reflect"
 )
 
 var (
@@ -465,7 +466,6 @@ func (p *Project) stamp(t string, o BufferOut, msg string, stream string) {
 // Routines launches the toolchain run, build, install
 func (p *Project) routines(stop <-chan bool, watcher FileWatcher, path string) {
 	var done bool
-	var install, build error
 	go func() {
 		for {
 			select {
@@ -475,45 +475,43 @@ func (p *Project) routines(stop <-chan bool, watcher FileWatcher, path string) {
 			}
 		}
 	}()
-	if !done {
-		// before command
-		p.cmd(stop, "before", false)
-	}
-	if !done {
-		// Go supported tools
-		p.tool(stop, path)
-		// Prevent fake events on polling startup
-		p.init = true
-	}
+	invoke(done,p.cmd,stop,"before",false)
+	invoke(done,p.tool,stop,path)
+	// prevent init error on walk
+	p.init = true
 	// prevent errors using realize without config with only run flag
 	if p.Cmds.Run && !p.Cmds.Install.Status && !p.Cmds.Build.Status {
 		p.Cmds.Install.Status = true
 	}
-	if !done {
-		install = p.compile(stop, p.Cmds.Install)
-	}
-	if !done {
-		build = p.compile(stop, p.Cmds.Build)
-	}
-	if !done && (install == nil && build == nil) {
-		if p.Cmds.Run {
-			start := time.Now()
-			runner := make(chan bool, 1)
-			go func() {
-				log.Println(p.pname(p.Name, 1), ":", "Running..")
-				p.goRun(stop, runner)
-			}()
-			select {
-			case <-runner:
-				msg = fmt.Sprintln(p.pname(p.Name, 5), ":", green.regular("Started"), "in", magenta.regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
-				out = BufferOut{Time: time.Now(), Text: "Started in " + big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3) + " s"}
-				p.stamp("log", out, msg, "")
-			case <-stop:
-				return
-			}
+	invoke(done,p.compile,stop,p.Cmds.Install)
+	invoke(done,p.compile,stop,p.Cmds.Build)
+	if !done && p.Cmds.Run {
+		start := time.Now()
+		runner := make(chan bool, 1)
+		go func() {
+			log.Println(p.pname(p.Name, 1), ":", "Running..")
+			p.goRun(stop, runner)
+		}()
+		select {
+		case <-runner:
+			msg = fmt.Sprintln(p.pname(p.Name, 5), ":", green.regular("Started"), "in", magenta.regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
+			out = BufferOut{Time: time.Now(), Text: "Started in " + big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3) + " s"}
+			p.stamp("log", out, msg, "")
+		case <-stop:
+			return
 		}
 	}
+	invoke(done,p.cmd,stop,"after",false)
+}
+
+// Invoke is used to exec func from routines and check done
+func invoke(done bool, fn interface{}, args ...interface{}) {
 	if !done {
-		p.cmd(stop, "after", false)
+		v := reflect.ValueOf(fn)
+		rargs := make([]reflect.Value, len(args))
+		for i, a := range args {
+			rargs[i] = reflect.ValueOf(a)
+		}
+		v.Call(rargs)
 	}
 }
