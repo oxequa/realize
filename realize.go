@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	version = "1.5.1r2"
+	version = "1.5.2"
 )
 
 // New realize instance
@@ -37,16 +37,6 @@ func main() {
 	app := &cli.App{
 		Name:    "Realize",
 		Version: version,
-		Authors: []*cli.Author{
-			{
-				Name:  "Alessio Pracchia",
-				Email: "pracchia@hastega.it",
-			},
-			{
-				Name:  "Daniele Conventi",
-				Email: "conventi@hastega.it",
-			},
-		},
 		Description: "Go build system with file watchers, output streams and live reload. Run, build and watch file changes with custom paths",
 		Commands: []*cli.Command{
 			{
@@ -54,7 +44,7 @@ func main() {
 				Aliases:     []string{"r"},
 				Description: "Start a toolchain on a project or a list of projects. If not exist a config file it creates a new one",
 				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "path", Aliases: []string{"p"}, Value: wdir(), Usage: "Project base path"},
+					&cli.StringFlag{Name: "path", Aliases: []string{"p"}, Value: ".", Usage: "Project base path"},
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "", Usage: "Run a project by its name"},
 					&cli.BoolFlag{Name: "fmt", Aliases: []string{"f"}, Value: false, Usage: "Enable go fmt"},
 					&cli.BoolFlag{Name: "vet", Aliases: []string{"v"}, Value: false, Usage: "Enable go vet"},
@@ -172,7 +162,7 @@ func main() {
 											if err != nil {
 												return d.Err()
 											}
-											r.Settings.FileLimit = val
+											r.Settings.FileLimit = int8(val)
 											return nil
 										},
 									},
@@ -1217,11 +1207,11 @@ func prefix(s string) string {
 	if s != "" {
 		return fmt.Sprint(yellow.bold("["), "REALIZE", yellow.bold("]"), " : ", s)
 	}
-	return ""
+	return s
 }
 
 // Before is launched before each command
-func before(*cli.Context) error {
+func before(*cli.Context) (err error) {
 	// custom log
 	log.SetFlags(0)
 	log.SetOutput(logWriter{})
@@ -1230,7 +1220,7 @@ func before(*cli.Context) error {
 	if gopath == "" {
 		return errors.New("$GOPATH isn't set properly")
 	}
-	if err := os.Setenv("GOPATH", gopath); err != nil {
+	if err = os.Setenv("GOPATH", gopath); err != nil {
 		return err
 	}
 	// new realize instance
@@ -1239,11 +1229,11 @@ func before(*cli.Context) error {
 	r.Settings.read(&r)
 	// increase the file limit
 	if r.Settings.FileLimit != 0 {
-		if err := r.Settings.flimit(); err != nil {
+		if err = r.Settings.flimit(); err != nil {
 			return err
 		}
 	}
-	return nil
+	return
 }
 
 // Rewrite the layout of the log timestamp
