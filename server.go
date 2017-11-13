@@ -69,7 +69,7 @@ func (s *Server) projects(c echo.Context) (err error) {
 // Start the web server
 func (s *Server) start(p *cli.Context) (err error) {
 	if p.Bool("server") {
-		s.parent.Server.Status = p.Bool("server")
+		s.parent.Server.Status = true
 	}
 	if p.Bool("open"){
 		s.parent.Server.Open = true
