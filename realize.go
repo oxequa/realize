@@ -41,7 +41,7 @@ func main() {
 		Commands: []*cli.Command{
 			{
 				Name:        "start",
-				Aliases:     []string{"r"},
+				Aliases:     []string{"s"},
 				Description: "Start a toolchain on a project or a list of projects. If not exist a config file it creates a new one",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "path", Aliases: []string{"p"}, Value: ".", Usage: "Project base path"},
