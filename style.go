@@ -6,11 +6,11 @@ import (
 
 var (
 	output  = color.Output
-	red     = colorBase(color.FgRed)
-	blue    = colorBase(color.FgBlue)
-	green   = colorBase(color.FgGreen)
-	yellow  = colorBase(color.FgYellow)
-	magenta = colorBase(color.FgMagenta)
+	red     = colorBase(color.FgHiRed)
+	blue    = colorBase(color.FgHiBlue)
+	green   = colorBase(color.FgHiGreen)
+	yellow  = colorBase(color.FgHiYellow)
+	magenta = colorBase(color.FgHiMagenta)
 )
 
 type colorBase color.Attribute
