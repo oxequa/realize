@@ -43,6 +43,8 @@ func (r *realize) clean() error {
 		arr := r.Schema
 		for key, val := range arr {
 			if _, err := duplicates(val, arr[key+1:]); err != nil {
+				// path validation
+
 				r.Schema = append(arr[:key], arr[key+1:]...)
 				break
 			}
@@ -54,21 +56,14 @@ func (r *realize) clean() error {
 
 // Add a new project
 func (r *realize) add(p *cli.Context) (err error) {
-	var path string
-	// #118 get relative and if not exist try to get abs
-	if _, err = os.Stat(p.String("path")); os.IsNotExist(err) {
-		// path doesn't exist
-		path, err = filepath.Abs(p.String("path"))
-		if err != nil {
-			return err
-		}
-	} else {
-		path = filepath.Clean(p.String("path"))
+	// project init
+	name := filepath.Base(p.String("path"))
+	if name == "." {
+		name = filepath.Base(wdir())
 	}
-
 	project := Project{
-		Name: filepath.Base(wdir()),
-		Path: path,
+		Name: name,
+		Path: p.String("path"),
 		Cmds: Cmds{
 			Vet: Cmd{
 				Status: p.Bool("vet"),

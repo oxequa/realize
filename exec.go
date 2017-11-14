@@ -48,7 +48,6 @@ func (p *Project) goCompile(stop <-chan bool, method []string, args []string) (s
 func (p *Project) goRun(stop <-chan bool, runner chan bool) {
 	var build *exec.Cmd
 	var args []string
-
 	// custom error pattern
 	isErrorText := func(string) bool {
 		return false
@@ -73,13 +72,16 @@ func (p *Project) goRun(stop <-chan bool, runner chan bool) {
 	}
 
 	gobin := os.Getenv("GOBIN")
-	path := filepath.Join(gobin, p.name)
+	dirPath := filepath.Base(p.Path)
+	if p.Path == "." {
+		dirPath = filepath.Base(wdir())
+	}
+	path := filepath.Join(gobin, dirPath)
 	if _, err := os.Stat(path); err == nil {
 		build = exec.Command(path, args...)
 	} else if _, err := os.Stat(path + extWindows); err == nil {
 		build = exec.Command(path+extWindows, args...)
 	} else {
-		path := filepath.Join(p.Path, p.name)
 		if _, err = os.Stat(path); err == nil {
 			build = exec.Command(path, args...)
 		} else if _, err = os.Stat(path + extWindows); err == nil {

@@ -187,12 +187,6 @@ func (p *Project) err(err error) {
 
 // Config project init
 func (p *Project) config(r *realize) {
-	// validate project path, if invalid get wdir or clean current
-	if !filepath.IsAbs(p.Path) {
-		p.Path = wdir()
-	} else {
-		p.Path = filepath.Clean(p.Path)
-	}
 	// get basepath name
 	p.name = filepath.Base(p.Path)
 	// env variables
