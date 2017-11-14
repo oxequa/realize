@@ -118,16 +118,27 @@ L:
 		select {
 		case event := <-p.watcher.Events():
 			if time.Now().Truncate(time.Second).After(p.lastTime) || event.Name != p.lastFile {
+				// event time
+				eventTime := time.Now()
+				// file extension
+				ext := ext(event.Name)
+				if ext == "" {
+					ext = "DIR"
+				}
+				// change message
+				msg = fmt.Sprintln(p.pname(p.Name, 4), ":", magenta.bold(strings.ToUpper(ext)), "changed", magenta.bold(event.Name))
+				out = BufferOut{Time: time.Now(), Text: ext + " changed " + event.Name}
+				// switch event type
 				switch event.Op {
 				case fsnotify.Chmod:
 				case fsnotify.Remove:
-					ext := ext(event.Name)
+					p.watcher.Remove(event.Name)
 					if !strings.Contains(ext, "_") && !strings.Contains(ext, ".") && array(ext, p.Watcher.Exts) {
 						close(stop)
 						stop = make(chan bool)
-						p.changed(event, stop) // stop
+						p.stamp("log", out, msg, "")
+						go p.routines(stop, p.watcher, "")
 					}
-					p.watcher.Remove(event.Name)
 				default:
 					file, err := os.Stat(event.Name)
 					if err != nil {
@@ -136,15 +147,20 @@ L:
 					if file.IsDir() {
 						filepath.Walk(event.Name, p.walk)
 					} else if file.Size() > 0 {
+						// used only for test and debug
 						if p.parent.Settings.Recovery {
 							log.Println(event)
 						}
-						ext := ext(event.Name)
 						if !strings.Contains(ext, "_") && !strings.Contains(ext, ".") && array(ext, p.Watcher.Exts) {
 							// change watched
-							close(stop)
-							stop = make(chan bool)
-							p.changed(event, stop)
+							// check if a file is still writing #119
+							if event.Op != fsnotify.Write || eventTime.Truncate(time.Millisecond).After(file.ModTime().Truncate(time.Millisecond)) {
+								close(stop)
+								stop = make(chan bool)
+								// stop and start again
+								p.stamp("log", out, msg, "")
+								go p.routines(stop, p.watcher, event.Name)
+							}
 						}
 						p.lastTime = time.Now().Truncate(time.Second)
 						p.lastFile = event.Name
@@ -190,22 +206,10 @@ func (p *Project) config(r *realize) {
 		p.Cmds.Fmt.Args = []string{"-s", "-w", "-e", "./"}
 	}
 	p.tools = append(p.tools, tool{
-		status:  p.Cmds.Fix.Status,
-		cmd:     replace([]string{"go fix"}, p.Cmds.Fix.Method),
-		options: split([]string{}, p.Cmds.Fix.Args),
-		name:    "Fix",
-	})
-	p.tools = append(p.tools, tool{
 		status:  p.Cmds.Clean.Status,
 		cmd:     replace([]string{"go clean"}, p.Cmds.Clean.Method),
 		options: split([]string{}, p.Cmds.Clean.Args),
 		name:    "Clean",
-	})
-	p.tools = append(p.tools, tool{
-		status:  p.Cmds.Fmt.Status,
-		cmd:     replace([]string{"gofmt"}, p.Cmds.Fmt.Method),
-		options: split([]string{}, p.Cmds.Fmt.Args),
-		name:    "Fmt",
 	})
 	p.tools = append(p.tools, tool{
 		status:  p.Cmds.Generate.Status,
@@ -215,17 +219,29 @@ func (p *Project) config(r *realize) {
 		dir:     true,
 	})
 	p.tools = append(p.tools, tool{
-		status:  p.Cmds.Test.Status,
-		cmd:     replace([]string{"go", "test"}, p.Cmds.Test.Method),
-		options: split([]string{}, p.Cmds.Test.Args),
-		name:    "Test",
-		dir:     true,
+		status:  p.Cmds.Fix.Status,
+		cmd:     replace([]string{"go fix"}, p.Cmds.Fix.Method),
+		options: split([]string{}, p.Cmds.Fix.Args),
+		name:    "Fix",
+	})
+	p.tools = append(p.tools, tool{
+		status:  p.Cmds.Fmt.Status,
+		cmd:     replace([]string{"gofmt"}, p.Cmds.Fmt.Method),
+		options: split([]string{}, p.Cmds.Fmt.Args),
+		name:    "Fmt",
 	})
 	p.tools = append(p.tools, tool{
 		status:  p.Cmds.Vet.Status,
 		cmd:     replace([]string{"go", "vet"}, p.Cmds.Vet.Method),
 		options: split([]string{}, p.Cmds.Vet.Args),
 		name:    "Vet",
+		dir:     true,
+	})
+	p.tools = append(p.tools, tool{
+		status:  p.Cmds.Test.Status,
+		cmd:     replace([]string{"go", "test"}, p.Cmds.Test.Method),
+		options: split([]string{}, p.Cmds.Test.Args),
+		name:    "Test",
 		dir:     true,
 	})
 	p.Cmds.Install = Cmd{
@@ -291,10 +307,11 @@ func (p *Project) cmd(stop <-chan bool, flag string, global bool) {
 // Compile is used for run and display the result of a compiling
 func (p *Project) compile(stop <-chan bool, cmd Cmd) error {
 	if cmd.Status {
-		start := time.Now()
+		var start time.Time
 		channel := make(chan Result)
 		go func() {
 			log.Println(p.pname(p.Name, 1), ":", cmd.startTxt)
+			start = time.Now()
 			stream, err := p.goCompile(stop, cmd.method, cmd.Args)
 			if stream != msgStop {
 				channel <- Result{stream, err}
@@ -352,7 +369,7 @@ func (p *Project) tool(stop <-chan bool, path string) error {
 				// no need a sequence, these commands can be asynchronous
 				if element.status {
 					wg.Add(1)
-					go p.goTool(&wg, stop, result, path, element)
+					p.goTool(&wg, stop, result, path, element)
 				}
 			}
 			wg.Wait()
@@ -362,9 +379,15 @@ func (p *Project) tool(stop <-chan bool, path string) error {
 		for {
 			select {
 			case tool := <-result:
-				msg = fmt.Sprintln(p.pname(p.Name, 2), ":", red.bold(tool.name), red.regular("there are some errors in"), ":", magenta.bold(path))
-				buff := BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: tool.name, Stream: tool.err}
-				p.stamp("error", buff, msg, tool.err)
+				if tool.err != "" {
+					msg = fmt.Sprintln(p.pname(p.Name, 2), ":", red.bold(tool.name), red.regular("there are some errors in"), ":", magenta.bold(path))
+					buff := BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: tool.name, Stream: tool.err}
+					p.stamp("error", buff, msg, tool.err)
+				} else if tool.out != "" {
+					msg = fmt.Sprintln(p.pname(p.Name, 3), ":", red.bold(tool.name), red.regular("outputs"), ":", blue.bold(path))
+					buff := BufferOut{Time: time.Now(), Text: "outputs", Path: path, Type: tool.name, Stream: tool.out}
+					p.stamp("out", buff, msg, tool.out)
+				}
 			case <-done:
 				break loop
 			case <-stop:
@@ -373,19 +396,6 @@ func (p *Project) tool(stop <-chan bool, path string) error {
 		}
 	}
 	return nil
-}
-
-// Changed detect a file/directory change
-func (p *Project) changed(event fsnotify.Event, stop chan bool) {
-	e := ext(event.Name)
-	if e == "" {
-		e = "DIR"
-	}
-	msg = fmt.Sprintln(p.pname(p.Name, 4), ":", magenta.bold(strings.ToUpper(e)), "changed", magenta.bold(event.Name))
-	out = BufferOut{Time: time.Now(), Text: ext(event.Name) + " changed " + event.Name}
-	p.stamp("log", out, msg, "")
-	//stop running process
-	go p.routines(stop, p.watcher, event.Name)
 }
 
 // Watch the files tree of a project
@@ -476,45 +486,53 @@ func (p *Project) routines(stop <-chan bool, watcher FileWatcher, path string) {
 			}
 		}
 	}()
-	if !done {
-		// before command
-		p.cmd(stop, "before", false)
+	if done {
+		return
 	}
-	if !done {
-		// Go supported tools
-		p.tool(stop, path)
-		// Prevent fake events on polling startup
-		p.init = true
+	// before command
+	p.cmd(stop, "before", false)
+	if done {
+		return
 	}
+	// Go supported tools
+	p.tool(stop, path)
+	// Prevent fake events on polling startup
+	p.init = true
 	// prevent errors using realize without config with only run flag
 	if p.Cmds.Run && !p.Cmds.Install.Status && !p.Cmds.Build.Status {
 		p.Cmds.Install.Status = true
 	}
-	if !done {
-		install = p.compile(stop, p.Cmds.Install)
+	if done {
+		return
 	}
-	if !done {
-		build = p.compile(stop, p.Cmds.Build)
+	install = p.compile(stop, p.Cmds.Install)
+	if done {
+		return
 	}
-	if !done && (install == nil && build == nil) {
-		if p.Cmds.Run {
-			start := time.Now()
-			runner := make(chan bool, 1)
-			go func() {
-				log.Println(p.pname(p.Name, 1), ":", "Running..")
-				p.goRun(stop, runner)
-			}()
-			select {
-			case <-runner:
-				msg = fmt.Sprintln(p.pname(p.Name, 5), ":", green.regular("Started"), "in", magenta.regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
-				out = BufferOut{Time: time.Now(), Text: "Started in " + big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3) + " s"}
-				p.stamp("log", out, msg, "")
-			case <-stop:
-				return
-			}
+	build = p.compile(stop, p.Cmds.Build)
+	if done {
+		return
+	}
+	if install == nil && build == nil && p.Cmds.Run {
+		var start time.Time
+		runner := make(chan bool, 1)
+		go func() {
+			log.Println(p.pname(p.Name, 1), ":", "Running..")
+			start = time.Now()
+			p.goRun(stop, runner)
+		}()
+		select {
+		case <-runner:
+			msg = fmt.Sprintln(p.pname(p.Name, 5), ":", green.regular("Started"), "in", magenta.regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
+			out = BufferOut{Time: time.Now(), Text: "Started in " + big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3) + " s"}
+			p.stamp("log", out, msg, "")
+		case <-stop:
+			return
 		}
 	}
-	if !done {
-		p.cmd(stop, "after", false)
+	if done {
+		return
 	}
+	p.cmd(stop, "after", false)
+
 }

@@ -39,6 +39,7 @@ func (p *Project) goCompile(stop <-chan bool, method []string, args []string) (s
 		if err != nil {
 			return stderr.String(), err
 		}
+		return "", nil
 	}
 	return "", nil
 }
@@ -213,6 +214,8 @@ func (p *Project) goTool(wg *sync.WaitGroup, stop <-chan bool, result chan<- too
 						tool.err = stderr.String() + out.String()
 						// send command result
 						result <- tool
+					} else {
+						tool.out = out.String()
 					}
 					return
 				}

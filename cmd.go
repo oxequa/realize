@@ -9,9 +9,9 @@ import (
 
 // Tool options customizable, should be moved in Cmd
 type tool struct {
-	name, err    string
-	cmd, options []string
-	dir, status  bool
+	name, err, out string
+	cmd, options   []string
+	dir, status    bool
 }
 
 // Cmds list of go commands
