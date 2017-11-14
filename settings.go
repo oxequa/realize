@@ -32,8 +32,8 @@ const (
 type Settings struct {
 	file      string
 	Files     `yaml:"files,omitempty" json:"files,omitempty"`
-	FileLimit int64  `yaml:"flimit,omitempty" json:"flimit,omitempty"`
 	Legacy    Legacy `yaml:"legacy" json:"legacy"`
+	FileLimit int32  `yaml:"flimit,omitempty" json:"flimit,omitempty"`
 	Recovery  bool   `yaml:"recovery,omitempty" json:"recovery,omitempty"`
 }
 

@@ -26,16 +26,15 @@ type Server struct {
 	parent *realize
 	Status bool   `yaml:"status" json:"status"`
 	Open   bool   `yaml:"open" json:"open"`
-	Host   string `yaml:"host" json:"host"`
 	Port   int    `yaml:"port" json:"port"`
+	Host   string `yaml:"host" json:"host"`
 }
 
 // Websocket projects
-func (s *Server) projects(c echo.Context) error {
+func (s *Server) projects(c echo.Context) (err error) {
 	websocket.Handler(func(ws *websocket.Conn) {
-		defer ws.Close()
 		msg, _ := json.Marshal(s.parent)
-		err := websocket.Message.Send(ws, string(msg))
+		err = websocket.Message.Send(ws, string(msg))
 		go func() {
 			for {
 				select {
@@ -51,7 +50,7 @@ func (s *Server) projects(c echo.Context) error {
 		for {
 			// Read
 			text := ""
-			err := websocket.Message.Receive(ws, &text)
+			err = websocket.Message.Receive(ws, &text)
 			if err != nil {
 				break
 			} else {
@@ -62,6 +61,7 @@ func (s *Server) projects(c echo.Context) error {
 				}
 			}
 		}
+		ws.Close()
 	}).ServeHTTP(c.Response(), c.Request())
 	return nil
 }
@@ -69,7 +69,9 @@ func (s *Server) projects(c echo.Context) error {
 // Start the web server
 func (s *Server) start(p *cli.Context) (err error) {
 	if p.Bool("server") {
-		s.parent.Server.Status = p.Bool("server")
+		s.parent.Server.Status = true
+	}
+	if p.Bool("open") {
 		s.parent.Server.Open = true
 	}
 

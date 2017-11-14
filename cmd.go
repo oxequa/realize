@@ -9,12 +9,9 @@ import (
 
 // Tool options customizable, should be moved in Cmd
 type tool struct {
-	dir     bool
-	status  bool
-	name    string
-	err     string
-	cmd     []string
-	options []string
+	name, err, out string
+	cmd, options   []string
+	dir, status    bool
 }
 
 // Cmds list of go commands
@@ -32,11 +29,11 @@ type Cmds struct {
 
 // Cmd single command fields and options
 type Cmd struct {
-	Status                 bool     `yaml:"status,omitempty" json:"status,omitempty"`
 	Method                 string   `yaml:"method,omitempty" json:"method,omitempty"`
 	Args                   []string `yaml:"args,omitempty" json:"args,omitempty"`
-	method                 []string
+	Status                 bool     `yaml:"status,omitempty" json:"status,omitempty"`
 	tool                   bool
+	method                 []string
 	name, startTxt, endTxt string
 }
 
@@ -46,6 +43,8 @@ func (r *realize) clean() error {
 		arr := r.Schema
 		for key, val := range arr {
 			if _, err := duplicates(val, arr[key+1:]); err != nil {
+				// path validation
+
 				r.Schema = append(arr[:key], arr[key+1:]...)
 				break
 			}
@@ -56,14 +55,15 @@ func (r *realize) clean() error {
 }
 
 // Add a new project
-func (r *realize) add(p *cli.Context) error {
-	path, err := filepath.Abs(p.String("path"))
-	if err != nil {
-		return err
+func (r *realize) add(p *cli.Context) (err error) {
+	// project init
+	name := filepath.Base(p.String("path"))
+	if name == "." {
+		name = filepath.Base(wdir())
 	}
 	project := Project{
-		Name: filepath.Base(filepath.Clean(p.String("path"))),
-		Path: path,
+		Name: name,
+		Path: p.String("path"),
 		Cmds: Cmds{
 			Vet: Cmd{
 				Status: p.Bool("vet"),

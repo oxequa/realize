@@ -95,6 +95,7 @@ func (w *fsNotifyWatcher) Events() <-chan fsnotify.Event {
 	return w.Watcher.Events
 }
 
+// Walk fsnotify
 func (w *fsNotifyWatcher) Walk(path string, init bool) string {
 	if err := w.Add(path); err != nil {
 		return ""
@@ -106,9 +107,8 @@ func (w *fsNotifyWatcher) Walk(path string, init bool) string {
 // All watches are stopped, removed, and the poller cannot be added to
 func (w *filePoller) Close() error {
 	w.mu.Lock()
-	defer w.mu.Unlock()
-
 	if w.closed {
+		w.mu.Unlock()
 		return nil
 	}
 
@@ -117,6 +117,7 @@ func (w *filePoller) Close() error {
 		w.remove(name)
 		delete(w.watches, name)
 	}
+	w.mu.Unlock()
 	return nil
 }
 
@@ -157,6 +158,7 @@ func (w *filePoller) Add(name string) error {
 	return nil
 }
 
+// Remove poller
 func (w *filePoller) remove(name string) error {
 	if w.closed {
 		return errPollerClosed
@@ -184,6 +186,7 @@ func (w *filePoller) Events() <-chan fsnotify.Event {
 	return w.events
 }
 
+// Walk poller
 func (w *filePoller) Walk(path string, init bool) string {
 	check := w.watches[path]
 	if err := w.Add(path); err != nil {
@@ -232,12 +235,8 @@ func (w *filePoller) watch(f *os.File, lastFi os.FileInfo, chClose chan struct{}
 		}
 
 		fi, err := os.Stat(f.Name())
-		if err != nil {
-			// if we got an error here and lastFi is not set, we can presume that nothing has changed
-			// This should be safe since before `watch()` is called, a stat is performed, there is any error `watch` is not called
-			if lastFi == nil {
-				continue
-			}
+		switch {
+		case err != nil && lastFi != nil:
 			// If it doesn't exist at this point, it must have been removed
 			// no need to send the error here since this is a valid operation
 			if os.IsNotExist(err) {
@@ -245,37 +244,25 @@ func (w *filePoller) watch(f *os.File, lastFi os.FileInfo, chClose chan struct{}
 					return
 				}
 				lastFi = nil
-				continue
 			}
 			// at this point, send the error
-			if err := w.sendErr(err, chClose); err != nil {
-				return
-			}
-			continue
-		}
-
-		if lastFi == nil {
+			w.sendErr(err, chClose)
+			return
+		case lastFi == nil:
 			if err := w.sendEvent(fsnotify.Event{Op: fsnotify.Create, Name: f.Name()}, chClose); err != nil {
 				return
 			}
 			lastFi = fi
-			continue
-		}
-
-		if fi.Mode() != lastFi.Mode() {
+		case fi.Mode() != lastFi.Mode():
 			if err := w.sendEvent(fsnotify.Event{Op: fsnotify.Chmod, Name: f.Name()}, chClose); err != nil {
 				return
 			}
 			lastFi = fi
-			continue
-		}
-
-		if fi.ModTime() != lastFi.ModTime() || fi.Size() != lastFi.Size() {
+		case fi.ModTime() != lastFi.ModTime() || fi.Size() != lastFi.Size():
 			if err := w.sendEvent(fsnotify.Event{Op: fsnotify.Write, Name: f.Name()}, chClose); err != nil {
 				return
 			}
 			lastFi = fi
-			continue
 		}
 	}
 }

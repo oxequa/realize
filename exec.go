@@ -39,6 +39,7 @@ func (p *Project) goCompile(stop <-chan bool, method []string, args []string) (s
 		if err != nil {
 			return stderr.String(), err
 		}
+		return "", nil
 	}
 	return "", nil
 }
@@ -47,7 +48,6 @@ func (p *Project) goCompile(stop <-chan bool, method []string, args []string) (s
 func (p *Project) goRun(stop <-chan bool, runner chan bool) {
 	var build *exec.Cmd
 	var args []string
-
 	// custom error pattern
 	isErrorText := func(string) bool {
 		return false
@@ -72,13 +72,16 @@ func (p *Project) goRun(stop <-chan bool, runner chan bool) {
 	}
 
 	gobin := os.Getenv("GOBIN")
-	path := filepath.Join(gobin, p.name)
+	dirPath := filepath.Base(p.Path)
+	if p.Path == "." {
+		dirPath = filepath.Base(wdir())
+	}
+	path := filepath.Join(gobin, dirPath)
 	if _, err := os.Stat(path); err == nil {
 		build = exec.Command(path, args...)
 	} else if _, err := os.Stat(path + extWindows); err == nil {
 		build = exec.Command(path+extWindows, args...)
 	} else {
-		path := filepath.Join(p.Path, p.name)
 		if _, err = os.Stat(path); err == nil {
 			build = exec.Command(path, args...)
 		} else if _, err = os.Stat(path + extWindows); err == nil {
@@ -148,26 +151,26 @@ func (p *Project) command(stop <-chan bool, cmd Command) (string, string) {
 	var stderr bytes.Buffer
 	done := make(chan error)
 	args := strings.Split(strings.Replace(strings.Replace(cmd.Command, "'", "", -1), "\"", "", -1), " ")
-	exec := exec.Command(args[0], args[1:]...)
-	exec.Dir = p.Path
+	ex := exec.Command(args[0], args[1:]...)
+	ex.Dir = p.Path
 	// make cmd path
 	if cmd.Path != "" {
 		if strings.Contains(cmd.Path, p.Path) {
-			exec.Dir = cmd.Path
+			ex.Dir = cmd.Path
 		} else {
-			exec.Dir = filepath.Join(p.Path, cmd.Path)
+			ex.Dir = filepath.Join(p.Path, cmd.Path)
 		}
 	}
-	exec.Stdout = &stdout
-	exec.Stderr = &stderr
+	ex.Stdout = &stdout
+	ex.Stderr = &stderr
 	// Start command
-	exec.Start()
-	go func() { done <- exec.Wait() }()
+	ex.Start()
+	go func() { done <- ex.Wait() }()
 	// Wait a result
 	select {
 	case <-stop:
 		// Stop running command
-		exec.Process.Kill()
+		ex.Process.Kill()
 		return "", ""
 	case err := <-done:
 		// Command completed
@@ -206,15 +209,17 @@ func (p *Project) goTool(wg *sync.WaitGroup, stop <-chan bool, result chan<- too
 				case <-stop:
 					// Stop running command
 					cmd.Process.Kill()
-					break
+					return
 				case err := <-done:
 					// Command completed
 					if err != nil {
 						tool.err = stderr.String() + out.String()
 						// send command result
 						result <- tool
+					} else {
+						tool.out = out.String()
 					}
-					break
+					return
 				}
 
 			}
