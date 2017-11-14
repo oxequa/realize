@@ -71,7 +71,7 @@ func (s *Server) start(p *cli.Context) (err error) {
 	if p.Bool("server") {
 		s.parent.Server.Status = true
 	}
-	if p.Bool("open"){
+	if p.Bool("open") {
 		s.parent.Server.Open = true
 	}
 
