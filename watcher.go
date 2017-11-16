@@ -97,7 +97,7 @@ func (p *Project) watch() {
 	p.cmd(stop, "before", true)
 	// indexing files and dirs
 	for _, dir := range p.Watcher.Paths {
-		base := filepath.Join(p.Path, dir)
+		base := filepath.Join(wdir(), dir)
 		if _, err := os.Stat(base); err == nil {
 			if err := filepath.Walk(base, p.walk); err == nil {
 				p.tool(stop, base)
@@ -154,7 +154,7 @@ L:
 						if !strings.Contains(ext, "_") && !strings.Contains(ext, ".") && array(ext, p.Watcher.Exts) {
 							// change watched
 							// check if a file is still writing #119
-							if event.Op != fsnotify.Write || eventTime.Truncate(time.Millisecond).After(file.ModTime().Truncate(time.Millisecond)) {
+							if event.Op != fsnotify.Write || (eventTime.Truncate(time.Millisecond).After(file.ModTime().Truncate(time.Millisecond)) || event.Name != p.lastFile) {
 								close(stop)
 								stop = make(chan bool)
 								// stop and start again
@@ -528,5 +528,4 @@ func (p *Project) routines(stop <-chan bool, watcher FileWatcher, path string) {
 		return
 	}
 	p.cmd(stop, "after", false)
-
 }
