@@ -97,7 +97,8 @@ func (p *Project) watch() {
 	p.cmd(stop, "before", true)
 	// indexing files and dirs
 	for _, dir := range p.Watcher.Paths {
-		base := filepath.Join(wdir(), dir)
+		base, _ := filepath.Abs(p.Path)
+		base = filepath.Join(base, dir)
 		if _, err := os.Stat(base); err == nil {
 			if err := filepath.Walk(base, p.walk); err == nil {
 				p.tool(stop, base)
