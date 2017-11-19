@@ -76,7 +76,7 @@ func replace(a []string, b string) []string {
 func wdir() string {
 	dir, err := os.Getwd()
 	if err != nil {
-		log.Fatal(prefix(err.Error()))
+		log.Fatal(err.Error())
 	}
 	return dir
 }

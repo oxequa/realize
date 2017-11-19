@@ -12,12 +12,11 @@ import (
 
 // settings const
 const (
-	permission = 0775
-	directory  = ".realize"
-	file       = "realize.yaml"
-	fileOut    = "outputs.log"
-	fileErr    = "errors.log"
-	fileLog    = "logs.log"
+	Permission = 0775
+	File       = "realize.yaml"
+	FileOut    = "outputs.log"
+	FileErr    = "errors.log"
+	FileLog    = "logs.log"
 )
 
 // random string preference
@@ -30,7 +29,6 @@ const (
 
 // Settings defines a group of general settings and options
 type Settings struct {
-	file      string
 	Files     `yaml:"files,omitempty" json:"files,omitempty"`
 	Legacy    Legacy `yaml:"legacy" json:"legacy"`
 	FileLimit int32  `yaml:"flimit,omitempty" json:"flimit,omitempty"`
@@ -75,8 +73,8 @@ func random(n int) string {
 	return string(b)
 }
 
-// Delete realize folder
-func (s *Settings) del(d string) error {
+// Remove realize folder
+func (s *Settings) Remove(d string) error {
 	_, err := os.Stat(d)
 	if !os.IsNotExist(err) {
 		return os.RemoveAll(d)
@@ -84,23 +82,17 @@ func (s *Settings) del(d string) error {
 	return err
 }
 
-// Validate checks a fatal error
-func (s Settings) validate(err error) error {
-	if err != nil {
-		s.fatal(err, "")
-	}
-	return nil
-}
-
-// Read from config file
-func (s *Settings) read(out interface{}) error {
-	localConfigPath := s.file
+// Read config file
+func (s *Settings) Read(out interface{}) error {
+	localConfigPath := RFile
 	// backward compatibility
-	path := filepath.Join(directory, s.file)
+	path := filepath.Join(RDir, RFile)
 	if _, err := os.Stat(path); err == nil {
 		localConfigPath = path
+	} else {
+		return nil
 	}
-	content, err := s.stream(localConfigPath)
+	content, err := s.Stream(localConfigPath)
 	if err == nil {
 		err = yaml.Unmarshal(content, out)
 		return err
@@ -108,55 +100,52 @@ func (s *Settings) read(out interface{}) error {
 	return err
 }
 
-// Record create and unmarshal the yaml config file
-func (s *Settings) record(out interface{}) error {
+// Write config file
+func (s *Settings) Write(out interface{}) error {
 	y, err := yaml.Marshal(out)
 	if err != nil {
 		return err
 	}
-	if _, err := os.Stat(directory); os.IsNotExist(err) {
-		if err = os.Mkdir(directory, permission); err != nil {
-			return s.write(s.file, y)
+	if _, err := os.Stat(RDir); os.IsNotExist(err) {
+		if err = os.Mkdir(RDir, Permission); err != nil {
+			s.Fatal(ioutil.WriteFile(RFile, y, Permission))
 		}
 	}
-	return s.write(filepath.Join(directory, s.file), y)
+	s.Fatal(ioutil.WriteFile(filepath.Join(RDir, RFile), y, Permission))
+	return nil
 }
 
 // Stream return a byte stream of a given file
-func (s Settings) stream(file string) ([]byte, error) {
+func (s Settings) Stream(file string) ([]byte, error) {
 	_, err := os.Stat(file)
 	if err != nil {
 		return nil, err
 	}
 	content, err := ioutil.ReadFile(file)
-	s.validate(err)
+	s.Fatal(err)
 	return content, err
 }
 
 // Fatal prints a fatal error with its additional messages
-func (s Settings) fatal(err error, msg ...interface{}) {
-	if len(msg) > 0 && err != nil {
-		log.Fatalln(red.regular(msg...), err.Error())
-	} else if err != nil {
-		log.Fatalln(err.Error())
+func (s Settings) Fatal(err error, msg ...interface{}) {
+	if err != nil {
+		if len(msg) > 0 {
+			log.Fatalln(red.regular(msg...), err.Error())
+		} else {
+			log.Fatalln(err.Error())
+		}
 	}
-}
-
-// Write a file
-func (s Settings) write(name string, data []byte) error {
-	err := ioutil.WriteFile(name, data, permission)
-	return s.validate(err)
 }
 
 // Create a new file and return its pointer
-func (s Settings) create(path string, name string) *os.File {
+func (s Settings) Create(path string, name string) *os.File {
 	var file string
-	if _, err := os.Stat(directory); err == nil {
-		file = filepath.Join(path, directory, name)
+	if _, err := os.Stat(RDir); err == nil {
+		file = filepath.Join(path, RDir, name)
 	} else {
 		file = filepath.Join(path, name)
 	}
-	out, err := os.OpenFile(file, os.O_APPEND|os.O_WRONLY|os.O_CREATE|os.O_SYNC, permission)
-	s.validate(err)
+	out, err := os.OpenFile(file, os.O_APPEND|os.O_WRONLY|os.O_CREATE|os.O_SYNC, Permission)
+	s.Fatal(err)
 	return out
 }
