@@ -75,7 +75,10 @@ type BufferOut struct {
 	Errors []string  `json:"errors"`
 }
 
-type Reload interface{
+type ProjectI interface{
+	Setup()
+	Watch(chan os.Signal)
+	Run(string, chan Response,<-chan bool)
 	Restart(FileWatcher,string,<-chan bool)
 }
 
