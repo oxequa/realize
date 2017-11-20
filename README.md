@@ -1,4 +1,4 @@
-## Realize
+# Realize
 
 [![GoDoc](https://img.shields.io/badge/documentation-godoc-blue.svg?style=flat-square)](https://godoc.org/github.com/tockins/realize)
 [![Travis](https://img.shields.io/travis/tockins/realize.svg?style=flat-square)](https://travis-ci.org/tockins/realize)
@@ -6,82 +6,64 @@
 [![](https://img.shields.io/badge/realize-examples-yellow.svg?style=flat-square)](https://github.com/tockins/realize-examples)
 [![Gitter](https://img.shields.io/gitter/room/tockins/realize.svg?style=flat-square)](https://gitter.im/tockins/realize?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Go Report Card](https://goreportcard.com/badge/github.com/tockins/realize?style=flat-square)](https://goreportcard.com/report/github.com/tockins/realize)
-[![OpenCollective](https://opencollective.com/realize/backers/badge.svg?style=flat-square)](#backers) 
-[![OpenCollective](https://opencollective.com/realize/sponsors/badge.svg?style=flat-square)](#sponsors)
+<!--[![OpenCollective](https://opencollective.com/realize/backers/badge.svg?style=flat-square)](#backers) 
+[![OpenCollective](https://opencollective.com/realize/sponsors/badge.svg?style=flat-square)](#sponsors)-->
 
-<p align="center">
-    <img src="https://i.imgur.com/7XiZyR1.png" width="200px">
-</p>
+<br>
 
-#### Realize is the Go tool that is focused to speed up and improve developers workflow.
+<div align="center">
+    <img src="https://i.imgur.com/7XiZyR1.png" width="125px">
+    <h1 style="">The #1 Golang Task Runner</h1>
+	<p style="font-size: 18px; font-weight: 400;">Enhance your workflow by automating the most common tasks and using the best performing Golang live reloading.</p>
+</div>
 
-Automate the most recurring operations needed for development, define what you need only one time, integrate additional tools of third party, define custom cli commands and reload projects at each file change without stop to write code.
-
-Various operations can be programmed for each project, which can be executed at startup, at stop, and at each file change.
-
+<br>
 
 <p align="center">
     <img src="http://i.imgur.com/KpMSLnE.png">
 </p>
 
 
-#### Content
+## Content
 
-- [Features list](#features)
-- [Get started](#get-started)
-- [Config sample](#config-sample) - Sample config file
-- [Run cmd](#run) - Run a project
-- [Add cmd](#add) - Add a new project
-- [Init cmd](#init) - Make a custom config step by step
-- [Remove cmd](#remove) - Remove a project
-- [List cmd](#list) - List the projects
-- [Support](#support-us-and-suggest-an-improvement)
-- [Backers and Sponsors](#backers)
+### - ⭐️ [Top Features](#features)
+### - 💃🏻 [Get started](#get-started)
+### - 📄 [Config sample](#config-sample)
+### - 📚 [Commands List](#commands-list)
+### - 🛠 [Support](#support-us-and-suggest-an-improvement)
+### - 😎 [Backers and Sponsors](#backers)
 
-#### Features
+## Top Features
 
-- Two watcher types: file system and polling
-- Logs and errors files
-- Projects setup step by step
-- After/Before custom commands
-- Custom environment variables
-- Multiple projects at the same time
-- Custom arguments to pass at each project
-- Docker support (only with polling watcher)
-- Live reload on file change (extensions and paths customizable)
-- Support for most go commands (install, build, run, vet, test, fmt, fix, clean)
-- Web panel for a smart control of the workflow
+- High performance Live Reload.
+- Manage multiple projects at the same time.
+- Watch by custom extensions and paths.
+- All Go commands supported.
+- Switch between different Go builds.
+- Custom env variables for project.
+- Execute custom commands before and after a file changes or globally.
+- Export logs and errors to an external file.
+- Step-by-step project initialization.
+- Redesigned panel that displays build errors, console outputs and warnings.
+- Any suggestion? [Suggest an amazing feature! 🕺🏻](https://github.com/tockins/realize/issues/new)
 
-Next features and informations
+## Get started
+	$ go get github.com/tockins/realize
 
-- [ ] More use cases
-- [ ] Complete tests
-- [ ] Watch gopath dependencies 
-- [ ] Web panel, download logs
-- [ ] Multiple configurations (dev, production)
-- [ ] Support to ignore paths and files in gititnore
-- [ ] Input redirection (wait for an input and redirect) useful for cli scripts
+## Commands List
 
-#### Get started
-Run this to get and install:
-```
-$ go get github.com/tockins/realize
-```
-#### Commands available
-
-- ##### Run
-    From project/projects root execute:
-    ```
+### Run Command
+From **project/projects** root execute:
+    
     $ realize start
-    ```
     
-    It will create a realize.yaml file if it doesn't exist already, add the working directory as project and run your workflow.
     
-    "Start" command supports the following custom parameters:
+It will create a **realize.yaml** file if doesn't already exist, add the working directory as project and run your workflow.
     
-    ```
+***start*** command supports the following custom parameters:
+
     --name="name"               -> Run by name on existing configuration
-    --path="realize/server"     -> Custom Path, if not specified takes the working directory name    
+    --path="realize/server"     -> Custom Path (if not specified takes the working directory name)
     --generate                  -> Enable go generate
     --fmt                       -> Enable go fmt
     --test                      -> Enable go test
@@ -91,64 +73,53 @@ $ go get github.com/tockins/realize
     --run                       -> Enable go run
     --server                    -> Enable the web server
     --no-config                 -> Ignore an existing config / skip the creation of a new one
-    ```
-    Examples:
+
+Some examples:
     
-    ```
     $ realize start
     $ realize start --path="mypath"
     $ realize start --name="realize" --build
     $ realize start --path="realize" --run --no-config
     $ realize start --install --test --fmt --no-config
-    $ realize start --path="/Users/alessio/go/src/github.com/tockins/realize-examples/coin/"
-    ```
+    $ realize start --path="/Users/username/go/src/github.com/tockins/realize-examples/coin/"
     
-    If you want, you can specify additional arguments for your project.
-    
-     **The additional arguments must go after the params**
-     
-     **Start command can be used with a project from its working directory without make a config file (--no-config).**
-    
-    ```
-    $ realize start --path="/print/printer" --run yourParams --yourFlags // right
-    $ realize start yourParams --yourFlags --path="/print/printer" --run // wrong
-    ```
-- ##### Add 
-    Add a project to an existing config file or create a new one.
-    
-    "Add" supports the same parameters of "Start" command.
-    
-    ```
+If you want, you can specify additional arguments for your project:
+
+	✅ $ realize start --path="/print/printer" --run yourParams --yourFlags // right
+    ❌ $ realize start yourParams --yourFlags --path="/print/printer" --run // wrong    
+
+⚠️ The additional arguments **must go after** the params:
+<br>
+💡 The ***start*** command can be used with a project from its working directory without make a config file (*--no-config*).
+
+### Add Command
+Add a project to an existing config file or create a new one.
+
     $ realize add
-    ```
+💡 ***add*** supports the same parameters as ***start*** command.
+### Init Command
+This command allows you to create a custom configuration step-by-step. 
 
-- ##### Init 
-    Like add, but with this command you can create a configuration step by step and customize each option. 
-    
-    **Init is the only command that supports a complete customization of all supported options**
-    
-    ```
     $ realize init
-    ```
+    
+💡 ***init*** is the only command that supports a complete customization of all supported options.
+### Remove Command
+Remove a project by its name
 
-- ##### Remove
-    Remove a project by its name
-    ```
     $ realize remove --name="myname"
-    ```
-
-- #### Color reference
-    - Blue: outputs of the project
-    - Red: errors
-    - Magenta: times or changed files
-    - Green: successfully completed action
 
 
-- #### Config sample
+## Color reference
+💙 BLUE: Outputs of the project.<br>
+💔 RED: Errors.<br>
+💜 PURPLE: Times or changed files.<br>
+💚 GREEN: Successfully completed action.<br>
+
+
+## Config sample
     
-    For more examples check [Realize Examples](https://github.com/tockins/realize-examples)
+For more examples check: [Realize Examples](https://github.com/tockins/realize-examples)
     
-    ```
     settings:
         legacy:
             force: true             // force polling watcher instead fsnotifiy
@@ -209,13 +180,12 @@ $ go get github.com/tockins/realize
             command: ./ls
             changed: true
           errorOutputPattern: mypattern   //custom error pattern
-    ```
          
-#### Support us and suggest an improvement
-- Chat with us [Gitter](https://gitter.im/tockins/realize)
-- Suggest a new [Feature](https://github.com/tockins/realize/issues/new)
+## Contact
+💬 Chat with us [Gitter](https://gitter.im/tockins/realize)<br>
+⭐️ Suggest a new [Feature](https://github.com/tockins/realize/issues/new)
 
-#### Backers
+## Backers
 
 Support us with a monthly donation and help us continue our activities. [[Become a backer](https://opencollective.com/realize#backer)]
 
@@ -224,8 +194,8 @@ Support us with a monthly donation and help us continue our activities. [[Become
 <a href="https://opencollective.com/realize" target="_blank"><img src="https://opencollective.com/realize/backer/2/avatar.svg"></a>
 <a href="https://opencollective.com/realize" target="_blank"><img src="https://opencollective.com/realize/backer/3/avatar.svg"></a>
 
-#### Sponsors
+## Sponsors
 
-Become a sponsor and get your logo on our README on Github with a link to your site. [[Become a sponsor](https://opencollective.com/realize#sponsor)]
+Become a sponsor and get your logo here! [[Become a sponsor](https://opencollective.com/realize#sponsor)]
 
 
