@@ -12,6 +12,7 @@ import (
 type Tool struct {
 	Args   []string `yaml:"args,omitempty" json:"args,omitempty"`
 	Method string   `yaml:"method,omitempty" json:"method,omitempty"`
+	Dir    string   `yaml:"dir,omitempty" json:"dir,omitempty"` //wdir of the command
 	Status bool     `yaml:"status,omitempty" json:"status,omitempty"`
 	dir    bool
 	isTool bool
@@ -30,7 +31,7 @@ type Tools struct {
 	Generate Tool `yaml:"generate,omitempty" json:"generate,omitempty"`
 	Install  Tool `yaml:"install,omitempty" json:"install,omitempty"`
 	Build    Tool `yaml:"build,omitempty" json:"build,omitempty"`
-	Run      bool `yaml:"run,omitempty" json:"run,omitempty"`
+	Run      Tool `yaml:"run,omitempty" json:"run,omitempty"`
 }
 
 // Setup go tools
@@ -111,7 +112,11 @@ func (t *Tool) Exec(path string, stop <-chan bool) (response Response) {
 			done := make(chan error)
 			args = append(t.cmd, t.Args...)
 			cmd := exec.Command(args[0], args[1:]...)
-			cmd.Dir = path
+			if t.Dir != "" {
+				cmd.Dir, _ = filepath.Abs(t.Dir)
+			} else {
+				cmd.Dir = path
+			}
 			cmd.Stdout = &out
 			cmd.Stderr = &stderr
 			// Start command
@@ -143,7 +148,11 @@ func (t *Tool) Compile(path string, stop <-chan bool) (response Response) {
 	done := make(chan error)
 	args := append(t.cmd, t.Args...)
 	cmd := exec.Command(args[0], args[1:]...)
-	cmd.Dir = filepath.Dir(path)
+	if t.Dir != "" {
+		cmd.Dir, _ = filepath.Abs(t.Dir)
+	} else {
+		cmd.Dir = filepath.Dir(path)
+	}
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 	// Start command

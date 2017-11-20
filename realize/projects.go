@@ -75,11 +75,11 @@ type BufferOut struct {
 	Errors []string  `json:"errors"`
 }
 
-type ProjectI interface{
+type ProjectI interface {
 	Setup()
 	Watch(chan os.Signal)
-	Run(string, chan Response,<-chan bool)
-	Restart(FileWatcher,string,<-chan bool)
+	Run(string, chan Response, <-chan bool)
+	Restart(FileWatcher, string, <-chan bool)
 }
 
 // Setup a project
@@ -210,7 +210,7 @@ func (p *Project) Restart(watcher FileWatcher, path string, stop <-chan bool) {
 	// Prevent fake events on polling startup
 	p.init = true
 	// prevent errors using realize without config with only run flag
-	if p.Tools.Run && !p.Tools.Install.Status && !p.Tools.Build.Status {
+	if p.Tools.Run.Status && !p.Tools.Install.Status && !p.Tools.Build.Status {
 		p.Tools.Install.Status = true
 	}
 	if done {
@@ -238,7 +238,7 @@ func (p *Project) Restart(watcher FileWatcher, path string, stop <-chan bool) {
 	if done {
 		return
 	}
-	if install.Err == nil && build.Err == nil && p.Tools.Run {
+	if install.Err == nil && build.Err == nil && p.Tools.Run.Status {
 		var start time.Time
 		result := make(chan Response)
 		go func() {
@@ -309,12 +309,15 @@ func (p *Project) Run(path string, stream chan Response, stop <-chan bool) (err 
 		})
 		args = append(args, a...)
 	}
-	gobin := os.Getenv("GOBIN")
-	dirPath := filepath.Base(path)
-	if path == "." {
-		dirPath = filepath.Base(Wdir())
+	dirPath := os.Getenv("GOBIN")
+	if p.Tools.Run.Dir != "" {
+		dirPath, _ = filepath.Abs(p.Tools.Run.Dir)
 	}
-	path = filepath.Join(gobin, dirPath)
+	name := filepath.Base(path)
+	if path == "." {
+		name = filepath.Base(Wdir())
+	}
+	path = filepath.Join(dirPath, name)
 	if _, err := os.Stat(path); err == nil {
 		build = exec.Command(path, args...)
 	} else if _, err := os.Stat(path + RExtWin); err == nil {

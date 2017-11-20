@@ -61,7 +61,9 @@ func (s *Schema) New(c *cli.Context) Project {
 			Install: Tool{
 				Status: c.Bool("install"),
 			},
-			Run: c.Bool("run"),
+			Run: Tool{
+				Status: c.Bool("run"),
+			},
 		},
 		Args: params(c),
 		Watcher: Watch{
