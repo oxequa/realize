@@ -13,12 +13,15 @@ var (
 	magenta = colorBase(color.FgHiMagenta)
 )
 
+// ColorBase type
 type colorBase color.Attribute
 
+// Regular font with a color
 func (c colorBase) regular(a ...interface{}) string {
 	return color.New(color.Attribute(c)).Sprint(a...)
 }
 
+// Bold font with a color
 func (c colorBase) bold(a ...interface{}) string {
 	return color.New(color.Attribute(c), color.Bold).Sprint(a...)
 }

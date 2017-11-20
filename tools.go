@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+// Tool info
 type Tool struct {
 	Args   []string `yaml:"args,omitempty" json:"args,omitempty"`
 	Method string   `yaml:"method,omitempty" json:"method,omitempty"`
@@ -19,6 +20,7 @@ type Tool struct {
 	name   string
 }
 
+// Tools go
 type Tools struct {
 	Fix      Tool `yaml:"fix,omitempty" json:"fix,omitempty"`
 	Clean    Tool `yaml:"clean,omitempty" json:"clean,omitempty"`
@@ -31,6 +33,7 @@ type Tools struct {
 	Run      bool `yaml:"run,omitempty" json:"run,omitempty"`
 }
 
+// Setup go tools
 func (t *Tools) Setup() {
 	// go clean
 	if t.Clean.Status {
@@ -92,6 +95,7 @@ func (t *Tools) Setup() {
 	}
 }
 
+// Exec a go tool
 func (t *Tool) Exec(path string, stop <-chan bool) (response Response) {
 	if t.dir && filepath.Ext(path) != "" {
 		path = filepath.Dir(path)
@@ -132,6 +136,7 @@ func (t *Tool) Exec(path string, stop <-chan bool) (response Response) {
 	return
 }
 
+// Compile is used for build and install
 func (t *Tool) Compile(path string, stop <-chan bool) (response Response) {
 	var out bytes.Buffer
 	var stderr bytes.Buffer

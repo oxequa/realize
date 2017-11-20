@@ -5,10 +5,12 @@ import (
 	"gopkg.in/urfave/cli.v2"
 	"path/filepath"
 	"reflect"
+	"fmt"
 )
 
+// Schema projects list
 type Schema struct {
-	Projects []Project `yaml:"projects" json:"projects"`
+	Projects []Project `yaml:"schema" json:"schema"`
 }
 
 // Add a project if unique

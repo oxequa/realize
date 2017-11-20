@@ -234,24 +234,33 @@ func (p *Project) Reload(watcher FileWatcher, path string, stop <-chan bool) {
 		var start time.Time
 		result := make(chan Response)
 		go func() {
-			select {
-			case r := <-result:
-				if r.Err != nil {
-					msg := fmt.Sprintln(p.pname(p.Name, 2), ":", red.regular(r.Err))
-					out := BufferOut{Time: time.Now(), Text: r.Err.Error(), Type: "Go Run"}
-					p.stamp("error", out, msg, "")
-				}
-				if r.Out != "" {
-					msg := fmt.Sprintln(p.pname(p.Name, 3), ":", blue.regular(r.Out))
-					out := BufferOut{Time: time.Now(), Text: r.Out, Type: "Go Run"}
-					p.stamp("out", out, msg, "")
+			for {
+				select {
+				case <-stop:
+					return
+				case r := <-result:
+					if r.Err != nil {
+						msg := fmt.Sprintln(p.pname(p.Name, 2), ":", red.regular(r.Err))
+						out := BufferOut{Time: time.Now(), Text: r.Err.Error(), Type: "Go Run"}
+						p.stamp("error", out, msg, "")
+					}
+					if r.Out != "" {
+						msg := fmt.Sprintln(p.pname(p.Name, 3), ":", blue.regular(r.Out))
+						out := BufferOut{Time: time.Now(), Text: r.Out, Type: "Go Run"}
+						p.stamp("out", out, msg, "")
+					}
 				}
 			}
 		}()
 		go func() {
 			log.Println(p.pname(p.Name, 1), ":", "Running..")
 			start = time.Now()
-			p.Run(p.Path, stop)
+			err := p.Run(p.Path, result, stop)
+			if err != nil{
+				msg := fmt.Sprintln(p.pname(p.Name, 2), ":", red.regular(err))
+				out := BufferOut{Time: time.Now(), Text: err.Error(), Type: "Go Run"}
+				p.stamp("error", out, msg, "")
+			}
 		}()
 	}
 	if done {
@@ -261,13 +270,13 @@ func (p *Project) Reload(watcher FileWatcher, path string, stop <-chan bool) {
 }
 
 // Run a project
-func (p *Project) Run(path string, stop <-chan bool) (response chan Response) {
+func (p *Project) Run(path string, stream chan Response, stop <-chan bool) (err error) {
 	var args []string
 	var build *exec.Cmd
 	var r Response
 	defer func() {
-		if err := build.Process.Kill(); err != nil {
-			r.Err = err
+		if e := build.Process.Kill(); e != nil{
+			err = e
 		}
 	}()
 
@@ -278,8 +287,7 @@ func (p *Project) Run(path string, stop <-chan bool) (response chan Response) {
 	errRegexp, err := regexp.Compile(p.ErrorOutputPattern)
 	if err != nil {
 		r.Err = err
-		response <- r
-		r.Err = nil
+		stream <- r
 	} else {
 		isErrorText = func(t string) bool {
 			return errRegexp.MatchString(t)
@@ -309,20 +317,17 @@ func (p *Project) Run(path string, stop <-chan bool) (response chan Response) {
 		} else if _, err = os.Stat(path + RExtWin); err == nil {
 			build = exec.Command(path+RExtWin, args...)
 		} else {
-			r.Err = errors.New("project not found")
-			return
+			return errors.New("project not found")
 		}
 	}
 	// scan project stream
 	stdout, err := build.StdoutPipe()
 	stderr, err := build.StderrPipe()
 	if err != nil {
-		r.Err = err
-		return
+		return err
 	}
 	if err := build.Start(); err != nil {
-		r.Err = err
-		return
+		return err
 	}
 	execOutput, execError := bufio.NewScanner(stdout), bufio.NewScanner(stderr)
 	stopOutput, stopError := make(chan bool, 1), make(chan bool, 1)
@@ -331,11 +336,11 @@ func (p *Project) Run(path string, stop <-chan bool) (response chan Response) {
 			text := output.Text()
 			if isError && !isErrorText(text) {
 				r.Err = errors.New(text)
-				response <- r
+				stream <- r
 				r.Err = nil
 			} else {
 				r.Out = text
-				response <- r
+				stream <- r
 				r.Out = ""
 			}
 		}
@@ -516,9 +521,10 @@ func (p *Project) stamp(t string, o BufferOut, msg string, stream string) {
 	}
 }
 
+// Print with time after
 func (r *Response) printAfter(start time.Time, p *Project) {
 	if r.Err != nil {
-		msg = fmt.Sprintln(p.pname(p.Name, 2), ":", red.bold(r.Name), red.regular(r.Err.Error()))
+		msg = fmt.Sprintln(p.pname(p.Name, 2), ":", red.bold(r.Name), "\n", r.Err.Error())
 		out = BufferOut{Time: time.Now(), Text: r.Err.Error(), Type: r.Name, Stream: r.Out}
 		p.stamp("error", out, msg, r.Out)
 	} else {

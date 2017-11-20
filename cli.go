@@ -1093,12 +1093,12 @@ func start(c *cli.Context) (err error) {
 		project := r.Schema.New(c)
 		// Add to projects list
 		r.Schema.Add(project)
-	}
-	// save config
-	if !c.Bool("no-config") {
-		err = r.Settings.Write(r)
-		if err != nil {
-			return err
+		// save config
+		if !c.Bool("no-config") {
+			err = r.Settings.Write(r)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	// config and start server

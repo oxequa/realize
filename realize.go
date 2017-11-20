@@ -33,6 +33,7 @@ type (
 	LogWriter struct{}
 )
 
+// init check
 func init() {
 	// custom log
 	log.SetFlags(0)
