@@ -776,7 +776,7 @@ func setup(c *cli.Context) (err error) {
 							if err != nil {
 								return d.Err()
 							}
-							r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Run = val
+							r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Run.Status = val
 							return nil
 						},
 					},
