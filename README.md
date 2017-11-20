@@ -26,11 +26,11 @@
 
 ## Content
 
-### - ⭐️ [Top Features](#features)
+### - ⭐️ [Top Features](#top-features)
 ### - 💃🏻 [Get started](#get-started)
 ### - 📄 [Config sample](#config-sample)
 ### - 📚 [Commands List](#commands-list)
-### - 🛠 [Support](#support-us-and-suggest-an-improvement)
+### - 🛠 [Support and Suggestions](#support-and-suggestions)
 ### - 😎 [Backers and Sponsors](#backers)
 
 ## Top Features
@@ -181,7 +181,7 @@ For more examples check: [Realize Examples](https://github.com/tockins/realize-e
             changed: true
           errorOutputPattern: mypattern   //custom error pattern
          
-## Contact
+## Support and Suggestions
 💬 Chat with us [Gitter](https://gitter.im/tockins/realize)<br>
 ⭐️ Suggest a new [Feature](https://github.com/tockins/realize/issues/new)
 
