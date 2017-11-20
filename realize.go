@@ -1,64 +1,30 @@
 package main
 
 import (
-	"fmt"
-	"go/build"
-	"gopkg.in/urfave/cli.v2"
 	"log"
 	"os"
-	"os/signal"
-	"path/filepath"
 	"strings"
-	"syscall"
+	"gopkg.in/urfave/cli.v2"
+	"github.com/tockins/interact"
 	"time"
+	"strconv"
+	"path/filepath"
+	rc "github.com/tockins/realize/realize"
 )
 
-const (
-	RPrefix  = "realize"
-	RVersion = "2.0"
-	RExt     = ".yaml"
-	RFile    = RPrefix + RExt
-	RDir     = "." + RPrefix
-	RExtWin  = ".exe"
-)
-
-type (
-	Realize struct {
-		Settings Settings `yaml:"settings" json:"settings"`
-		Server   Server   `yaml:"server" json:"server"`
-		Schema   `yaml:",inline"`
-		sync     chan string
-		exit     chan os.Signal
-	}
-	LogWriter struct{}
-)
-
-var r Realize
-
-// init check
-func init() {
-	// custom log
-	log.SetFlags(0)
-	log.SetOutput(LogWriter{})
-	if build.Default.GOPATH == "" {
-		log.Fatal("$GOPATH isn't set properly")
-	}
-	if err := os.Setenv("GOBIN", filepath.Join(build.Default.GOPATH, "bin")); err != nil {
-		log.Fatal(err)
-	}
-}
+var r rc.Realize
 
 // Realize cli commands
 func main() {
 	app := &cli.App{
-		Name:        strings.Title(RPrefix),
-		Version:     RVersion,
+		Name:        strings.Title(rc.RPrefix),
+		Version:     rc.RVersion,
 		Description: "Realize is the #1 Golang Task Runner which enhance your workflow by automating the most common tasks and using the best performing Golang live reloading.",
 		Commands: []*cli.Command{
 			{
 				Name:        "start",
 				Aliases:     []string{"s"},
-				Description: "Start " + strings.Title(RPrefix) + " on a given path. If not exist a config file it creates a new one.",
+				Description: "Start " + strings.Title(rc.RPrefix) + " on a given path. If not exist a config file it creates a new one.",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "path", Aliases: []string{"p"}, Value: ".", Usage: "Project base path"},
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: "", Usage: "Run a project by its name"},
@@ -73,7 +39,7 @@ func main() {
 					&cli.BoolFlag{Name: "no-config", Aliases: []string{"nc"}, Value: false, Usage: "Ignore existing config and doesn't create a new one"},
 				},
 				Action: func(c *cli.Context) error {
-					return r.start(c)
+					return start(c)
 				},
 			},
 			{
@@ -82,7 +48,7 @@ func main() {
 				Aliases:     []string{"a"},
 				Description: "Add a project to an existing config or to a new one.",
 				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "path", Aliases: []string{"p"}, Value: wdir(), Usage: "Project base path"},
+					&cli.StringFlag{Name: "path", Aliases: []string{"p"}, Value: rc.Wdir(), Usage: "Project base path"},
 					&cli.BoolFlag{Name: "fmt", Aliases: []string{"f"}, Value: false, Usage: "Enable go fmt"},
 					&cli.BoolFlag{Name: "vet", Aliases: []string{"v"}, Value: false, Usage: "Enable go vet"},
 					&cli.BoolFlag{Name: "test", Aliases: []string{"t"}, Value: false, Usage: "Enable go test"},
@@ -92,7 +58,7 @@ func main() {
 					&cli.BoolFlag{Name: "run", Aliases: []string{"nr"}, Value: false, Usage: "Enable go run"},
 				},
 				Action: func(c *cli.Context) error {
-					return r.add(c)
+					return add(c)
 				},
 			},
 			{
@@ -101,7 +67,7 @@ func main() {
 				Aliases:     []string{"i"},
 				Description: "Make a new config file step by step.",
 				Action: func(c *cli.Context) error {
-					return r.setup(c)
+					return setup(c)
 				},
 			},
 			{
@@ -113,24 +79,24 @@ func main() {
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: ""},
 				},
 				Action: func(c *cli.Context) error {
-					return r.remove(c)
+					return remove(c)
 				},
 			},
 			{
 				Name:        "clean",
 				Category:    "Configuration",
 				Aliases:     []string{"c"},
-				Description: "Remove " + strings.Title(RPrefix) + " folder.",
+				Description: "Remove " + strings.Title(rc.RPrefix) + " folder.",
 				Action: func(c *cli.Context) error {
-					return r.clean()
+					return clean()
 				},
 			},
 			{
 				Name:        "version",
 				Aliases:     []string{"v"},
-				Description: "Print " + strings.Title(RPrefix) + " version.",
+				Description: "Print " + strings.Title(rc.RPrefix) + " version.",
 				Action: func(p *cli.Context) error {
-					r.version()
+					version()
 					return nil
 				},
 			},
@@ -142,37 +108,1128 @@ func main() {
 	}
 }
 
-// Stop realize workflow
-func (r *Realize) Stop() {
-	close(r.exit)
+// Version print current version
+func version() {
+	log.Println(r.Prefix(rc.Green.Bold(rc.RVersion)))
 }
 
-// Run realize workflow
-func (r *Realize) Start() {
-	r.exit = make(chan os.Signal, 2)
-	signal.Notify(r.exit, os.Interrupt, syscall.SIGTERM)
-	for k := range r.Schema.Projects {
-		r.Schema.Projects[k].parent = r
-		r.Schema.Projects[k].Setup()
-		go r.Schema.Projects[k].Watch(r.exit)
+// Clean remove realize folder
+func clean() (err error) {
+	if err := r.Settings.Remove(rc.RDir); err != nil {
+		return err
 	}
-	for {
-		select {
-		case <-r.exit:
-			return
+	log.Println(r.Prefix(rc.Green.Bold("folder successfully removed")))
+	return nil
+}
+
+// Add a project to an existing config or create a new one
+func add(c *cli.Context) (err error) {
+	// read a config if exist
+	err = r.Settings.Read(&r)
+	if err != nil {
+		return err
+	}
+	projects := len(r.Schema.Projects)
+	// create and add a new project
+	r.Schema.Add(r.Schema.New(c))
+	if len(r.Schema.Projects) > projects {
+		// update config
+		err = r.Settings.Write(r)
+		if err != nil {
+			return err
+		}
+		log.Println(r.Prefix(rc.Green.Bold("project successfully added")))
+	} else {
+		log.Println(r.Prefix(rc.Green.Bold("project can't be added")))
+	}
+	return nil
+}
+
+// Setup a new config step by step
+func setup(c *cli.Context) (err error) {
+	interact.Run(&interact.Interact{
+		Before: func(context interact.Context) error {
+			context.SetErr(rc.Red.Bold("INVALID INPUT"))
+			context.SetPrfx(rc.Output, rc.Yellow.Regular("[")+time.Now().Format("15:04:05")+rc.Yellow.Regular("]")+rc.Yellow.Bold("[")+strings.ToUpper(rc.RPrefix)+rc.Yellow.Bold("]"))
+			return nil
+		},
+		Questions: []*interact.Question{
+			{
+				Before: func(d interact.Context) error {
+					if _, err := os.Stat(rc.RDir + "/" + rc.RFile); err != nil {
+						d.Skip()
+					}
+					d.SetDef(false, rc.Green.Regular("(n)"))
+					return nil
+				},
+				Quest: interact.Quest{
+					Options: rc.Yellow.Regular("[y/n]"),
+					Msg:     "Would you want to overwrite existing " + rc.Magenta.Regular(rc.RPrefix) + " config?",
+				},
+				Action: func(d interact.Context) interface{} {
+					val, err := d.Ans().Bool()
+					if err != nil {
+						return d.Err()
+					} else if val {
+						r := rc.Realize{}
+						r.Server = rc.Server{Parent:&r, Status:false, Open:false, Port:rc.Port,Host: rc.Host}
+					}
+					return nil
+				},
+			},
+			{
+				Before: func(d interact.Context) error {
+					d.SetDef(false, rc.Green.Regular("(n)"))
+					return nil
+				},
+				Quest: interact.Quest{
+					Options: rc.Yellow.Regular("[y/n]"),
+					Msg:     "Would you want to customize settings?",
+					Resolve: func(d interact.Context) bool {
+						val, _ := d.Ans().Bool()
+						return val
+					},
+				},
+				Subs: []*interact.Question{
+					{
+						Before: func(d interact.Context) error {
+							d.SetDef(0, rc.Green.Regular("(os default)"))
+							return nil
+						},
+						Quest: interact.Quest{
+							Options: rc.Yellow.Regular("[int]"),
+							Msg:     "Set max number of open files (root required)",
+						},
+						Action: func(d interact.Context) interface{} {
+							val, err := d.Ans().Int()
+							if err != nil {
+								return d.Err()
+							}
+							r.Settings.FileLimit = int32(val)
+							return nil
+						},
+					},
+					{
+						Before: func(d interact.Context) error {
+							d.SetDef(false, rc.Green.Regular("(n)"))
+							return nil
+						},
+						Quest: interact.Quest{
+							Options: rc.Yellow.Regular("[y/n]"),
+							Msg:     "Force polling watcher?",
+							Resolve: func(d interact.Context) bool {
+								val, _ := d.Ans().Bool()
+								return val
+							},
+						},
+						Subs: []*interact.Question{
+							{
+								Before: func(d interact.Context) error {
+									d.SetDef(100, rc.Green.Regular("(100ms)"))
+									return nil
+								},
+								Quest: interact.Quest{
+									Options: rc.Yellow.Regular("[int]"),
+									Msg:     "Set polling interval",
+								},
+								Action: func(d interact.Context) interface{} {
+									val, err := d.Ans().Int()
+									if err != nil {
+										return d.Err()
+									}
+									r.Settings.Legacy.Interval = time.Duration(int(val)) * time.Millisecond
+									return nil
+								},
+							},
+						},
+						Action: func(d interact.Context) interface{} {
+							val, err := d.Ans().Bool()
+							if err != nil {
+								return d.Err()
+							}
+							r.Settings.Legacy.Force = val
+							return nil
+						},
+					},
+					{
+						Before: func(d interact.Context) error {
+							d.SetDef(false, rc.Green.Regular("(n)"))
+							return nil
+						},
+						Quest: interact.Quest{
+							Options: rc.Yellow.Regular("[y/n]"),
+							Msg:     "Enable logging files",
+						},
+						Action: func(d interact.Context) interface{} {
+							val, err := d.Ans().Bool()
+							if err != nil {
+								return d.Err()
+							}
+							r.Settings.Files.Errors = rc.Resource{Name: rc.FileErr, Status: val}
+							r.Settings.Files.Outputs = rc.Resource{Name: rc.FileOut, Status: val}
+							r.Settings.Files.Logs = rc.Resource{Name: rc.FileLog, Status: val}
+							return nil
+						},
+					},
+					{
+						Before: func(d interact.Context) error {
+							d.SetDef(false, rc.Green.Regular("(n)"))
+							return nil
+						},
+						Quest: interact.Quest{
+							Options: rc.Yellow.Regular("[y/n]"),
+							Msg:     "Enable web server",
+							Resolve: func(d interact.Context) bool {
+								val, _ := d.Ans().Bool()
+								return val
+							},
+						},
+						Subs: []*interact.Question{
+							{
+								Before: func(d interact.Context) error {
+									d.SetDef(rc.Port, rc.Green.Regular("("+strconv.Itoa(rc.Port)+")"))
+									return nil
+								},
+								Quest: interact.Quest{
+									Options: rc.Yellow.Regular("[int]"),
+									Msg:     "Server port",
+								},
+								Action: func(d interact.Context) interface{} {
+									val, err := d.Ans().Int()
+									if err != nil {
+										return d.Err()
+									}
+									r.Server.Port = int(val)
+									return nil
+								},
+							},
+							{
+								Before: func(d interact.Context) error {
+									d.SetDef(rc.Host, rc.Green.Regular("("+rc.Host+")"))
+									return nil
+								},
+								Quest: interact.Quest{
+									Options: rc.Yellow.Regular("[string]"),
+									Msg:     "Server host",
+								},
+								Action: func(d interact.Context) interface{} {
+									val, err := d.Ans().String()
+									if err != nil {
+										return d.Err()
+									}
+									r.Server.Host = val
+									return nil
+								},
+							},
+							{
+								Before: func(d interact.Context) error {
+									d.SetDef(false, rc.Green.Regular("(n)"))
+									return nil
+								},
+								Quest: interact.Quest{
+									Options: rc.Yellow.Regular("[y/n]"),
+									Msg:     "Open in current browser",
+								},
+								Action: func(d interact.Context) interface{} {
+									val, err := d.Ans().Bool()
+									if err != nil {
+										return d.Err()
+									}
+									r.Server.Open = val
+									return nil
+								},
+							},
+						},
+						Action: func(d interact.Context) interface{} {
+							val, err := d.Ans().Bool()
+							if err != nil {
+								return d.Err()
+							}
+							r.Server.Status = val
+							return nil
+						},
+					},
+				},
+				Action: func(d interact.Context) interface{} {
+					_, err := d.Ans().Bool()
+					if err != nil {
+						return d.Err()
+					}
+					return nil
+				},
+			},
+			{
+				Before: func(d interact.Context) error {
+					d.SetDef(true, rc.Green.Regular("(y)"))
+					d.SetEnd("!")
+					return nil
+				},
+				Quest: interact.Quest{
+					Options: rc.Yellow.Regular("[y/n]"),
+					Msg:     "Would you want to " + rc.Magenta.Regular("add a new project") + "? (insert '!' to stop)",
+					Resolve: func(d interact.Context) bool {
+						val, _ := d.Ans().Bool()
+						if val {
+							r.Schema.Add(r.Schema.New(c))
+						}
+						return val
+					},
+				},
+				Subs: []*interact.Question{
+					{
+						Before: func(d interact.Context) error {
+							d.SetDef(rc.Wdir(), rc.Green.Regular("("+rc.Wdir()+")"))
+							return nil
+						},
+						Quest: interact.Quest{
+							Options: rc.Yellow.Regular("[string]"),
+							Msg:     "Project name",
+						},
+						Action: func(d interact.Context) interface{} {
+							val, err := d.Ans().String()
+							if err != nil {
+								return d.Err()
+							}
+							r.Schema.Projects[len(r.Schema.Projects)-1].Name = val
+							return nil
+						},
+					},
+					{
+						Before: func(d interact.Context) error {
+							dir := rc.Wdir()
+							d.SetDef(dir, rc.Green.Regular("("+dir+")"))
+							return nil
+						},
+						Quest: interact.Quest{
+							Options: rc.Yellow.Regular("[string]"),
+							Msg:     "Project path",
+						},
+						Action: func(d interact.Context) interface{} {
+							val, err := d.Ans().String()
+							if err != nil {
+								return d.Err()
+							}
+							r.Schema.Projects[len(r.Schema.Projects)-1].Path = filepath.Clean(val)
+							return nil
+						},
+					},
+
+					{
+						Before: func(d interact.Context) error {
+							d.SetDef(false, rc.Green.Regular("(n)"))
+							return nil
+						},
+						Quest: interact.Quest{
+							Options: rc.Yellow.Regular("[y/n]"),
+							Msg:     "Enable go vet",
+						},
+						Subs: []*interact.Question{
+							{
+								Before: func(d interact.Context) error {
+									d.SetDef("", rc.Green.Regular("(none)"))
+									return nil
+								},
+								Quest: interact.Quest{
+									Options: rc.Yellow.Regular("[string]"),
+									Msg:     "Vet additional arguments",
+								},
+								Action: func(d interact.Context) interface{} {
+									val, err := d.Ans().String()
+									if err != nil {
+										return d.Err()
+									}
+									if val != "" {
+										r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Vet.Args = append(r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Vet.Args, val)
+									}
+									return nil
+								},
+							},
+						},
+						Action: func(d interact.Context) interface{} {
+							val, err := d.Ans().Bool()
+							if err != nil {
+								return d.Err()
+							}
+							r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Vet.Status = val
+							return nil
+						},
+					},
+					{
+						Before: func(d interact.Context) error {
+							d.SetDef(false, rc.Green.Regular("(n)"))
+							return nil
+						},
+						Quest: interact.Quest{
+							Options: rc.Yellow.Regular("[y/n]"),
+							Msg:     "Enable go fmt",
+							Resolve: func(d interact.Context) bool {
+								val, _ := d.Ans().Bool()
+								return val
+							},
+						},
+						Subs: []*interact.Question{
+							{
+								Before: func(d interact.Context) error {
+									d.SetDef("", rc.Green.Regular("(none)"))
+									return nil
+								},
+								Quest: interact.Quest{
+									Options: rc.Yellow.Regular("[string]"),
+									Msg:     "Fmt additional arguments",
+								},
+								Action: func(d interact.Context) interface{} {
+									val, err := d.Ans().String()
+									if err != nil {
+										return d.Err()
+									}
+									if val != "" {
+										r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Fmt.Args = append(r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Fmt.Args, val)
+									}
+									return nil
+								},
+							},
+						},
+						Action: func(d interact.Context) interface{} {
+							val, err := d.Ans().Bool()
+							if err != nil {
+								return d.Err()
+							}
+							r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Fmt.Status = val
+							return nil
+						},
+					},
+					{
+						Before: func(d interact.Context) error {
+							d.SetDef(false, rc.Green.Regular("(n)"))
+							return nil
+						},
+						Quest: interact.Quest{
+							Options: rc.Yellow.Regular("[y/n]"),
+							Msg:     "Enable go test",
+							Resolve: func(d interact.Context) bool {
+								val, _ := d.Ans().Bool()
+								return val
+							},
+						},
+						Subs: []*interact.Question{
+							{
+								Before: func(d interact.Context) error {
+									d.SetDef("", rc.Green.Regular("(none)"))
+									return nil
+								},
+								Quest: interact.Quest{
+									Options: rc.Yellow.Regular("[string]"),
+									Msg:     "Test additional arguments",
+								},
+								Action: func(d interact.Context) interface{} {
+									val, err := d.Ans().String()
+									if err != nil {
+										return d.Err()
+									}
+									if val != "" {
+										r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Test.Args = append(r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Test.Args, val)
+									}
+									return nil
+								},
+							},
+						},
+						Action: func(d interact.Context) interface{} {
+							val, err := d.Ans().Bool()
+							if err != nil {
+								return d.Err()
+							}
+							r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Test.Status = val
+							return nil
+						},
+					},
+					{
+						Before: func(d interact.Context) error {
+							d.SetDef(false, rc.Green.Regular("(n)"))
+							return nil
+						},
+						Quest: interact.Quest{
+							Options: rc.Yellow.Regular("[y/n]"),
+							Msg:     "Enable go fix",
+							Resolve: func(d interact.Context) bool {
+								val, _ := d.Ans().Bool()
+								return val
+							},
+						},
+						Subs: []*interact.Question{
+							{
+								Before: func(d interact.Context) error {
+									d.SetDef("", rc.Green.Regular("(none)"))
+									return nil
+								},
+								Quest: interact.Quest{
+									Options: rc.Yellow.Regular("[string]"),
+									Msg:     "Fix additional arguments",
+								},
+								Action: func(d interact.Context) interface{} {
+									val, err := d.Ans().String()
+									if err != nil {
+										return d.Err()
+									}
+									if val != "" {
+										r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Fix.Args = append(r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Fix.Args, val)
+									}
+									return nil
+								},
+							},
+						},
+						Action: func(d interact.Context) interface{} {
+							val, err := d.Ans().Bool()
+							if err != nil {
+								return d.Err()
+							}
+							r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Fix.Status = val
+							return nil
+						},
+					},
+					{
+						Before: func(d interact.Context) error {
+							d.SetDef(false, rc.Green.Regular("(n)"))
+							return nil
+						},
+						Quest: interact.Quest{
+							Options: rc.Yellow.Regular("[y/n]"),
+							Msg:     "Enable go clean",
+							Resolve: func(d interact.Context) bool {
+								val, _ := d.Ans().Bool()
+								return val
+							},
+						},
+						Subs: []*interact.Question{
+							{
+								Before: func(d interact.Context) error {
+									d.SetDef("", rc.Green.Regular("(none)"))
+									return nil
+								},
+								Quest: interact.Quest{
+									Options: rc.Yellow.Regular("[string]"),
+									Msg:     "Clean additional arguments",
+								},
+								Action: func(d interact.Context) interface{} {
+									val, err := d.Ans().String()
+									if err != nil {
+										return d.Err()
+									}
+									if val != "" {
+										r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Clean.Args = append(r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Clean.Args, val)
+									}
+									return nil
+								},
+							},
+						},
+						Action: func(d interact.Context) interface{} {
+							val, err := d.Ans().Bool()
+							if err != nil {
+								return d.Err()
+							}
+							r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Clean.Status = val
+							return nil
+						},
+					},
+					{
+						Before: func(d interact.Context) error {
+							d.SetDef(false, rc.Green.Regular("(n)"))
+							return nil
+						},
+						Quest: interact.Quest{
+							Options: rc.Yellow.Regular("[y/n]"),
+							Msg:     "Enable go generate",
+							Resolve: func(d interact.Context) bool {
+								val, _ := d.Ans().Bool()
+								return val
+							},
+						},
+						Subs: []*interact.Question{
+							{
+								Before: func(d interact.Context) error {
+									d.SetDef("", rc.Green.Regular("(none)"))
+									return nil
+								},
+								Quest: interact.Quest{
+									Options: rc.Yellow.Regular("[string]"),
+									Msg:     "Generate additional arguments",
+								},
+								Action: func(d interact.Context) interface{} {
+									val, err := d.Ans().String()
+									if err != nil {
+										return d.Err()
+									}
+									if val != "" {
+										r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Generate.Args = append(r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Generate.Args, val)
+									}
+									return nil
+								},
+							},
+						},
+						Action: func(d interact.Context) interface{} {
+							val, err := d.Ans().Bool()
+							if err != nil {
+								return d.Err()
+							}
+							r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Generate.Status = val
+							return nil
+						},
+					},
+					{
+						Before: func(d interact.Context) error {
+							d.SetDef(true, rc.Green.Regular("(y)"))
+							return nil
+						},
+						Quest: interact.Quest{
+							Options: rc.Yellow.Regular("[y/n]"),
+							Msg:     "Enable go install",
+							Resolve: func(d interact.Context) bool {
+								val, _ := d.Ans().Bool()
+								return val
+							},
+						},
+						Subs: []*interact.Question{
+							{
+								Before: func(d interact.Context) error {
+									d.SetDef("", rc.Green.Regular("(none)"))
+									return nil
+								},
+								Quest: interact.Quest{
+									Options: rc.Yellow.Regular("[string]"),
+									Msg:     "Install additional arguments",
+								},
+								Action: func(d interact.Context) interface{} {
+									val, err := d.Ans().String()
+									if err != nil {
+										return d.Err()
+									}
+									if val != "" {
+										r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Install.Args = append(r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Install.Args, val)
+									}
+									return nil
+								},
+							},
+						},
+						Action: func(d interact.Context) interface{} {
+							val, err := d.Ans().Bool()
+							if err != nil {
+								return d.Err()
+							}
+							r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Install.Status = val
+							return nil
+						},
+					},
+					{
+						Before: func(d interact.Context) error {
+							d.SetDef(false, rc.Green.Regular("(n)"))
+							return nil
+						},
+						Quest: interact.Quest{
+							Options: rc.Yellow.Regular("[y/n]"),
+							Msg:     "Enable go build",
+							Resolve: func(d interact.Context) bool {
+								val, _ := d.Ans().Bool()
+								return val
+							},
+						},
+						Subs: []*interact.Question{
+							{
+								Before: func(d interact.Context) error {
+									d.SetDef("", rc.Green.Regular("(none)"))
+									return nil
+								},
+								Quest: interact.Quest{
+									Options: rc.Yellow.Regular("[string]"),
+									Msg:     "Build additional arguments",
+								},
+								Action: func(d interact.Context) interface{} {
+									val, err := d.Ans().String()
+									if err != nil {
+										return d.Err()
+									}
+									if val != "" {
+										r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Build.Args = append(r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Build.Args, val)
+									}
+									return nil
+								},
+							},
+						},
+						Action: func(d interact.Context) interface{} {
+							val, err := d.Ans().Bool()
+							if err != nil {
+								return d.Err()
+							}
+							r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Build.Status = val
+							return nil
+						},
+					},
+					{
+						Before: func(d interact.Context) error {
+							d.SetDef(true, rc.Green.Regular("(y)"))
+							return nil
+						},
+						Quest: interact.Quest{
+							Options: rc.Yellow.Regular("[y/n]"),
+							Msg:     "Enable go run",
+						},
+						Action: func(d interact.Context) interface{} {
+							val, err := d.Ans().Bool()
+							if err != nil {
+								return d.Err()
+							}
+							r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Run = val
+							return nil
+						},
+					},
+					{
+						Before: func(d interact.Context) error {
+							d.SetDef(false, rc.Green.Regular("(n)"))
+							return nil
+						},
+						Quest: interact.Quest{
+							Options: rc.Yellow.Regular("[y/n]"),
+							Msg:     "Customize watching paths",
+							Resolve: func(d interact.Context) bool {
+								val, _ := d.Ans().Bool()
+								if val {
+									r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Paths = r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Paths[:len(r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Paths)-1]
+								}
+								return val
+							},
+						},
+						Subs: []*interact.Question{
+							{
+								Before: func(d interact.Context) error {
+									d.SetEnd("!")
+									return nil
+								},
+								Quest: interact.Quest{
+									Options: rc.Yellow.Regular("[string]"),
+									Msg:     "Insert a path to watch (insert '!' to stop)",
+								},
+								Action: func(d interact.Context) interface{} {
+									val, err := d.Ans().String()
+									if err != nil {
+										return d.Err()
+									}
+									r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Paths = append(r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Paths, val)
+									d.Reload()
+									return nil
+								},
+							},
+						},
+						Action: func(d interact.Context) interface{} {
+							_, err := d.Ans().Bool()
+							if err != nil {
+								return d.Err()
+							}
+							return nil
+						},
+					},
+					{
+						Before: func(d interact.Context) error {
+							d.SetDef(false, rc.Green.Regular("(n)"))
+							return nil
+						},
+						Quest: interact.Quest{
+							Options: rc.Yellow.Regular("[y/n]"),
+							Msg:     "Customize ignore paths",
+							Resolve: func(d interact.Context) bool {
+								val, _ := d.Ans().Bool()
+								if val {
+									r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore = r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore[:len(r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore)-1]
+								}
+								return val
+							},
+						},
+						Subs: []*interact.Question{
+							{
+								Before: func(d interact.Context) error {
+									d.SetEnd("!")
+									return nil
+								},
+								Quest: interact.Quest{
+									Options: rc.Yellow.Regular("[string]"),
+									Msg:     "Insert a path to ignore (insert '!' to stop)",
+								},
+								Action: func(d interact.Context) interface{} {
+									val, err := d.Ans().String()
+									if err != nil {
+										return d.Err()
+									}
+									r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore = append(r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore, val)
+									d.Reload()
+									return nil
+								},
+							},
+						},
+						Action: func(d interact.Context) interface{} {
+							_, err := d.Ans().Bool()
+							if err != nil {
+								return d.Err()
+							}
+							return nil
+						},
+					},
+					{
+						Before: func(d interact.Context) error {
+							d.SetDef(false, rc.Green.Regular("(n)"))
+							return nil
+						},
+						Quest: interact.Quest{
+							Options: rc.Yellow.Regular("[y/n]"),
+							Msg:     "Add an additional argument",
+							Resolve: func(d interact.Context) bool {
+								val, _ := d.Ans().Bool()
+								return val
+							},
+						},
+						Subs: []*interact.Question{
+							{
+								Before: func(d interact.Context) error {
+									d.SetEnd("!")
+									return nil
+								},
+								Quest: interact.Quest{
+									Options: rc.Yellow.Regular("[string]"),
+									Msg:     "Add another argument (insert '!' to stop)",
+								},
+								Action: func(d interact.Context) interface{} {
+									val, err := d.Ans().String()
+									if err != nil {
+										return d.Err()
+									}
+									r.Schema.Projects[len(r.Schema.Projects)-1].Args = append(r.Schema.Projects[len(r.Schema.Projects)-1].Args, val)
+									d.Reload()
+									return nil
+								},
+							},
+						},
+						Action: func(d interact.Context) interface{} {
+							_, err := d.Ans().Bool()
+							if err != nil {
+								return d.Err()
+							}
+							return nil
+						},
+					},
+					{
+						Before: func(d interact.Context) error {
+							d.SetDef(false, rc.Green.Regular("(none)"))
+							d.SetEnd("!")
+							return nil
+						},
+						Quest: interact.Quest{
+							Options: rc.Yellow.Regular("[y/n]"),
+							Msg:     "Add a 'before' custom command (insert '!' to stop)",
+							Resolve: func(d interact.Context) bool {
+								val, _ := d.Ans().Bool()
+								return val
+							},
+						},
+						Subs: []*interact.Question{
+							{
+								Before: func(d interact.Context) error {
+									return nil
+								},
+								Quest: interact.Quest{
+									Options: rc.Yellow.Regular("[string]"),
+									Msg:     "Insert a command",
+								},
+								Action: func(d interact.Context) interface{} {
+									val, err := d.Ans().String()
+									if err != nil {
+										return d.Err()
+									}
+									r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Scripts = append(r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Scripts, rc.Command{Type: "before", Cmd: val})
+									return nil
+								},
+							},
+							{
+								Before: func(d interact.Context) error {
+									d.SetDef("", rc.Green.Regular("(n)"))
+									return nil
+								},
+								Quest: interact.Quest{
+									Options: rc.Yellow.Regular("[string]"),
+									Msg:     "Launch from a specific path",
+								},
+								Action: func(d interact.Context) interface{} {
+									val, err := d.Ans().String()
+									if err != nil {
+										return d.Err()
+									}
+									r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Scripts[len(r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Scripts)-1].Path = val
+									return nil
+								},
+							},
+							{
+								Before: func(d interact.Context) error {
+									d.SetDef(false, rc.Green.Regular("(n)"))
+									return nil
+								},
+								Quest: interact.Quest{
+									Options: rc.Yellow.Regular("[y/n]"),
+									Msg:     "Tag as global command",
+								},
+								Action: func(d interact.Context) interface{} {
+									val, err := d.Ans().Bool()
+									if err != nil {
+										return d.Err()
+									}
+									r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Scripts[len(r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Scripts)-1].Global = val
+									return nil
+								},
+							},
+							{
+								Before: func(d interact.Context) error {
+									d.SetDef(false, rc.Green.Regular("(n)"))
+									return nil
+								},
+								Quest: interact.Quest{
+									Options: rc.Yellow.Regular("[y/n]"),
+									Msg:     "Display command output",
+								},
+								Action: func(d interact.Context) interface{} {
+									val, err := d.Ans().Bool()
+									if err != nil {
+										return d.Err()
+									}
+									r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Scripts[len(r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Scripts)-1].Output = val
+									return nil
+								},
+							},
+						},
+						Action: func(d interact.Context) interface{} {
+							val, err := d.Ans().Bool()
+							if err != nil {
+								return d.Err()
+							}
+							if val {
+								d.Reload()
+							}
+							return nil
+						},
+					},
+					{
+						Before: func(d interact.Context) error {
+							d.SetDef(false, rc.Green.Regular("(none)"))
+							d.SetEnd("!")
+							return nil
+						},
+						Quest: interact.Quest{
+							Options: rc.Yellow.Regular("[y/n]"),
+							Msg:     "Add an 'after' custom commands  (insert '!' to stop)",
+							Resolve: func(d interact.Context) bool {
+								val, _ := d.Ans().Bool()
+								return val
+							},
+						},
+						Subs: []*interact.Question{
+							{
+								Before: func(d interact.Context) error {
+									return nil
+								},
+								Quest: interact.Quest{
+									Options: rc.Yellow.Regular("[string]"),
+									Msg:     "Insert a command",
+								},
+								Action: func(d interact.Context) interface{} {
+									val, err := d.Ans().String()
+									if err != nil {
+										return d.Err()
+									}
+									r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Scripts = append(r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Scripts, rc.Command{Type: "after", Cmd: val})
+									return nil
+								},
+							},
+							{
+								Before: func(d interact.Context) error {
+									d.SetDef("", rc.Green.Regular("(n)"))
+									return nil
+								},
+								Quest: interact.Quest{
+									Options: rc.Yellow.Regular("[string]"),
+									Msg:     "Launch from a specific path",
+								},
+								Action: func(d interact.Context) interface{} {
+									val, err := d.Ans().String()
+									if err != nil {
+										return d.Err()
+									}
+									r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Scripts[len(r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Scripts)-1].Path = val
+									return nil
+								},
+							},
+							{
+								Before: func(d interact.Context) error {
+									d.SetDef(false, rc.Green.Regular("(n)"))
+									return nil
+								},
+								Quest: interact.Quest{
+									Options: rc.Yellow.Regular("[y/n]"),
+									Msg:     "Tag as global command",
+								},
+								Action: func(d interact.Context) interface{} {
+									val, err := d.Ans().Bool()
+									if err != nil {
+										return d.Err()
+									}
+									r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Scripts[len(r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Scripts)-1].Global = val
+									return nil
+								},
+							},
+							{
+								Before: func(d interact.Context) error {
+									d.SetDef(false, rc.Green.Regular("(n)"))
+									return nil
+								},
+								Quest: interact.Quest{
+									Options: rc.Yellow.Regular("[y/n]"),
+									Msg:     "Display command output",
+								},
+								Action: func(d interact.Context) interface{} {
+									val, err := d.Ans().Bool()
+									if err != nil {
+										return d.Err()
+									}
+									r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Scripts[len(r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Scripts)-1].Output = val
+									return nil
+								},
+							},
+						},
+						Action: func(d interact.Context) interface{} {
+							val, err := d.Ans().Bool()
+							if err != nil {
+								return d.Err()
+							}
+							if val {
+								d.Reload()
+							}
+							return nil
+						},
+					},
+					{
+						Before: func(d interact.Context) error {
+							d.SetDef("", rc.Green.Regular("(none)"))
+							return nil
+						},
+						Quest: interact.Quest{
+							Options: rc.Yellow.Regular("[string]"),
+							Msg:     "Set an error output pattern",
+						},
+						Action: func(d interact.Context) interface{} {
+							val, err := d.Ans().String()
+							if err != nil {
+								return d.Err()
+							}
+							r.Schema.Projects[len(r.Schema.Projects)-1].ErrorOutputPattern = val
+							return nil
+						},
+					},
+				},
+				Action: func(d interact.Context) interface{} {
+					if val, err := d.Ans().Bool(); err != nil {
+						return d.Err()
+					} else if val {
+						d.Reload()
+					}
+					return nil
+				},
+			},
+		},
+		After: func(d interact.Context) error {
+			if val, _ := d.Qns().Get(0).Ans().Bool(); val {
+				err := r.Settings.Remove(rc.RDir)
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		},
+	})
+	// create config
+	err = r.Settings.Write(r)
+	if err != nil {
+		return err
+	}
+	log.Println(r.Prefix(rc.Green.Bold("Config successfully created")))
+	return nil
+}
+
+// Start realize workflow
+func start(c *cli.Context) (err error) {
+	r.Server = rc.Server{Parent:&r,Status:false,Open:false,Port: rc.Port,Host:rc.Host}
+	// check no-config and read
+	if !c.Bool("no-config") {
+		// read a config if exist
+		err = r.Settings.Read(&r)
+		if err != nil {
+			return err
+		}
+		if c.String("name") != "" {
+			// filter by name flag if exist
+			r.Schema.Filter("name", c.String("name"))
+		}
+		// increase file limit
+		if r.Settings.FileLimit != 0 {
+			if err = r.Settings.Flimit(); err != nil {
+				return err
+			}
+		}
+
+	}
+	// check project list length
+	if len(r.Schema.Projects) <= 0 {
+		// create a new project based on given params
+		project := r.Schema.New(c)
+		// Add to projects list
+		r.Schema.Add(project)
+		// save config
+		if !c.Bool("no-config") {
+			err = r.Settings.Write(r)
+			if err != nil {
+				return err
+			}
 		}
 	}
-}
-
-// Prefix a given string with tool name
-func (r *Realize) Prefix(input string) string {
-	if len(input) > 0 {
-		return fmt.Sprint(yellow.bold("["), strings.ToUpper(RPrefix), yellow.bold("]"), " : ", input)
+	// config and start server
+	if c.Bool("server") || r.Server.Status {
+		r.Server.Status = true
+		if c.Bool("open") || r.Server.Open {
+			r.Server.Open = true
+			r.Server.OpenURL()
+		}
+		err = r.Server.Start()
+		if err != nil {
+			return err
+		}
 	}
-	return input
+	// start workflow
+	r.Start()
+	return
 }
 
-// Rewrite the layout of the log timestamp
-func (w LogWriter) Write(bytes []byte) (int, error) {
-	return fmt.Fprint(output, yellow.regular("["), time.Now().Format("15:04:05"), yellow.regular("]"), string(bytes))
+// Remove a project from an existing config
+func remove(c *cli.Context) (err error) {
+	// read a config if exist
+	err = r.Settings.Read(&r)
+	if err != nil {
+		return err
+	}
+	if c.String("name") != "" {
+		err := r.Schema.Remove(c.String("name"))
+		if err != nil {
+			return err
+		}
+		// update config
+		err = r.Settings.Write(r)
+		if err != nil {
+			return err
+		}
+		log.Println(r.Prefix(rc.Green.Bold("project successfully removed")))
+	} else {
+		log.Println(r.Prefix(rc.Green.Bold("project name not found")))
+	}
+	return nil
 }
+

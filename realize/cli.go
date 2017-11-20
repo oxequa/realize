@@ -1,0 +1,81 @@
+package realize
+
+import (
+	"log"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+	"os/signal"
+	"syscall"
+	"fmt"
+	"go/build"
+)
+
+const (
+	RPrefix  = "realize"
+	RVersion = "2.0"
+	RExt     = ".yaml"
+	RFile    = RPrefix + RExt
+	RDir     = "." + RPrefix
+	RExtWin  = ".exe"
+)
+
+type (
+	Realize struct {
+		Settings Settings `yaml:"settings" json:"settings"`
+		Server   Server   `yaml:"server" json:"server"`
+		Schema   `yaml:",inline"`
+		sync     chan string
+		exit     chan os.Signal
+	}
+	LogWriter struct{}
+)
+
+// init check
+func init() {
+	// custom log
+	log.SetFlags(0)
+	log.SetOutput(LogWriter{})
+	if build.Default.GOPATH == "" {
+		log.Fatal("$GOPATH isn't set properly")
+	}
+	if err := os.Setenv("GOBIN", filepath.Join(build.Default.GOPATH, "bin")); err != nil {
+		log.Fatal(err)
+	}
+}
+
+// Stop realize workflow
+func (r *Realize) Stop() {
+	close(r.exit)
+}
+
+// Run realize workflow
+func (r *Realize) Start() {
+	r.exit = make(chan os.Signal, 2)
+	signal.Notify(r.exit, os.Interrupt, syscall.SIGTERM)
+	for k := range r.Schema.Projects {
+		r.Schema.Projects[k].parent = r
+		r.Schema.Projects[k].Setup()
+		go r.Schema.Projects[k].Watch(r.exit)
+	}
+	for {
+		select {
+		case <-r.exit:
+			return
+		}
+	}
+}
+
+// Prefix a given string with tool name
+func (r *Realize) Prefix(input string) string {
+	if len(input) > 0 {
+		return fmt.Sprint(Yellow.Bold("["), strings.ToUpper(RPrefix), Yellow.Bold("]"), " : ", input)
+	}
+	return input
+}
+
+// Rewrite the layout of the log timestamp
+func (w LogWriter) Write(bytes []byte) (int, error) {
+	return fmt.Fprint(Output, Yellow.Regular("["), time.Now().Format("15:04:05"), Yellow.Regular("]"), string(bytes))
+}
