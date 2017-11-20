@@ -18,7 +18,7 @@ func TestRealize_Stop(t *testing.T) {
 	m.exit = make(chan os.Signal, 2)
 	close(m.exit)
 	_, ok := <-m.exit
-	if !ok {
+	if ok != false {
 		t.Error("Unexpected error", "channel should be closed")
 	}
 }

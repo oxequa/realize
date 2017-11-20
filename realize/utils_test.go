@@ -58,7 +58,7 @@ func TestWdir(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	result := wdir()
+	result := Wdir()
 	if result != expected {
 		t.Error("Expected", filepath.Base(expected), "instead", result)
 	}
