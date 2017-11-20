@@ -28,7 +28,7 @@ _testmain.go
 .DS_Store
 .realize
 
-realize/assets
+realize/assets/*
 docker
 vendor
 bin
