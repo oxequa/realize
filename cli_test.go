@@ -5,7 +5,6 @@ import (
 	"log"
 	"strings"
 	"testing"
-	"gopkg.in/urfave/cli.v2"
 	"errors"
 )
 
@@ -80,6 +79,14 @@ func TestStart(t *testing.T) {
 	m := mockRealize{}
 	mockResponse = nil
 	if err := m.add(); err != nil{
+		t.Fatal("Unexpected error")
+	}
+}
+
+func TestSetup(t *testing.T) {
+	m := mockRealize{}
+	mockResponse = nil
+	if err := m.setup(); err != nil{
 		t.Fatal("Unexpected error")
 	}
 }
