@@ -85,6 +85,7 @@ func (p *Project) Setup() {
 			p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error(), Type: "Env error", Stream: ""})
 		}
 	}
+	// setup go tools
 	p.Tools.Setup()
 }
 
@@ -214,7 +215,7 @@ func (p *Project) Reload(watcher FileWatcher, path string, stop <-chan bool) {
 		p.stamp("log", out, msg, "")
 		start := time.Now()
 		install = p.Tools.Install.Compile(p.Path, stop)
-		install.printAfter(start, p)
+		install.print(start, p)
 	}
 	if done {
 		return
@@ -225,7 +226,7 @@ func (p *Project) Reload(watcher FileWatcher, path string, stop <-chan bool) {
 		p.stamp("log", out, msg, "")
 		start := time.Now()
 		build = p.Tools.Build.Compile(p.Path, stop)
-		build.printAfter(start, p)
+		build.print(start, p)
 	}
 	if done {
 		return
@@ -256,7 +257,7 @@ func (p *Project) Reload(watcher FileWatcher, path string, stop <-chan bool) {
 			log.Println(p.pname(p.Name, 1), ":", "Running..")
 			start = time.Now()
 			err := p.Run(p.Path, result, stop)
-			if err != nil{
+			if err != nil {
 				msg := fmt.Sprintln(p.pname(p.Name, 2), ":", red.regular(err))
 				out := BufferOut{Time: time.Now(), Text: err.Error(), Type: "Go Run"}
 				p.stamp("error", out, msg, "")
@@ -275,7 +276,7 @@ func (p *Project) Run(path string, stream chan Response, stop <-chan bool) (err 
 	var build *exec.Cmd
 	var r Response
 	defer func() {
-		if e := build.Process.Kill(); e != nil{
+		if e := build.Process.Kill(); e != nil {
 			err = e
 		}
 	}()
@@ -522,7 +523,7 @@ func (p *Project) stamp(t string, o BufferOut, msg string, stream string) {
 }
 
 // Print with time after
-func (r *Response) printAfter(start time.Time, p *Project) {
+func (r *Response) print(start time.Time, p *Project) {
 	if r.Err != nil {
 		msg = fmt.Sprintln(p.pname(p.Name, 2), ":", red.bold(r.Name), "\n", r.Err.Error())
 		out = BufferOut{Time: time.Now(), Text: r.Err.Error(), Type: r.Name, Stream: r.Out}

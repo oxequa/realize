@@ -13,14 +13,12 @@ import (
 )
 
 // Version print current version
-func version() {
-	r := Realize{}
-	log.Println(r.Prefix(green.bold(version)))
+func (r *Realize) version() {
+	log.Println(r.Prefix(green.bold(RVersion)))
 }
 
 // Clean remove realize folder
-func clean() (err error) {
-	r := Realize{}
+func (r *Realize) clean() (err error) {
 	if err := r.Settings.Remove(RDir); err != nil {
 		return err
 	}
@@ -29,8 +27,7 @@ func clean() (err error) {
 }
 
 // Add a project to an existing config or create a new one
-func add(c *cli.Context) (err error) {
-	r := Realize{}
+func (r *Realize) add(c *cli.Context) (err error) {
 	// read a config if exist
 	err = r.Settings.Read(&r)
 	if err != nil {
@@ -53,8 +50,7 @@ func add(c *cli.Context) (err error) {
 }
 
 // Setup a new config step by step
-func setup(c *cli.Context) (err error) {
-	r := Realize{}
+func (r *Realize) setup(c *cli.Context) (err error) {
 	interact.Run(&interact.Interact{
 		Before: func(context interact.Context) error {
 			context.SetErr(red.bold("INVALID INPUT"))
@@ -1065,9 +1061,8 @@ func setup(c *cli.Context) (err error) {
 }
 
 // Start realize workflow
-func start(c *cli.Context) (err error) {
-	r := Realize{}
-	r.Server = Server{&r, false, false, Port, Host}
+func (r *Realize) start(c *cli.Context) (err error) {
+	r.Server = Server{r, false, false, Port, Host}
 	// check no-config and read
 	if !c.Bool("no-config") {
 		// read a config if exist
@@ -1119,8 +1114,7 @@ func start(c *cli.Context) (err error) {
 }
 
 // Remove a project from an existing config
-func remove(c *cli.Context) (err error) {
-	r := Realize{}
+func (r *Realize) remove(c *cli.Context) (err error) {
 	// read a config if exist
 	err = r.Settings.Read(&r)
 	if err != nil {

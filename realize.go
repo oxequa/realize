@@ -33,6 +33,8 @@ type (
 	LogWriter struct{}
 )
 
+var r Realize
+
 // init check
 func init() {
 	// custom log
@@ -71,7 +73,7 @@ func main() {
 					&cli.BoolFlag{Name: "no-config", Aliases: []string{"nc"}, Value: false, Usage: "Ignore existing config and doesn't create a new one"},
 				},
 				Action: func(c *cli.Context) error {
-					return start(c)
+					return r.start(c)
 				},
 			},
 			{
@@ -90,7 +92,7 @@ func main() {
 					&cli.BoolFlag{Name: "run", Aliases: []string{"nr"}, Value: false, Usage: "Enable go run"},
 				},
 				Action: func(c *cli.Context) error {
-					return add(c)
+					return r.add(c)
 				},
 			},
 			{
@@ -99,7 +101,7 @@ func main() {
 				Aliases:     []string{"i"},
 				Description: "Make a new config file step by step.",
 				Action: func(c *cli.Context) error {
-					return setup(c)
+					return r.setup(c)
 				},
 			},
 			{
@@ -111,7 +113,7 @@ func main() {
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: ""},
 				},
 				Action: func(c *cli.Context) error {
-					return remove(c)
+					return r.remove(c)
 				},
 			},
 			{
@@ -120,7 +122,7 @@ func main() {
 				Aliases:     []string{"c"},
 				Description: "Remove " + strings.Title(RPrefix) + " folder.",
 				Action: func(c *cli.Context) error {
-					return clean()
+					return r.clean()
 				},
 			},
 			{
@@ -128,7 +130,7 @@ func main() {
 				Aliases:     []string{"v"},
 				Description: "Print " + strings.Title(RPrefix) + " version.",
 				Action: func(p *cli.Context) error {
-					version()
+					r.version()
 					return nil
 				},
 			},
