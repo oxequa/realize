@@ -1,15 +1,15 @@
 package realize
 
 import (
-	"log"
-	"os"
-	"path/filepath"
-	"strings"
-	"time"
-	"os/signal"
-	"syscall"
 	"fmt"
 	"go/build"
+	"log"
+	"os"
+	"os/signal"
+	"path/filepath"
+	"strings"
+	"syscall"
+	"time"
 )
 
 const (
@@ -77,5 +77,8 @@ func (r *Realize) Prefix(input string) string {
 
 // Rewrite the layout of the log timestamp
 func (w LogWriter) Write(bytes []byte) (int, error) {
-	return fmt.Fprint(Output, Yellow.Regular("["), time.Now().Format("15:04:05"), Yellow.Regular("]"), string(bytes))
+	if len(bytes) > 0 {
+		return fmt.Fprint(Output, Yellow.Regular("["), time.Now().Format("15:04:05"), Yellow.Regular("]"), string(bytes))
+	}
+	return 0,nil
 }

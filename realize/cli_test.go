@@ -4,15 +4,10 @@ import (
 	"os"
 	"testing"
 	"time"
+	"strings"
+	"log"
+	"bytes"
 )
-
-type mockRealize struct {
-	Settings Settings `yaml:"settings" json:"settings"`
-	Server   Server   `yaml:"server" json:"server"`
-	Schema   `yaml:",inline"`
-	sync     chan string
-	exit     chan os.Signal
-}
 
 func TestRealize_Stop(t *testing.T) {
 	r := Realize{}
@@ -35,4 +30,24 @@ func TestRealize_Start(t *testing.T) {
 		}
 	}()
 	r.Start()
+}
+
+func TestRealize_Prefix(t *testing.T) {
+	r := Realize{}
+	input := "test"
+	result := r.Prefix(input)
+	if len(result) <= 0 && !strings.Contains(result,input){
+		t.Error("Unexpected error")
+	}
+}
+
+func TestSettings_Read(t *testing.T) {
+	var buf bytes.Buffer
+	log.SetOutput(&buf)
+	w := LogWriter{}
+	input := ""
+	int, err := w.Write([]byte(input))
+	if err != nil || int > 0{
+		t.Error("Unexpected error", err, "string lenght should be 0 instead",int)
+	}
 }
