@@ -30,6 +30,15 @@ type Watch struct {
 	Scripts []Command `yaml:"scripts,omitempty" json:"scripts,omitempty"`
 }
 
+// Command fields
+type Command struct {
+	Type   string `yaml:"type" json:"type"`
+	Cmd    string `yaml:"command" json:"command"`
+	Path   string `yaml:"path,omitempty" json:"path,omitempty"`
+	Global bool   `yaml:"global,omitempty" json:"global,omitempty"`
+	Output bool   `yaml:"output,omitempty" json:"output,omitempty"`
+}
+
 // Project info
 type Project struct {
 	parent             *Realize
@@ -75,6 +84,7 @@ type BufferOut struct {
 	Errors []string  `json:"errors"`
 }
 
+// Project interface
 type ProjectI interface {
 	Setup()
 	Watch(chan os.Signal)
@@ -94,6 +104,43 @@ func (p *Project) Setup() {
 	}
 	// setup go tools
 	p.Tools.Setup()
+}
+
+// Exec an additional command from a defined path if specified
+func (c *Command) Exec(base string, stop <-chan bool) (response Response) {
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	done := make(chan error)
+	args := strings.Split(strings.Replace(strings.Replace(c.Cmd, "'", "", -1), "\"", "", -1), " ")
+	ex := exec.Command(args[0], args[1:]...)
+	ex.Dir = base
+	// make cmd path
+	if c.Path != "" {
+		if strings.Contains(c.Path, base) {
+			ex.Dir = c.Path
+		} else {
+			ex.Dir = filepath.Join(base, c.Path)
+		}
+	}
+	ex.Stdout = &stdout
+	ex.Stderr = &stderr
+	// Start command
+	ex.Start()
+	go func() { done <- ex.Wait() }()
+	// Wait a result
+	select {
+	case <-stop:
+		// Stop running command
+		ex.Process.Kill()
+	case err := <-done:
+		// Command completed
+		response.Name = c.Cmd
+		response.Out = stdout.String()
+		if err != nil {
+			response.Err = errors.New(stderr.String())
+		}
+	}
+	return
 }
 
 // Watch a project

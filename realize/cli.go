@@ -80,5 +80,5 @@ func (w LogWriter) Write(bytes []byte) (int, error) {
 	if len(bytes) > 0 {
 		return fmt.Fprint(Output, Yellow.Regular("["), time.Now().Format("15:04:05"), Yellow.Regular("]"), string(bytes))
 	}
-	return 0,nil
+	return 0, nil
 }
