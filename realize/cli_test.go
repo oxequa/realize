@@ -1,8 +1,9 @@
 package realize
 
 import (
-	"testing"
 	"os"
+	"testing"
+	"time"
 )
 
 type mockRealize struct {
@@ -14,11 +15,24 @@ type mockRealize struct {
 }
 
 func TestRealize_Stop(t *testing.T) {
-	m := mockRealize{}
-	m.exit = make(chan os.Signal, 2)
-	close(m.exit)
-	_, ok := <-m.exit
+	r := Realize{}
+	r.exit = make(chan os.Signal, 2)
+	r.Stop()
+	_, ok := <-r.exit
 	if ok != false {
 		t.Error("Unexpected error", "channel should be closed")
 	}
+}
+
+func TestRealize_Start(t *testing.T) {
+	r := Realize{}
+	go func(){
+		time.Sleep(100)
+		close(r.exit)
+		_, ok := <-r.exit
+		if ok != false {
+			t.Error("Unexpected error", "channel should be closed")
+		}
+	}()
+	r.Start()
 }
