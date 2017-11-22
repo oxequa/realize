@@ -13,11 +13,11 @@ import (
 var mockResponse interface{}
 
 type mockRealize struct {
-	Settings  realize.Settings `yaml:"settings" json:"settings"`
-	Server    realize.Server   `yaml:"server" json:"server"`
+	Settings       realize.Settings `yaml:"settings" json:"settings"`
+	Server         realize.Server   `yaml:"server" json:"server"`
 	realize.Schema `yaml:",inline"`
-	sync      chan string
-	exit      chan os.Signal
+	sync           chan string
+	exit           chan os.Signal
 }
 
 func (m *mockRealize) add() error {
@@ -61,29 +61,29 @@ func TestRealize_add(t *testing.T) {
 	m := mockRealize{}
 	mockResponse = nil
 	if err := m.add(); err != nil {
-		t.Fatal("Unexpected error")
+		t.Error("Unexpected error")
 	}
 	if len(m.Projects) <= 0 {
-		t.Fatal("Unexpected error")
+		t.Error("Unexpected error")
 	}
 
 	m = mockRealize{}
 	m.Projects = []realize.Project{{Name: "Default"}}
 	mockResponse = nil
 	if err := m.add(); err != nil {
-		t.Fatal("Unexpected error")
+		t.Error("Unexpected error")
 	}
 	if len(m.Projects) != 2 {
-		t.Fatal("Unexpected error")
+		t.Error("Unexpected error")
 	}
 
 	m = mockRealize{}
 	mockResponse = errors.New("error")
 	if err := m.clean(); err == nil {
-		t.Fatal("Expected error")
+		t.Error("Expected error")
 	}
 	if len(m.Projects) != 0 {
-		t.Fatal("Unexpected error")
+		t.Error("Unexpected error")
 	}
 }
 
@@ -91,7 +91,7 @@ func TestRealize_start(t *testing.T) {
 	m := mockRealize{}
 	mockResponse = nil
 	if err := m.add(); err != nil {
-		t.Fatal("Unexpected error")
+		t.Error("Unexpected error")
 	}
 }
 
@@ -99,7 +99,7 @@ func TestRealize_setup(t *testing.T) {
 	m := mockRealize{}
 	mockResponse = nil
 	if err := m.setup(); err != nil {
-		t.Fatal("Unexpected error")
+		t.Error("Unexpected error")
 	}
 }
 
@@ -107,11 +107,11 @@ func TestRealize_clean(t *testing.T) {
 	m := mockRealize{}
 	mockResponse = nil
 	if err := m.clean(); err != nil {
-		t.Fatal("Unexpected error")
+		t.Error("Unexpected error")
 	}
 	mockResponse = errors.New("error")
 	if err := m.clean(); err == nil {
-		t.Fatal("Expected error")
+		t.Error("Expected error")
 	}
 }
 
@@ -119,22 +119,22 @@ func TestRealize_remove(t *testing.T) {
 	m := mockRealize{}
 	mockResponse = nil
 	if err := m.remove(); err != nil {
-		t.Fatal("Unexpected error")
+		t.Error("Unexpected error")
 	}
 
 	m = mockRealize{}
 	mockResponse = nil
 	m.Projects = []realize.Project{{Name: "Default"}, {Name: "Default"}}
 	if err := m.remove(); err != nil {
-		t.Fatal("Unexpected error")
+		t.Error("Unexpected error")
 	}
 	if len(m.Projects) != 0 {
-		t.Fatal("Unexpected error")
+		t.Error("Unexpected error")
 	}
 
 	mockResponse = errors.New("error")
 	if err := m.clean(); err == nil {
-		t.Fatal("Expected error")
+		t.Error("Expected error")
 	}
 }
 
@@ -143,6 +143,6 @@ func TestRealize_version(t *testing.T) {
 	log.SetOutput(&buf)
 	version()
 	if !strings.Contains(buf.String(), realize.RVersion) {
-		t.Fatal("Version expted", realize.RVersion)
+		t.Error("Version expted", realize.RVersion)
 	}
 }
