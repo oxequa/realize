@@ -47,7 +47,6 @@ type Project struct {
 	init               bool
 	files              int64
 	folders            int64
-	name               string
 	lastFile           string
 	paths              []string
 	lastTime           time.Time
@@ -96,7 +95,7 @@ type ProjectI interface {
 // Setup a project
 func (p *Project) Setup() {
 	// get base path
-	p.name = filepath.Base(p.Path)
+	p.Name = filepath.Base(p.Path)
 	// set env const
 	for key, item := range p.Environment {
 		if err := os.Setenv(key, item); err != nil {
