@@ -2,11 +2,11 @@ package main
 
 import (
 	"bytes"
-	"github.com/go-siris/siris/core/errors"
 	"github.com/tockins/realize/realize"
 	"log"
 	"strings"
 	"testing"
+	"github.com/pkg/errors"
 )
 
 var mockResponse interface{}
