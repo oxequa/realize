@@ -5,20 +5,13 @@ import (
 	"github.com/go-siris/siris/core/errors"
 	"github.com/tockins/realize/realize"
 	"log"
-	"os"
 	"strings"
 	"testing"
 )
 
 var mockResponse interface{}
 
-type mockRealize struct {
-	Settings       realize.Settings `yaml:"settings" json:"settings"`
-	Server         realize.Server   `yaml:"server" json:"server"`
-	realize.Schema `yaml:",inline"`
-	sync           chan string
-	exit           chan os.Signal
-}
+type mockRealize realize.Realize
 
 func (m *mockRealize) add() error {
 	if mockResponse != nil {
