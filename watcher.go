@@ -397,7 +397,8 @@ func (p *Project) tool(stop <-chan bool, path string) error {
 func (p *Project) walk(path string, info os.FileInfo, err error) error {
 	for _, v := range p.Watcher.Ignore {
 		s := append([]string{p.Path}, strings.Split(v, string(os.PathSeparator))...)
-		if strings.Contains(path, filepath.Join(s...)) {
+		absolutePath, _ := filepath.Abs(filepath.Join(s...))
+		if path == absolutePath || strings.HasPrefix(path, absolutePath+string(os.PathSeparator)) {
 			return nil
 		}
 	}
