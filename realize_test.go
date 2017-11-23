@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 	"testing"
-	"github.com/pkg/errors"
+	"errors"
 )
 
 var mockResponse interface{}
