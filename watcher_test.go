@@ -42,6 +42,7 @@ func TestWalk(t *testing.T) {
 		{"/go/project", true},
 		{"/go/project/main.go", false},
 		{"/go/project/main_test.go", false},
+		{"/go/project/vendorish/foo", true},
 		// invalid relative path
 		{"./relative/path", true},
 		{"./relative/path/file.go", false},
@@ -66,7 +67,7 @@ func TestWalk(t *testing.T) {
 		t.Errorf("Exepeted %d files, but was %d", 2, p.files)
 	}
 
-	if p.folders != 1 {
+	if p.folders != 2 {
 		t.Errorf("Exepeted %d folders, but was %d", 2, p.folders)
 	}
 }
