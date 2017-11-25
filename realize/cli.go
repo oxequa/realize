@@ -62,10 +62,6 @@ func init() {
 	}
 }
 
-func (r *Realize) New() {
-
-}
-
 // Stop realize workflow
 func (r *Realize) Stop() {
 	close(r.exit)
