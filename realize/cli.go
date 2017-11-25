@@ -3,6 +3,7 @@ package realize
 import (
 	"fmt"
 	"go/build"
+	"gopkg.in/fsnotify.v1"
 	"log"
 	"os"
 	"os/signal"
@@ -22,14 +23,30 @@ const (
 )
 
 type (
+	LogWriter struct{}
+
 	Realize struct {
 		Settings Settings `yaml:"settings" json:"settings"`
 		Server   Server   `yaml:"server" json:"server"`
 		Schema   `yaml:",inline"`
 		sync     chan string
 		exit     chan os.Signal
+		Err      Func `yaml:"-"`
+		After    Func `yaml:"-"`
+		Before   Func `yaml:"-"`
+		Change   Func `yaml:"-"`
+		Reload   Func `yaml:"-"`
 	}
-	LogWriter struct{}
+
+	Context struct {
+		Path    string
+		Project Project
+		Stop    <-chan bool
+		Watcher FileWatcher
+		Event   fsnotify.Event
+	}
+
+	Func func(Context)
 )
 
 // init check
@@ -45,6 +62,10 @@ func init() {
 	}
 }
 
+func (r *Realize) New() {
+
+}
+
 // Stop realize workflow
 func (r *Realize) Stop() {
 	close(r.exit)
@@ -56,7 +77,6 @@ func (r *Realize) Start() {
 	signal.Notify(r.exit, os.Interrupt, syscall.SIGTERM)
 	for k := range r.Schema.Projects {
 		r.Schema.Projects[k].parent = r
-		r.Schema.Projects[k].Setup()
 		go r.Schema.Projects[k].Watch(r.exit)
 	}
 	for {

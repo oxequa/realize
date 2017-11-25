@@ -2,6 +2,7 @@ package realize
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"github.com/fsnotify/fsnotify"
@@ -14,7 +15,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"bytes"
 	"time"
 )
 
@@ -29,6 +29,7 @@ type Watch struct {
 	Exts    []string  `yaml:"extensions" json:"extensions"`
 	Ignore  []string  `yaml:"ignored_paths,omitempty" json:"ignored_paths,omitempty"`
 	Scripts []Command `yaml:"scripts,omitempty" json:"scripts,omitempty"`
+	Hidden  bool      `yaml:"skip_hidden,omitempty" json:"skip_hidden,omitempty"`
 }
 
 // Command fields
@@ -45,6 +46,7 @@ type Project struct {
 	parent             *Realize
 	watcher            FileWatcher
 	init               bool
+	stop               chan bool
 	files              int64
 	folders            int64
 	lastFile           string
@@ -84,155 +86,61 @@ type BufferOut struct {
 	Errors []string  `json:"errors"`
 }
 
-// Project interface
-type ProjectI interface {
-	Setup()
-	Watch(chan os.Signal)
-	Run(string, chan Response, <-chan bool)
-	Restart(FileWatcher, string, <-chan bool)
+// After stop watcher
+func (p *Project) After() {
+	p.cmd(nil, "after", true)
 }
 
-// Setup a project
-func (p *Project) Setup() {
-	// get base path
-	p.Name = filepath.Base(p.Path)
+// Before start watcher
+func (p *Project) Before() {
+	// setup go tools
+	p.Tools.Setup()
 	// set env const
 	for key, item := range p.Environment {
 		if err := os.Setenv(key, item); err != nil {
 			p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error(), Type: "Env error", Stream: ""})
 		}
 	}
-	// setup go tools
-	p.Tools.Setup()
-}
-
-// Exec an additional command from a defined path if specified
-func (c *Command) Exec(base string, stop <-chan bool) (response Response) {
-	var stdout bytes.Buffer
-	var stderr bytes.Buffer
-	done := make(chan error)
-	args := strings.Split(strings.Replace(strings.Replace(c.Cmd, "'", "", -1), "\"", "", -1), " ")
-	ex := exec.Command(args[0], args[1:]...)
-	ex.Dir = base
-	// make cmd path
-	if c.Path != "" {
-		if strings.Contains(c.Path, base) {
-			ex.Dir = c.Path
-		} else {
-			ex.Dir = filepath.Join(base, c.Path)
-		}
-	}
-	ex.Stdout = &stdout
-	ex.Stderr = &stderr
-	// Start command
-	ex.Start()
-	go func() { done <- ex.Wait() }()
-	// Wait a result
-	select {
-	case <-stop:
-		// Stop running command
-		ex.Process.Kill()
-	case err := <-done:
-		// Command completed
-		response.Name = c.Cmd
-		response.Out = stdout.String()
-		if err != nil {
-			response.Err = errors.New(stderr.String())
-		}
-	}
-	return
-}
-
-// Watch a project
-func (p *Project) Watch(exit chan os.Signal) {
-	var err error
-	stop := make(chan bool)
-	// init a new watcher
-	p.watcher, err = Watcher(p.parent.Settings.Legacy.Force, p.parent.Settings.Legacy.Interval)
-	if err != nil {
-		log.Fatal(err)
-	}
 	// global commands before
-	p.cmd(stop, "before", true)
+	p.cmd(p.stop, "before", true)
 	// indexing files and dirs
 	for _, dir := range p.Watcher.Paths {
 		base, _ := filepath.Abs(p.Path)
 		base = filepath.Join(base, dir)
 		if _, err := os.Stat(base); err == nil {
-			if err := filepath.Walk(base, p.walk); err == nil {
-				p.tools(stop, base)
+			if err := filepath.Walk(base, p.walk); err != nil {
+				p.Err(err)
 			}
-		} else {
-			p.err(err)
 		}
 	}
 	// start message
 	msg = fmt.Sprintln(p.pname(p.Name, 1), ":", Blue.Bold("Watching"), Magenta.Bold(p.files), "file/s", Magenta.Bold(p.folders), "folder/s")
 	out = BufferOut{Time: time.Now(), Text: "Watching " + strconv.FormatInt(p.files, 10) + " files/s " + strconv.FormatInt(p.folders, 10) + " folder/s"}
 	p.stamp("log", out, msg, "")
-	// start watcher
-	go p.Restart(p.watcher, "", stop)
-L:
-	for {
-		select {
-		case event := <-p.watcher.Events():
-			if time.Now().Truncate(time.Second).After(p.lastTime) || event.Name != p.lastFile {
-				// event time
-				eventTime := time.Now()
-				// file extension
-				ext := ext(event.Name)
-				if ext == "" {
-					ext = "DIR"
-				}
-				// change message
-				msg = fmt.Sprintln(p.pname(p.Name, 4), ":", Magenta.Bold(strings.ToUpper(ext)), "changed", Magenta.Bold(event.Name))
-				out = BufferOut{Time: time.Now(), Text: ext + " changed " + event.Name}
-				// switch event type
-				switch event.Op {
-				case fsnotify.Chmod:
-				case fsnotify.Remove:
-					p.watcher.Remove(event.Name)
-					if !strings.Contains(ext, "_") && !strings.Contains(ext, ".") && array(ext, p.Watcher.Exts) {
-						close(stop)
-						stop = make(chan bool)
-						p.stamp("log", out, msg, "")
-						go p.Restart(p.watcher, "", stop)
-					}
-				default:
-					file, err := os.Stat(event.Name)
-					if err != nil {
-						continue
-					}
-					if file.IsDir() {
-						filepath.Walk(event.Name, p.walk)
-					} else if file.Size() > 0 {
-						if !strings.Contains(ext, "_") && !strings.Contains(ext, ".") && array(ext, p.Watcher.Exts) {
-							// change watched
-							// check if a file is still writing #119
-							if event.Op != fsnotify.Write || (eventTime.Truncate(time.Millisecond).After(file.ModTime().Truncate(time.Millisecond)) || event.Name != p.lastFile) {
-								close(stop)
-								stop = make(chan bool)
-								// stop and start again
-								p.stamp("log", out, msg, "")
-								go p.Restart(p.watcher, event.Name, stop)
-							}
-						}
-						p.lastTime = time.Now().Truncate(time.Second)
-						p.lastFile = event.Name
-					}
-				}
-			}
-		case err := <-p.watcher.Errors():
-			p.err(err)
-		case <-exit:
-			p.cmd(nil, "after", true)
-			break L
-		}
+}
+
+// Error occurred
+func (p *Project) Err(err error) {
+	msg = fmt.Sprintln(p.pname(p.Name, 2), ":", Red.Regular(err.Error()))
+	out = BufferOut{Time: time.Now(), Text: err.Error()}
+	p.stamp("error", out, msg, "")
+}
+
+// Change event message
+func (p *Project) Change(event fsnotify.Event) {
+	// file extension
+	ext := ext(event.Name)
+	if ext == "" {
+		ext = "DIR"
 	}
+	// change message
+	msg = fmt.Sprintln(p.pname(p.Name, 4), ":", Magenta.Bold(strings.ToUpper(ext)), "changed", Magenta.Bold(event.Name))
+	out = BufferOut{Time: time.Now(), Text: ext + " changed " + event.Name}
+	p.stamp("log", out, msg, "")
 }
 
 // Reload launches the toolchain run, build, install
-func (p *Project) Restart(watcher FileWatcher, path string, stop <-chan bool) {
+func (p *Project) Reload(watcher FileWatcher, path string, stop <-chan bool) {
 	var done bool
 	var install, build Response
 	go func() {
@@ -253,7 +161,22 @@ func (p *Project) Restart(watcher FileWatcher, path string, stop <-chan bool) {
 		return
 	}
 	// Go supported tools
-	p.tools(stop, path)
+	if len(path) > 0{
+		fi, err := os.Stat(path)
+		if err != nil{
+			p.Err(err)
+		}
+		p.tools(stop, path, fi)
+		// path dir
+		if !fi.IsDir() {
+			path := filepath.Dir(path)
+			fi, err = os.Stat(path)
+			if err != nil {
+				p.Err(err)
+			}
+			p.tools(stop, path, fi)
+		}
+	}
 	// Prevent fake events on polling startup
 	p.init = true
 	// prevent errors using realize without config with only run flag
@@ -310,7 +233,7 @@ func (p *Project) Restart(watcher FileWatcher, path string, stop <-chan bool) {
 		go func() {
 			log.Println(p.pname(p.Name, 1), ":", "Running..")
 			start = time.Now()
-			err := p.Run(p.Path, result, stop)
+			err := p.run(p.Path, result, stop)
 			if err != nil {
 				msg := fmt.Sprintln(p.pname(p.Name, 2), ":", Red.Regular(err))
 				out := BufferOut{Time: time.Now(), Text: err.Error(), Type: "Go Run"}
@@ -324,8 +247,273 @@ func (p *Project) Restart(watcher FileWatcher, path string, stop <-chan bool) {
 	p.cmd(stop, "after", false)
 }
 
+// Watch a project
+func (p *Project) Watch(exit chan os.Signal) {
+	var err error
+	// change channel
+	p.stop = make(chan bool)
+	// init a new watcher
+	p.watcher, err = NewFileWatcher(p.parent.Settings.Legacy.Force, p.parent.Settings.Legacy.Interval)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		close(p.stop)
+		p.watcher.Close()
+	}()
+	// before start checks
+	p.Before()
+	// start watcher
+	go p.Reload(p.watcher, "", p.stop)
+L:
+	for {
+		select {
+		case event := <-p.watcher.Events():
+			if time.Now().Truncate(time.Second).After(p.lastTime) || event.Name != p.lastFile {
+				// event time
+				eventTime := time.Now()
+				// switch event type
+				switch event.Op {
+				case fsnotify.Chmod:
+				case fsnotify.Remove:
+					p.watcher.Remove(event.Name)
+					if p.Validate(event.Name, false) {
+						// stop and restart
+						close(p.stop)
+						p.stop = make(chan bool)
+						p.Change(event)
+						go p.Reload(p.watcher, "", p.stop)
+					}
+				default:
+					if p.Validate(event.Name, true) {
+						fi, err := os.Stat(event.Name)
+						if err != nil {
+							continue
+						}
+						if fi.IsDir() {
+							filepath.Walk(event.Name, p.walk)
+						} else {
+							if event.Op != fsnotify.Write || (eventTime.Truncate(time.Millisecond).After(fi.ModTime().Truncate(time.Millisecond)) || event.Name != p.lastFile) {
+								// stop and restart
+								close(p.stop)
+								p.stop = make(chan bool)
+								p.Change(event)
+								go p.Reload(p.watcher, event.Name, p.stop)
+							}
+							p.lastTime = time.Now().Truncate(time.Second)
+							p.lastFile = event.Name
+						}
+
+					}
+				}
+			}
+		case err := <-p.watcher.Errors():
+			p.Err(err)
+		case <-exit:
+			p.After()
+			break L
+		}
+	}
+}
+
+// Validate a file path
+func (p *Project) Validate(path string, fiche bool) bool {
+	if len(path) <= 0{
+		return false
+	}
+	// check if skip hidden
+	if p.Watcher.Hidden && isHidden(path) {
+		return false
+	}
+	// check for a valid ext or path
+	if e := ext(path); e != "" {
+		// supported exts
+		if !array(e, p.Watcher.Exts) {
+			return false
+		}
+	} else {
+		separator := string(os.PathSeparator)
+		// supported paths
+		for _, v := range p.Watcher.Ignore {
+			s := append([]string{p.Path}, strings.Split(v, separator)...)
+			abs, _ := filepath.Abs(filepath.Join(s...))
+			if path == abs || strings.HasPrefix(path, abs+separator) {
+				return false
+			}
+		}
+	}
+	// file check
+	if fiche {
+		fi, err := os.Stat(path)
+		if err != nil {
+			return false
+		}
+		if fi.IsDir() || (!fi.IsDir() && fi.Size() > 0) {
+			return true
+		}
+		return false
+	}
+	return true
+
+}
+
+// Defines the colors scheme for the project name
+func (p *Project) pname(name string, color int) string {
+	switch color {
+	case 1:
+		name = Yellow.Regular("[") + strings.ToUpper(name) + Yellow.Regular("]")
+		break
+	case 2:
+		name = Yellow.Regular("[") + Red.Bold(strings.ToUpper(name)) + Yellow.Regular("]")
+		break
+	case 3:
+		name = Yellow.Regular("[") + Blue.Bold(strings.ToUpper(name)) + Yellow.Regular("]")
+		break
+	case 4:
+		name = Yellow.Regular("[") + Magenta.Bold(strings.ToUpper(name)) + Yellow.Regular("]")
+		break
+	case 5:
+		name = Yellow.Regular("[") + Green.Bold(strings.ToUpper(name)) + Yellow.Regular("]")
+		break
+	}
+	return name
+}
+
+//  Tool logs the result of a go command
+func (p *Project) tools(stop <-chan bool, path string, fi os.FileInfo) {
+	done := make(chan bool)
+	result := make(chan Response)
+	v := reflect.ValueOf(p.Tools)
+	go func() {
+		for i := 0; i < v.NumField()-1; i++ {
+			tool := v.Field(i).Interface().(Tool)
+			if tool.Status && tool.isTool {
+				if fi.IsDir() {
+					if tool.dir {
+						result <- tool.Exec(path, stop)
+					}
+				} else if !tool.dir{
+					result <- tool.Exec(path, stop)
+				}
+			}
+		}
+		close(done)
+	}()
+	for {
+		select {
+		case <-done:
+			return
+		case <-stop:
+			return
+		case r := <-result:
+			if r.Err != nil {
+				msg = fmt.Sprintln(p.pname(p.Name, 2), ":", Red.Bold(r.Name), Red.Regular("there are some errors in"), ":", Magenta.Bold(path))
+				buff := BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: r.Name, Stream: r.Err.Error()}
+				p.stamp("error", buff, msg, r.Err.Error())
+			} else if r.Out != "" {
+				msg = fmt.Sprintln(p.pname(p.Name, 3), ":", Red.Bold(r.Name), Red.Regular("outputs"), ":", Blue.Bold(path))
+				buff := BufferOut{Time: time.Now(), Text: "outputs", Path: path, Type: r.Name, Stream: r.Out}
+				p.stamp("out", buff, msg, r.Out)
+			}
+		}
+	}
+}
+
+// Cmd after/before
+func (p *Project) cmd(stop <-chan bool, flag string, global bool) {
+	done := make(chan bool)
+	result := make(chan Response)
+	// commands sequence
+	go func() {
+		for _, cmd := range p.Watcher.Scripts {
+			if strings.ToLower(cmd.Type) == flag && cmd.Global == global {
+				result <- cmd.exec(p.Path, stop)
+			}
+		}
+		close(done)
+	}()
+	for {
+		select {
+		case <-stop:
+			return
+		case <-done:
+			return
+		case r := <-result:
+			msg = fmt.Sprintln(p.pname(p.Name, 5), ":", Green.Bold("Command"), Green.Bold("\"")+r.Name+Green.Bold("\""))
+			out = BufferOut{Time: time.Now(), Text: r.Name, Type: flag}
+			if r.Err != nil {
+				p.stamp("error", out, msg, "")
+				out = BufferOut{Time: time.Now(), Text: r.Err.Error(), Type: flag}
+				p.stamp("error", out, "", fmt.Sprintln(Red.Regular(r.Err.Error())))
+			}
+			if r.Out != "" {
+				out = BufferOut{Time: time.Now(), Text: r.Out, Type: flag}
+				p.stamp("log", out, "", fmt.Sprintln(r.Out))
+			} else {
+				p.stamp("log", out, msg, "")
+			}
+		}
+	}
+}
+
+// Watch the files tree of a project
+func (p *Project) walk(path string, info os.FileInfo, err error) error {
+	if p.Validate(path, true) {
+		result := p.watcher.Walk(path, p.init)
+		if result != "" {
+			p.tools(p.stop, path,info)
+			if info.IsDir() {
+				// tools dir
+				p.folders++
+			} else {
+				// tools files
+				p.files++
+			}
+		}
+	}
+	return nil
+}
+
+// Print on files, cli, ws
+func (p *Project) stamp(t string, o BufferOut, msg string, stream string) {
+	ctime := time.Now()
+	content := []string{ctime.Format("2006-01-02 15:04:05"), strings.ToUpper(p.Name), ":", o.Text, "\r\n", stream}
+	switch t {
+	case "out":
+		p.Buffer.StdOut = append(p.Buffer.StdOut, o)
+		if p.parent.Settings.Files.Outputs.Status {
+			f := p.parent.Settings.Create(p.Path, p.parent.Settings.Files.Outputs.Name)
+			if _, err := f.WriteString(strings.Join(content, " ")); err != nil {
+				p.parent.Settings.Fatal(err, "")
+			}
+		}
+	case "log":
+		p.Buffer.StdLog = append(p.Buffer.StdLog, o)
+		if p.parent.Settings.Files.Logs.Status {
+			f := p.parent.Settings.Create(p.Path, p.parent.Settings.Files.Logs.Name)
+			if _, err := f.WriteString(strings.Join(content, " ")); err != nil {
+				p.parent.Settings.Fatal(err, "")
+			}
+		}
+	case "error":
+		p.Buffer.StdErr = append(p.Buffer.StdErr, o)
+		if p.parent.Settings.Files.Errors.Status {
+			f := p.parent.Settings.Create(p.Path, p.parent.Settings.Files.Errors.Name)
+			if _, err := f.WriteString(strings.Join(content, " ")); err != nil {
+				p.parent.Settings.Fatal(err, "")
+			}
+		}
+	}
+	if msg != "" {
+		log.Print(msg)
+	}
+	if stream != "" {
+		fmt.Fprint(Output, stream)
+	}
+}
+
 // Run a project
-func (p *Project) Run(path string, stream chan Response, stop <-chan bool) (err error) {
+func (p *Project) run(path string, stream chan Response, stop <-chan bool) (err error) {
 	var args []string
 	var build *exec.Cmd
 	var r Response
@@ -418,167 +606,6 @@ func (p *Project) Run(path string, stream chan Response, stop <-chan bool) (err 
 	}
 }
 
-// Error occurred
-func (p *Project) err(err error) {
-	msg = fmt.Sprintln(p.pname(p.Name, 2), ":", Red.Regular(err.Error()))
-	out = BufferOut{Time: time.Now(), Text: err.Error()}
-	p.stamp("error", out, msg, "")
-}
-
-// Defines the colors scheme for the project name
-func (p *Project) pname(name string, color int) string {
-	switch color {
-	case 1:
-		name = Yellow.Regular("[") + strings.ToUpper(name) + Yellow.Regular("]")
-		break
-	case 2:
-		name = Yellow.Regular("[") + Red.Bold(strings.ToUpper(name)) + Yellow.Regular("]")
-		break
-	case 3:
-		name = Yellow.Regular("[") + Blue.Bold(strings.ToUpper(name)) + Yellow.Regular("]")
-		break
-	case 4:
-		name = Yellow.Regular("[") + Magenta.Bold(strings.ToUpper(name)) + Yellow.Regular("]")
-		break
-	case 5:
-		name = Yellow.Regular("[") + Green.Bold(strings.ToUpper(name)) + Yellow.Regular("]")
-		break
-	}
-	return name
-}
-
-//  Tool logs the result of a go command
-func (p *Project) tools(stop <-chan bool, path string) {
-	if len(path) > 0 {
-		done := make(chan bool)
-		result := make(chan Response)
-		v := reflect.ValueOf(p.Tools)
-		go func() {
-			for i := 0; i < v.NumField()-1; i++ {
-				tool := v.Field(i).Interface().(Tool)
-				if tool.Status && tool.isTool {
-					result <- tool.Exec(path, stop)
-				}
-			}
-			close(done)
-		}()
-		for {
-			select {
-			case <-done:
-				return
-			case <-stop:
-				return
-			case r := <-result:
-				if r.Err != nil {
-					msg = fmt.Sprintln(p.pname(p.Name, 2), ":", Red.Bold(r.Name), Red.Regular("there are some errors in"), ":", Magenta.Bold(path))
-					buff := BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: r.Name, Stream: r.Err.Error()}
-					p.stamp("error", buff, msg, r.Err.Error())
-				} else if r.Out != "" {
-					msg = fmt.Sprintln(p.pname(p.Name, 3), ":", Red.Bold(r.Name), Red.Regular("outputs"), ":", Blue.Bold(path))
-					buff := BufferOut{Time: time.Now(), Text: "outputs", Path: path, Type: r.Name, Stream: r.Out}
-					p.stamp("out", buff, msg, r.Out)
-				}
-			}
-		}
-	}
-}
-
-// Cmd after/before
-func (p *Project) cmd(stop <-chan bool, flag string, global bool) {
-	done := make(chan bool)
-	result := make(chan Response)
-	// commands sequence
-	go func() {
-		for _, cmd := range p.Watcher.Scripts {
-			if strings.ToLower(cmd.Type) == flag && cmd.Global == global {
-				result <- cmd.Exec(p.Path, stop)
-			}
-		}
-		close(done)
-	}()
-	for {
-		select {
-		case <-stop:
-			return
-		case <-done:
-			return
-		case r := <-result:
-			msg = fmt.Sprintln(p.pname(p.Name, 5), ":", Green.Bold("Command"), Green.Bold("\"")+r.Name+Green.Bold("\""))
-			out = BufferOut{Time: time.Now(), Text: r.Name, Type: flag}
-			if r.Err != nil {
-				p.stamp("error", out, msg, "")
-				out = BufferOut{Time: time.Now(), Text: r.Err.Error(), Type: flag}
-				p.stamp("error", out, "", fmt.Sprintln(Red.Regular(r.Err.Error())))
-			}
-			if r.Out != "" {
-				out = BufferOut{Time: time.Now(), Text: r.Out, Type: flag}
-				p.stamp("log", out, "", fmt.Sprintln(r.Out))
-			} else {
-				p.stamp("log", out, msg, "")
-			}
-		}
-	}
-}
-
-// Watch the files tree of a project
-func (p *Project) walk(path string, info os.FileInfo, err error) error {
-	for _, v := range p.Watcher.Ignore {
-		s := append([]string{p.Path}, strings.Split(v, string(os.PathSeparator))...)
-		if strings.Contains(path, filepath.Join(s...)) {
-			return nil
-		}
-	}
-	if !strings.HasPrefix(path, ".") && (info.IsDir() || array(ext(path), p.Watcher.Exts)) {
-		result := p.watcher.Walk(path, p.init)
-		if result != "" {
-			if info.IsDir() {
-				p.folders++
-			} else {
-				p.files++
-			}
-		}
-	}
-	return nil
-}
-
-// Print on files, cli, ws
-func (p *Project) stamp(t string, o BufferOut, msg string, stream string) {
-	ctime := time.Now()
-	content := []string{ctime.Format("2006-01-02 15:04:05"), strings.ToUpper(p.Name), ":", o.Text, "\r\n", stream}
-	switch t {
-	case "out":
-		p.Buffer.StdOut = append(p.Buffer.StdOut, o)
-		if p.parent.Settings.Files.Outputs.Status {
-			f := p.parent.Settings.Create(p.Path, p.parent.Settings.Files.Outputs.Name)
-			if _, err := f.WriteString(strings.Join(content, " ")); err != nil {
-				p.parent.Settings.Fatal(err, "")
-			}
-		}
-	case "log":
-		p.Buffer.StdLog = append(p.Buffer.StdLog, o)
-		if p.parent.Settings.Files.Logs.Status {
-			f := p.parent.Settings.Create(p.Path, p.parent.Settings.Files.Logs.Name)
-			if _, err := f.WriteString(strings.Join(content, " ")); err != nil {
-				p.parent.Settings.Fatal(err, "")
-			}
-		}
-	case "error":
-		p.Buffer.StdErr = append(p.Buffer.StdErr, o)
-		if p.parent.Settings.Files.Errors.Status {
-			f := p.parent.Settings.Create(p.Path, p.parent.Settings.Files.Errors.Name)
-			if _, err := f.WriteString(strings.Join(content, " ")); err != nil {
-				p.parent.Settings.Fatal(err, "")
-			}
-		}
-	}
-	if msg != "" {
-		log.Print(msg)
-	}
-	if stream != "" {
-		fmt.Fprint(Output, stream)
-	}
-}
-
 // Print with time after
 func (r *Response) print(start time.Time, p *Project) {
 	if r.Err != nil {
@@ -590,4 +617,41 @@ func (r *Response) print(start time.Time, p *Project) {
 		out = BufferOut{Time: time.Now(), Text: r.Name + " in " + big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3) + " s"}
 		p.stamp("log", out, msg, r.Out)
 	}
+}
+
+// Exec an additional command from a defined path if specified
+func (c *Command) exec(base string, stop <-chan bool) (response Response) {
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	done := make(chan error)
+	args := strings.Split(strings.Replace(strings.Replace(c.Cmd, "'", "", -1), "\"", "", -1), " ")
+	ex := exec.Command(args[0], args[1:]...)
+	ex.Dir = base
+	// make cmd path
+	if c.Path != "" {
+		if strings.Contains(c.Path, base) {
+			ex.Dir = c.Path
+		} else {
+			ex.Dir = filepath.Join(base, c.Path)
+		}
+	}
+	ex.Stdout = &stdout
+	ex.Stderr = &stderr
+	// Start command
+	ex.Start()
+	go func() { done <- ex.Wait() }()
+	// Wait a result
+	select {
+	case <-stop:
+		// Stop running command
+		ex.Process.Kill()
+	case err := <-done:
+		// Command completed
+		response.Name = c.Cmd
+		response.Out = stdout.String()
+		if err != nil {
+			response.Err = errors.New(stderr.String())
+		}
+	}
+	return
 }

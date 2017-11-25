@@ -14,6 +14,7 @@ type Tool struct {
 	Method string   `yaml:"method,omitempty" json:"method,omitempty"`
 	Dir    string   `yaml:"dir,omitempty" json:"dir,omitempty"` //wdir of the command
 	Status bool     `yaml:"status,omitempty" json:"status,omitempty"`
+	Output bool     `yaml:"output,omitempty" json:"output,omitempty"`
 	dir    bool
 	isTool bool
 	method []string
@@ -133,7 +134,9 @@ func (t *Tool) Exec(path string, stop <-chan bool) (response Response) {
 				if err != nil {
 					response.Err = errors.New(stderr.String() + out.String())
 				} else {
-					response.Out = out.String()
+					if t.Output {
+						response.Out = out.String()
+					}
 				}
 			}
 		}

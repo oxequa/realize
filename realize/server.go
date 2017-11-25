@@ -20,11 +20,11 @@ const (
 
 // Server settings
 type Server struct {
-	Parent *Realize
-	Status bool   `yaml:"status" json:"status"`
-	Open   bool   `yaml:"open" json:"open"`
-	Port   int    `yaml:"port" json:"port"`
-	Host   string `yaml:"host" json:"host"`
+	Parent *Realize `yaml:"-"`
+	Status bool     `yaml:"status" json:"status"`
+	Open   bool     `yaml:"open" json:"open"`
+	Port   int      `yaml:"port" json:"port"`
+	Host   string   `yaml:"host" json:"host"`
 }
 
 // Websocket projects
