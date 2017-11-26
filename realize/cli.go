@@ -2,8 +2,8 @@ package realize
 
 import (
 	"fmt"
-	"go/build"
 	"github.com/fsnotify/fsnotify"
+	"go/build"
 	"log"
 	"os"
 	"os/signal"
@@ -14,17 +14,25 @@ import (
 )
 
 const (
-	RPrefix  = "realize"
+	// RPrefix tool name
+	RPrefix = "realize"
+	// RVersion current version
 	RVersion = "2.0"
-	RExt     = ".yaml"
-	RFile    = RPrefix + RExt
-	RDir     = "." + RPrefix
-	RExtWin  = ".exe"
+	// RExt file extension
+	RExt = ".yaml"
+	// RFile config file name
+	RFile = RPrefix + RExt
+	// RDir config dir
+	RDir = "." + RPrefix
+	//RExtWin windows extension
+	RExtWin = ".exe"
 )
 
 type (
+	// LogWriter used for all log
 	LogWriter struct{}
 
+	// Realize main struct
 	Realize struct {
 		Settings Settings `yaml:"settings" json:"settings"`
 		Server   Server   `yaml:"server" json:"server"`
@@ -38,6 +46,7 @@ type (
 		Reload   Func `yaml:"-"`
 	}
 
+	// Context is used as argument for func
 	Context struct {
 		Path    string
 		Project *Project
@@ -46,6 +55,7 @@ type (
 		Event   fsnotify.Event
 	}
 
+	// Func is used instead realize func
 	Func func(Context)
 )
 
@@ -67,7 +77,7 @@ func (r *Realize) Stop() {
 	close(r.exit)
 }
 
-// Run realize workflow
+// Start realize workflow
 func (r *Realize) Start() {
 	r.exit = make(chan os.Signal, 2)
 	signal.Notify(r.exit, os.Interrupt, syscall.SIGTERM)

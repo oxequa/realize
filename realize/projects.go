@@ -87,18 +87,18 @@ type BufferOut struct {
 }
 
 // After stop watcher
-func (p *Project) After(){
-	if p.parent.After != nil{
-		p.parent.After(Context{Project:p})
+func (p *Project) After() {
+	if p.parent.After != nil {
+		p.parent.After(Context{Project: p})
 		return
 	}
 	p.cmd(nil, "after", true)
 }
 
 // Before start watcher
-func (p *Project) Before(){
-	if p.parent.Before != nil{
-		p.parent.Before(Context{Project:p})
+func (p *Project) Before() {
+	if p.parent.Before != nil {
+		p.parent.Before(Context{Project: p})
 		return
 	}
 	// setup go tools
@@ -127,10 +127,10 @@ func (p *Project) Before(){
 	p.stamp("log", out, msg, "")
 }
 
-// Error occurred
+// Err occurred
 func (p *Project) Err(err error) {
-	if p.parent.Err != nil{
-		p.parent.Err(Context{Project:p})
+	if p.parent.Err != nil {
+		p.parent.Err(Context{Project: p})
 		return
 	}
 	if err != nil {
@@ -142,8 +142,8 @@ func (p *Project) Err(err error) {
 
 // Change event message
 func (p *Project) Change(event fsnotify.Event) {
-	if p.parent.Change != nil{
-		p.parent.Change(Context{Project:p,Event:event})
+	if p.parent.Change != nil {
+		p.parent.Change(Context{Project: p, Event: event})
 		return
 	}
 	// file extension
@@ -159,8 +159,8 @@ func (p *Project) Change(event fsnotify.Event) {
 
 // Reload launches the toolchain run, build, install
 func (p *Project) Reload(watcher FileWatcher, path string, stop <-chan bool) {
-	if p.parent.Reload != nil{
-		p.parent.Reload(Context{Project:p,Watcher:watcher,Path:path,Stop:stop})
+	if p.parent.Reload != nil {
+		p.parent.Reload(Context{Project: p, Watcher: watcher, Path: path, Stop: stop})
 		return
 	}
 	var done bool
@@ -183,9 +183,9 @@ func (p *Project) Reload(watcher FileWatcher, path string, stop <-chan bool) {
 		return
 	}
 	// Go supported tools
-	if len(path) > 0{
+	if len(path) > 0 {
 		fi, err := os.Stat(path)
-		if err != nil{
+		if err != nil {
 			p.Err(err)
 		}
 		p.tools(stop, path, fi)
@@ -340,7 +340,7 @@ L:
 
 // Validate a file path
 func (p *Project) Validate(path string, fiche bool) bool {
-	if len(path) <= 0{
+	if len(path) <= 0 {
 		return false
 	}
 	// check if skip hidden
@@ -414,7 +414,7 @@ func (p *Project) tools(stop <-chan bool, path string, fi os.FileInfo) {
 					if tool.dir {
 						result <- tool.Exec(path, stop)
 					}
-				} else if !tool.dir{
+				} else if !tool.dir {
 					result <- tool.Exec(path, stop)
 				}
 			}
@@ -483,7 +483,7 @@ func (p *Project) walk(path string, info os.FileInfo, err error) error {
 	if p.Validate(path, true) {
 		result := p.watcher.Walk(path, p.init)
 		if result != "" {
-			p.tools(p.stop, path,info)
+			p.tools(p.stop, path, info)
 			if info.IsDir() {
 				// tools dir
 				p.folders++

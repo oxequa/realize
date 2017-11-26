@@ -5,11 +5,17 @@ import (
 )
 
 var (
-	Output  = color.Output
-	Red     = colorBase(color.FgHiRed)
-	Blue    = colorBase(color.FgHiBlue)
-	Green   = colorBase(color.FgHiGreen)
-	Yellow  = colorBase(color.FgHiYellow)
+	//Output writer
+	Output = color.Output
+	// Red color
+	Red = colorBase(color.FgHiRed)
+	// Blue color
+	Blue = colorBase(color.FgHiBlue)
+	// Green color
+	Green = colorBase(color.FgHiGreen)
+	// Yellow color
+	Yellow = colorBase(color.FgHiYellow)
+	// Magenta color
 	Magenta = colorBase(color.FgHiMagenta)
 )
 

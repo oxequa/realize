@@ -2,11 +2,11 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"github.com/tockins/realize/realize"
 	"log"
 	"strings"
 	"testing"
-	"errors"
 )
 
 var mockResponse interface{}
