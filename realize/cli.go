@@ -3,7 +3,7 @@ package realize
 import (
 	"fmt"
 	"go/build"
-	"gopkg.in/fsnotify.v1"
+	"github.com/fsnotify/fsnotify"
 	"log"
 	"os"
 	"os/signal"
@@ -40,7 +40,7 @@ type (
 
 	Context struct {
 		Path    string
-		Project Project
+		Project *Project
 		Stop    <-chan bool
 		Watcher FileWatcher
 		Event   fsnotify.Event

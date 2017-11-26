@@ -87,12 +87,20 @@ type BufferOut struct {
 }
 
 // After stop watcher
-func (p *Project) After() {
+func (p *Project) After(){
+	if p.parent.After != nil{
+		p.parent.After(Context{Project:p})
+		return
+	}
 	p.cmd(nil, "after", true)
 }
 
 // Before start watcher
-func (p *Project) Before() {
+func (p *Project) Before(){
+	if p.parent.Before != nil{
+		p.parent.Before(Context{Project:p})
+		return
+	}
 	// setup go tools
 	p.Tools.Setup()
 	// set env const
@@ -121,13 +129,23 @@ func (p *Project) Before() {
 
 // Error occurred
 func (p *Project) Err(err error) {
-	msg = fmt.Sprintln(p.pname(p.Name, 2), ":", Red.Regular(err.Error()))
-	out = BufferOut{Time: time.Now(), Text: err.Error()}
-	p.stamp("error", out, msg, "")
+	if p.parent.Err != nil{
+		p.parent.Err(Context{Project:p})
+		return
+	}
+	if err != nil {
+		msg = fmt.Sprintln(p.pname(p.Name, 2), ":", Red.Regular(err.Error()))
+		out = BufferOut{Time: time.Now(), Text: err.Error()}
+		p.stamp("error", out, msg, "")
+	}
 }
 
 // Change event message
 func (p *Project) Change(event fsnotify.Event) {
+	if p.parent.Change != nil{
+		p.parent.Change(Context{Project:p,Event:event})
+		return
+	}
 	// file extension
 	ext := ext(event.Name)
 	if ext == "" {
@@ -141,6 +159,10 @@ func (p *Project) Change(event fsnotify.Event) {
 
 // Reload launches the toolchain run, build, install
 func (p *Project) Reload(watcher FileWatcher, path string, stop <-chan bool) {
+	if p.parent.Reload != nil{
+		p.parent.Reload(Context{Project:p,Watcher:watcher,Path:path,Stop:stop})
+		return
+	}
 	var done bool
 	var install, build Response
 	go func() {
