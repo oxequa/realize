@@ -154,7 +154,7 @@ func (t *Tool) Compile(path string, stop <-chan bool) (response Response) {
 	if t.Dir != "" {
 		cmd.Dir, _ = filepath.Abs(t.Dir)
 	} else {
-		cmd.Dir = filepath.Dir(path)
+		cmd.Dir = path
 	}
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
