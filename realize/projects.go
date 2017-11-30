@@ -158,9 +158,9 @@ func (p *Project) Change(event fsnotify.Event) {
 }
 
 // Reload launches the toolchain run, build, install
-func (p *Project) Reload(watcher FileWatcher, path string, stop <-chan bool) {
+func (p *Project) Reload(path string, stop <-chan bool) {
 	if p.parent.Reload != nil {
-		p.parent.Reload(Context{Project: p, Watcher: watcher, Path: path, Stop: stop})
+		p.parent.Reload(Context{Project: p, Watcher: p.watcher, Path: path, Stop: stop})
 		return
 	}
 	var done bool
@@ -286,7 +286,7 @@ func (p *Project) Watch(exit chan os.Signal) {
 	// before start checks
 	p.Before()
 	// start watcher
-	go p.Reload(p.watcher, "", p.stop)
+	go p.Reload("", p.stop)
 L:
 	for {
 		select {
@@ -304,7 +304,7 @@ L:
 						close(p.stop)
 						p.stop = make(chan bool)
 						p.Change(event)
-						go p.Reload(p.watcher, "", p.stop)
+						go p.Reload( "", p.stop)
 					}
 				default:
 					if p.Validate(event.Name, true) {
@@ -320,7 +320,7 @@ L:
 								close(p.stop)
 								p.stop = make(chan bool)
 								p.Change(event)
-								go p.Reload(p.watcher, event.Name, p.stop)
+								go p.Reload(event.Name, p.stop)
 							}
 							p.lastTime = time.Now().Truncate(time.Second)
 							p.lastFile = event.Name
