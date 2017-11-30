@@ -1,5 +1,7 @@
 package realize
 
+import "syscall"
+
 // isHidden check if a file or a path is hidden
 func isHidden(path string) bool {
 	p, e := syscall.UTF16PtrFromString(path)
