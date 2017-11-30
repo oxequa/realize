@@ -9,7 +9,6 @@ import (
 	"testing"
 	"github.com/fsnotify/fsnotify"
 	"os/signal"
-	"syscall"
 	"time"
 )
 
@@ -143,7 +142,7 @@ func TestProject_Watch(t *testing.T) {
 		parent: &r,
 	})
 	r.exit = make(chan os.Signal, 2)
-	signal.Notify(r.exit, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(r.exit, os.Interrupt)
 	go func(){
 		time.Sleep(100)
 		close(r.exit)

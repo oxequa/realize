@@ -540,9 +540,9 @@ func (p *Project) run(path string, stream chan Response, stop <-chan bool) (err 
 	var build *exec.Cmd
 	var r Response
 	defer func() {
-		if e := build.Process.Kill(); e != nil {
-			err = e
-		}
+		// https://github.com/golang/go/issues/5615
+		// https://github.com/golang/go/issues/6720
+		build.Process.Signal(os.Interrupt)
 	}()
 
 	// custom error pattern

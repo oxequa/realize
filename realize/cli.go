@@ -9,7 +9,6 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strings"
-	"syscall"
 	"time"
 )
 
@@ -79,8 +78,8 @@ func (r *Realize) Stop() {
 
 // Start realize workflow
 func (r *Realize) Start() {
-	r.exit = make(chan os.Signal, 2)
-	signal.Notify(r.exit, os.Interrupt, syscall.SIGTERM)
+	r.exit = make(chan os.Signal, 1)
+	signal.Notify(r.exit, os.Interrupt)
 	for k := range r.Schema.Projects {
 		r.Schema.Projects[k].parent = r
 		go r.Schema.Projects[k].Watch(r.exit)
