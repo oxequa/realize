@@ -13,10 +13,10 @@ import (
 // settings const
 const (
 	Permission = 0775
-	File       = "realize.yaml"
-	FileOut    = "outputs.log"
-	FileErr    = "errors.log"
-	FileLog    = "logs.log"
+	File       = ".realize.yaml"
+	FileOut    = ".r.outputs.log"
+	FileErr    = ".r.errors.log"
+	FileLog    = ".r.logs.log"
 )
 
 // random string preference
@@ -84,15 +84,11 @@ func (s *Settings) Remove(d string) error {
 
 // Read config file
 func (s *Settings) Read(out interface{}) error {
-	localConfigPath := RFile
 	// backward compatibility
-	path := filepath.Join(RDir, RFile)
-	if _, err := os.Stat(path); err == nil {
-		localConfigPath = path
-	} else {
-		return nil
+	if _, err := os.Stat(RFile); err != nil {
+		return err
 	}
-	content, err := s.Stream(localConfigPath)
+	content, err := s.Stream(RFile)
 	if err == nil {
 		err = yaml.Unmarshal(content, out)
 		return err
@@ -106,12 +102,7 @@ func (s *Settings) Write(out interface{}) error {
 	if err != nil {
 		return err
 	}
-	if _, err := os.Stat(RDir); os.IsNotExist(err) {
-		if err = os.Mkdir(RDir, Permission); err != nil {
-			s.Fatal(ioutil.WriteFile(RFile, y, Permission))
-		}
-	}
-	s.Fatal(ioutil.WriteFile(filepath.Join(RDir, RFile), y, Permission))
+	s.Fatal(ioutil.WriteFile(RFile, y, Permission))
 	return nil
 }
 
@@ -139,12 +130,7 @@ func (s Settings) Fatal(err error, msg ...interface{}) {
 
 // Create a new file and return its pointer
 func (s Settings) Create(path string, name string) *os.File {
-	var file string
-	if _, err := os.Stat(RDir); err == nil {
-		file = filepath.Join(path, RDir, name)
-	} else {
-		file = filepath.Join(path, name)
-	}
+	file := filepath.Join(path, name)
 	out, err := os.OpenFile(file, os.O_APPEND|os.O_WRONLY|os.O_CREATE|os.O_SYNC, Permission)
 	s.Fatal(err)
 	return out

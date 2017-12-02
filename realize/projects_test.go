@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func TestProject_After(t *testing.T) {
+func TestProject_After(t *testing.T) /**/{
 	var buf bytes.Buffer
 	log.SetOutput(&buf)
 	r := Realize{}

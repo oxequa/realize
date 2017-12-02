@@ -20,9 +20,7 @@ const (
 	// RExt file extension
 	RExt = ".yaml"
 	// RFile config file name
-	RFile = RPrefix + RExt
-	// RDir config dir
-	RDir = "." + RPrefix
+	RFile = "." + RPrefix + RExt
 	//RExtWin windows extension
 	RExtWin = ".exe"
 )

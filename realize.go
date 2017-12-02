@@ -113,9 +113,9 @@ func version() {
 	log.Println(r.Prefix(realize.Green.Bold(realize.RVersion)))
 }
 
-// Clean remove realize folder
+// Clean remove realize file
 func clean() (err error) {
-	if err := r.Settings.Remove(realize.RDir); err != nil {
+	if err := r.Settings.Remove(realize.RFile); err != nil {
 		return err
 	}
 	log.Println(r.Prefix(realize.Green.Bold("folder successfully removed")))
@@ -156,7 +156,7 @@ func setup(c *cli.Context) (err error) {
 		Questions: []*interact.Question{
 			{
 				Before: func(d interact.Context) error {
-					if _, err := os.Stat(realize.RDir + "/" + realize.RFile); err != nil {
+					if _, err := os.Stat(realize.RFile); err != nil {
 						d.Skip()
 					}
 					d.SetDef(false, realize.Green.Regular("(n)"))
@@ -1139,7 +1139,7 @@ func setup(c *cli.Context) (err error) {
 		},
 		After: func(d interact.Context) error {
 			if val, _ := d.Qns().Get(0).Ans().Bool(); val {
-				err := r.Settings.Remove(realize.RDir)
+				err := r.Settings.Remove(realize.RFile)
 				if err != nil {
 					return err
 				}
