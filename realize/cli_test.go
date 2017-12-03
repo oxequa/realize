@@ -49,7 +49,7 @@ func TestRealize_Prefix(t *testing.T) {
 	}
 }
 
-func TestSettings_Read(t *testing.T) {
+func TestLogWriter_Write(t *testing.T) {
 	var buf bytes.Buffer
 	log.SetOutput(&buf)
 	w := LogWriter{}
