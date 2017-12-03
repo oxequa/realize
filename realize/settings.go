@@ -4,7 +4,6 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"time"
@@ -54,24 +53,6 @@ type Resource struct {
 	Status bool
 	Path   string
 	Name   string
-}
-
-// Rand is used for generate a random string
-func random(n int) string {
-	src := rand.NewSource(time.Now().UnixNano())
-	b := make([]byte, n)
-	for i, cache, remain := n-1, src.Int63(), letterIdxMax; i >= 0; {
-		if remain == 0 {
-			cache, remain = src.Int63(), letterIdxMax
-		}
-		if idx := int(cache & letterIdxMask); idx < len(letterBytes) {
-			b[i] = letterBytes[idx]
-			i--
-		}
-		cache >>= letterIdxBits
-		remain--
-	}
-	return string(b)
 }
 
 // Remove realize folder

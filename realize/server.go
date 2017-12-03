@@ -152,7 +152,9 @@ func (s *Server) Start() (err error) {
 	e.GET("/ws", s.projects)
 	e.HideBanner = true
 	e.Debug = false
-	go e.Start(string(s.Parent.Server.Host) + ":" + strconv.Itoa(s.Parent.Server.Port))
+	go func() {
+		e.Start(string(s.Host) + ":" + strconv.Itoa(s.Port))
+	}()
 	return nil
 }
 
