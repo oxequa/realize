@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestArgsParam(t *testing.T) {
+func TestParams(t *testing.T) {
 	set := flag.NewFlagSet("test", 0)
 	set.Bool("myflag", false, "doc")
 	p := cli.NewContext(nil, set, nil)
@@ -43,7 +43,7 @@ func TestDuplicates(t *testing.T) {
 
 }
 
-func TestInArray(t *testing.T) {
+func TestArray(t *testing.T) {
 	arr := []string{"a", "b", "c"}
 	if !array(arr[0], arr) {
 		t.Fatal("Unexpected", arr[0], "should be in", arr)
