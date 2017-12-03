@@ -52,6 +52,7 @@ type Files struct {
 // Resource status and file name
 type Resource struct {
 	Status bool
+	Path   string
 	Name   string
 }
 

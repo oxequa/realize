@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	"github.com/go-siris/siris/core/errors"
 )
 
 const (
@@ -70,23 +71,33 @@ func init() {
 }
 
 // Stop realize workflow
-func (r *Realize) Stop() {
-	close(r.exit)
+func (r *Realize) Stop() error{
+	if r.exit != nil{
+		close(r.exit)
+		return nil
+	}else{
+		return errors.New("exit chan undefined")
+	}
 }
 
 // Start realize workflow
-func (r *Realize) Start() {
-	r.exit = make(chan os.Signal, 1)
-	signal.Notify(r.exit, os.Interrupt)
-	for k := range r.Schema.Projects {
-		r.Schema.Projects[k].parent = r
-		go r.Schema.Projects[k].Watch(r.exit)
-	}
-	for {
-		select {
-		case <-r.exit:
-			return
+func (r *Realize) Start() error {
+	if len(r.Schema.Projects) > 0 {
+		r.exit = make(chan os.Signal, 1)
+		signal.Notify(r.exit, os.Interrupt)
+		for k := range r.Schema.Projects {
+			r.Schema.Projects[k].parent = r
+			go r.Schema.Projects[k].Watch(r.exit)
 		}
+		for {
+			select {
+			case <-r.exit:
+				return nil
+			}
+		}
+		return nil
+	}else{
+		return errors.New("there are no projects")
 	}
 }
 

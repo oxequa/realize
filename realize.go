@@ -1168,7 +1168,7 @@ func start(c *cli.Context) (err error) {
 		}
 		if c.String("name") != "" {
 			// filter by name flag if exist
-			r.Schema.Filter("name", c.String("name"))
+			r.Schema.Projects = r.Schema.Filter("Name", c.String("name"))
 		}
 		// increase file limit
 		if r.Settings.FileLimit != 0 {
@@ -1205,8 +1205,7 @@ func start(c *cli.Context) (err error) {
 		}
 	}
 	// start workflow
-	r.Start()
-	return
+	return r.Start()
 }
 
 // Remove a project from an existing config

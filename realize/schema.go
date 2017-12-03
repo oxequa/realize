@@ -36,7 +36,7 @@ func (s *Schema) Remove(name string) error {
 // New create a project using cli fields
 func (s *Schema) New(c *cli.Context) Project {
 	name := filepath.Base(c.String("path"))
-	if name == "." {
+	if len(name) == 0 || name == "." {
 		name = filepath.Base(Wdir())
 	}
 	project := Project{
@@ -76,4 +76,17 @@ func (s *Schema) New(c *cli.Context) Project {
 }
 
 // Filter project list by field
-func (s *Schema) Filter(field string, value interface{}) {}
+func (s *Schema) Filter(field string, value interface{}) []Project{
+	result := []Project{}
+	for _, item := range s.Projects{
+		v := reflect.ValueOf(item)
+		for i := 0; i < v.NumField(); i++ {
+			if v.Type().Field(i).Name == field {
+				if reflect.DeepEqual(v.Field(i).Interface(), value) {
+					 result = append(result,item)
+				}
+			}
+		}
+	}
+	return result
+}

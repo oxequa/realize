@@ -21,6 +21,11 @@ func TestRealize_Stop(t *testing.T) {
 
 func TestRealize_Start(t *testing.T) {
 	r := Realize{}
+	err := r.Start()
+	if err == nil{
+		t.Error("Error expected")
+	}
+	r.Projects = append(r.Projects,Project{Name:"test"})
 	go func() {
 		time.Sleep(100)
 		close(r.exit)
@@ -29,7 +34,10 @@ func TestRealize_Start(t *testing.T) {
 			t.Error("Unexpected error", "channel should be closed")
 		}
 	}()
-	r.Start()
+	err = r.Start()
+	if err != nil{
+		t.Error("Unexpected error", err)
+	}
 }
 
 func TestRealize_Prefix(t *testing.T) {
