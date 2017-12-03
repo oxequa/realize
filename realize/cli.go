@@ -13,7 +13,7 @@ import (
 	"github.com/go-siris/siris/core/errors"
 )
 
-const (
+var (
 	// RPrefix tool name
 	RPrefix = "realize"
 	// RVersion current version
