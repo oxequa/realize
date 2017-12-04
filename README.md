@@ -6,7 +6,7 @@
 [![](https://img.shields.io/badge/realize-examples-yellow.svg?style=flat-square)](https://github.com/tockins/realize-examples)
 [![Gitter](https://img.shields.io/gitter/room/tockins/realize.svg?style=flat-square)](https://gitter.im/tockins/realize?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Go Report Card](https://goreportcard.com/badge/github.com/tockins/realize?style=flat-square)](https://goreportcard.com/report/github.com/tockins/realize)
-<!--[![OpenCollective](https://opencollective.com/realize/backers/badge.svg?style=flat-square)](#backers) 
+<!--[![OpenCollective](https://opencollective.com/realize/backers/badge.svg?style=flat-square)](#backers)
 [![OpenCollective](https://opencollective.com/realize/sponsors/badge.svg?style=flat-square)](#sponsors)-->
 
 <br>
@@ -20,7 +20,7 @@
 <br>
 
 <p align="center">
-    <img src="http://i.imgur.com/KpMSLnE.png">
+    <img src="https://gorealize.io/img/realize-ui-2.png">
 </p>
 
 
@@ -54,12 +54,12 @@
 
 ### Run Command
 From **project/projects** root execute:
-    
+
     $ realize start
-    
-    
-It will create a **realize.yaml** file if doesn't already exist, add the working directory as project and run your workflow.
-    
+
+
+It will create a **.realize.yaml** file if doesn't already exist, add the working directory as project and run your workflow.
+
 ***start*** command supports the following custom parameters:
 
     --name="name"               -> Run by name on existing configuration
@@ -69,24 +69,25 @@ It will create a **realize.yaml** file if doesn't already exist, add the working
     --test                      -> Enable go test
     --vet                       -> Enable go vet
     --install                   -> Enable go install
-    --build                     -> Enable go build   
+    --build                     -> Enable go build
     --run                       -> Enable go run
     --server                    -> Enable the web server
+    --open                      -> Open web ui in default browser
     --no-config                 -> Ignore an existing config / skip the creation of a new one
 
 Some examples:
-    
+
     $ realize start
     $ realize start --path="mypath"
     $ realize start --name="realize" --build
     $ realize start --path="realize" --run --no-config
     $ realize start --install --test --fmt --no-config
     $ realize start --path="/Users/username/go/src/github.com/tockins/realize-examples/coin/"
-    
+
 If you want, you can specify additional arguments for your project:
 
 	✅ $ realize start --path="/print/printer" --run yourParams --yourFlags // right
-    ❌ $ realize start yourParams --yourFlags --path="/print/printer" --run // wrong    
+    ❌ $ realize start yourParams --yourFlags --path="/print/printer" --run // wrong
 
 ⚠️ The additional arguments **must go after** the params:
 <br>
@@ -98,10 +99,10 @@ Add a project to an existing config file or create a new one.
     $ realize add
 💡 ***add*** supports the same parameters as ***start*** command.
 ### Init Command
-This command allows you to create a custom configuration step-by-step. 
+This command allows you to create a custom configuration step-by-step.
 
     $ realize init
-    
+
 💡 ***init*** is the only command that supports a complete customization of all supported options.
 ### Remove Command
 Remove a project by its name
@@ -117,9 +118,11 @@ Remove a project by its name
 
 
 ## Config sample
-    
+
+*** there is no more a .realize dir, but only a .realize.yaml file ***
+
 For more examples check: [Realize Examples](https://github.com/tockins/realize-examples)
-    
+
     settings:
         legacy:
             force: true             // force polling watcher instead fsnotifiy
@@ -159,11 +162,11 @@ For more examples check: [Realize Examples](https://github.com/tockins/realize-e
             method: gb build    // support differents build tool
             args:               // additional params for the command
             - -race
-        run: true
+        run:
+            status: true
       args:                     // arguments to pass at the project
       - --myarg
       watcher:
-          preview: false         // watched files preview
           paths:                 // watched paths
           - /
           ignore_paths:          // ignored paths
@@ -171,16 +174,23 @@ For more examples check: [Realize Examples](https://github.com/tockins/realize-e
           extensions:                  // watched extensions
           - go
           - html
-          scripts:               // custom scripts
-          - type: before         // type (after/before)
-            command: ./ls -l     // command
-            changed: true        // relaunch when a file change
-            startup: true        // launch at start
+          scripts:
+          - type: before
+            command: echo before global
+            global: true
+            output: true
+          - type: before
+            command: echo before change
+            output: true
           - type: after
-            command: ./ls
-            changed: true
+            command: echo after change
+            output: true
+          - type: after
+            command: echo after global
+            global: true
+            output: true
           errorOutputPattern: mypattern   //custom error pattern
-         
+
 ## Support and Suggestions
 💬 Chat with us [Gitter](https://gitter.im/tockins/realize)<br>
 ⭐️ Suggest a new [Feature](https://github.com/tockins/realize/issues/new)
@@ -197,5 +207,3 @@ Support us with a monthly donation and help us continue our activities. [[Become
 ## Sponsors
 
 Become a sponsor and get your logo here! [[Become a sponsor](https://opencollective.com/realize#sponsor)]
-
-
