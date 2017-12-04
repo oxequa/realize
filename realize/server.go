@@ -123,32 +123,23 @@ func (s *Server) Start() (err error) {
 	e.GET("/app/components/index.html", func(c echo.Context) error {
 		return s.render(c, "assets/app/components/index.html", 1)
 	})
-	e.GET("/assets/img/svg/settings.svg", func(c echo.Context) error {
-		return s.render(c, "assets/assets/img/svg/settings.svg", 4)
+	e.GET("/assets/img/logo.png", func(c echo.Context) error {
+		return s.render(c, "assets/assets/img/logo.png", 5)
 	})
-	e.GET("/assets/img/svg/fullscreen.svg", func(c echo.Context) error {
-		return s.render(c, "assets/assets/img/svg/fullscreen.svg", 4)
+	e.GET("/assets/img/svg/github-logo.svg", func(c echo.Context) error {
+		return s.render(c, "assets/assets/img/svg/github-logo.svg", 4)
 	})
-	e.GET("/assets/img/svg/add.svg", func(c echo.Context) error {
-		return s.render(c, "assets/assets/img/svg/add.svg", 4)
+	e.GET("/assets/img/svg/ic_arrow_back_black_48px.svg", func(c echo.Context) error {
+		return s.render(c, "assets/assets/img/svg/ic_arrow_back_black_48px.svg", 4)
 	})
-	e.GET("/assets/img/svg/backspace.svg", func(c echo.Context) error {
-		return s.render(c, "assets/assets/img/svg/backspace.svg", 4)
+	e.GET("/assets/img/svg/ic_clear_white_48px.svg", func(c echo.Context) error {
+		return s.render(c, "assets/assets/img/svg/ic_clear_white_48px.svg", 4)
 	})
-	e.GET("/assets/img/svg/error.svg", func(c echo.Context) error {
-		return s.render(c, "assets/assets/img/svg/error.svg", 4)
+	e.GET("/assets/img/svg/ic_menu_white_48px.svg", func(c echo.Context) error {
+		return s.render(c, "assets/assets/img/svg/ic_menu_white_48px.svg", 4)
 	})
-	e.GET("/assets/img/svg/remove.svg", func(c echo.Context) error {
-		return s.render(c, "assets/assets/img/remove.svg", 4)
-	})
-	e.GET("/assets/img/svg/logo.svg", func(c echo.Context) error {
-		return s.render(c, "assets/assets/img/svg/logo.svg", 4)
-	})
-	e.GET("/assets/img/fav.png", func(c echo.Context) error {
-		return s.render(c, "assets/assets/img/fav.png", 5)
-	})
-	e.GET("/assets/img/svg/circle.svg", func(c echo.Context) error {
-		return s.render(c, "assets/assets/img/svg/circle.svg", 4)
+	e.GET("/assets/img/svg/ic_settings_black_48px.svg", func(c echo.Context) error {
+		return s.render(c, "assets/assets/img/svg/ic_settings_black_48px.svg", 4)
 	})
 
 	//websocket
