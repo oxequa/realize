@@ -167,7 +167,6 @@ For more examples check: [Realize Examples](https://github.com/tockins/realize-e
       args:                     // arguments to pass at the project
       - --myarg
       watcher:
-          preview: false         // watched files preview
           paths:                 // watched paths
           - /
           ignore_paths:          // ignored paths
