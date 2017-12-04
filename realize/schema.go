@@ -76,14 +76,14 @@ func (s *Schema) New(c *cli.Context) Project {
 }
 
 // Filter project list by field
-func (s *Schema) Filter(field string, value interface{}) []Project{
+func (s *Schema) Filter(field string, value interface{}) []Project {
 	result := []Project{}
-	for _, item := range s.Projects{
+	for _, item := range s.Projects {
 		v := reflect.ValueOf(item)
 		for i := 0; i < v.NumField(); i++ {
 			if v.Type().Field(i).Name == field {
 				if reflect.DeepEqual(v.Field(i).Interface(), value) {
-					 result = append(result,item)
+					result = append(result, item)
 				}
 			}
 		}

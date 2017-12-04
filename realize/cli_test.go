@@ -22,10 +22,10 @@ func TestRealize_Stop(t *testing.T) {
 func TestRealize_Start(t *testing.T) {
 	r := Realize{}
 	err := r.Start()
-	if err == nil{
+	if err == nil {
 		t.Error("Error expected")
 	}
-	r.Projects = append(r.Projects,Project{Name:"test"})
+	r.Projects = append(r.Projects, Project{Name: "test"})
 	go func() {
 		time.Sleep(100)
 		close(r.exit)
@@ -35,7 +35,7 @@ func TestRealize_Start(t *testing.T) {
 		}
 	}()
 	err = r.Start()
-	if err != nil{
+	if err != nil {
 		t.Error("Unexpected error", err)
 	}
 }

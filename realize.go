@@ -549,50 +549,6 @@ func setup(c *cli.Context) (err error) {
 						},
 						Quest: interact.Quest{
 							Options: realize.Yellow.Regular("[y/n]"),
-							Msg:     "Enable go fix",
-							Resolve: func(d interact.Context) bool {
-								val, _ := d.Ans().Bool()
-								return val
-							},
-						},
-						Subs: []*interact.Question{
-							{
-								Before: func(d interact.Context) error {
-									d.SetDef("", realize.Green.Regular("(none)"))
-									return nil
-								},
-								Quest: interact.Quest{
-									Options: realize.Yellow.Regular("[string]"),
-									Msg:     "Fix additional arguments",
-								},
-								Action: func(d interact.Context) interface{} {
-									val, err := d.Ans().String()
-									if err != nil {
-										return d.Err()
-									}
-									if val != "" {
-										r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Fix.Args = append(r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Fix.Args, val)
-									}
-									return nil
-								},
-							},
-						},
-						Action: func(d interact.Context) interface{} {
-							val, err := d.Ans().Bool()
-							if err != nil {
-								return d.Err()
-							}
-							r.Schema.Projects[len(r.Schema.Projects)-1].Tools.Fix.Status = val
-							return nil
-						},
-					},
-					{
-						Before: func(d interact.Context) error {
-							d.SetDef(false, realize.Green.Regular("(n)"))
-							return nil
-						},
-						Quest: interact.Quest{
-							Options: realize.Yellow.Regular("[y/n]"),
 							Msg:     "Enable go clean",
 							Resolve: func(d interact.Context) bool {
 								val, _ := d.Ans().Bool()

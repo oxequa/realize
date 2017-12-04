@@ -3,14 +3,15 @@ package realize
 import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
+	"github.com/go-siris/siris/core/errors"
 	"go/build"
 	"log"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
-	"github.com/go-siris/siris/core/errors"
 )
 
 var (
@@ -71,11 +72,11 @@ func init() {
 }
 
 // Stop realize workflow
-func (r *Realize) Stop() error{
-	if r.exit != nil{
+func (r *Realize) Stop() error {
+	if r.exit != nil {
 		close(r.exit)
 		return nil
-	}else{
+	} else {
 		return errors.New("exit chan undefined")
 	}
 }
@@ -83,22 +84,19 @@ func (r *Realize) Stop() error{
 // Start realize workflow
 func (r *Realize) Start() error {
 	if len(r.Schema.Projects) > 0 {
+		var wg sync.WaitGroup
 		r.exit = make(chan os.Signal, 1)
 		signal.Notify(r.exit, os.Interrupt)
+		wg.Add(len(r.Schema.Projects))
 		for k := range r.Schema.Projects {
 			r.Schema.Projects[k].parent = r
-			go r.Schema.Projects[k].Watch(r.exit)
+			go r.Schema.Projects[k].Watch(&wg)
 		}
-		for {
-			select {
-			case <-r.exit:
-				return nil
-			}
-		}
-		return nil
-	}else{
+		wg.Wait()
+	} else {
 		return errors.New("there are no projects")
 	}
+	return nil
 }
 
 // Prefix a given string with tool name

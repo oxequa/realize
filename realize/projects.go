@@ -15,6 +15,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -270,7 +271,7 @@ func (p *Project) Reload(path string, stop <-chan bool) {
 }
 
 // Watch a project
-func (p *Project) Watch(exit chan os.Signal) {
+func (p *Project) Watch(wg *sync.WaitGroup) {
 	var err error
 	// change channel
 	p.stop = make(chan bool)
@@ -304,7 +305,7 @@ L:
 						close(p.stop)
 						p.stop = make(chan bool)
 						p.Change(event)
-						go p.Reload( "", p.stop)
+						go p.Reload("", p.stop)
 					}
 				default:
 					if p.Validate(event.Name, true) {
@@ -331,11 +332,12 @@ L:
 			}
 		case err := <-p.watcher.Errors():
 			p.Err(err)
-		case <-exit:
+		case <-p.parent.exit:
 			p.After()
 			break L
 		}
 	}
+	wg.Done()
 }
 
 // Validate a file path
@@ -462,17 +464,12 @@ func (p *Project) cmd(stop <-chan bool, flag string, global bool) {
 			return
 		case r := <-result:
 			msg = fmt.Sprintln(p.pname(p.Name, 5), ":", Green.Bold("Command"), Green.Bold("\"")+r.Name+Green.Bold("\""))
-			out = BufferOut{Time: time.Now(), Text: r.Name, Type: flag}
 			if r.Err != nil {
-				p.stamp("error", out, msg, "")
 				out = BufferOut{Time: time.Now(), Text: r.Err.Error(), Type: flag}
-				p.stamp("error", out, "", fmt.Sprintln(Red.Regular(r.Err.Error())))
-			}
-			if r.Out != "" {
-				out = BufferOut{Time: time.Now(), Text: r.Out, Type: flag}
-				p.stamp("log", out, "", fmt.Sprintln(r.Out))
+				p.stamp("error", out, msg, fmt.Sprint(Red.Regular(r.Err.Error())))
 			} else {
-				p.stamp("log", out, msg, "")
+				out = BufferOut{Time: time.Now(), Text: r.Out, Type: flag}
+				p.stamp("log", out, msg, fmt.Sprint(r.Out))
 			}
 		}
 	}

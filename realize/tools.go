@@ -24,7 +24,6 @@ type Tool struct {
 
 // Tools go
 type Tools struct {
-	Fix      Tool `yaml:"fix,omitempty" json:"fix,omitempty"`
 	Clean    Tool `yaml:"clean,omitempty" json:"clean,omitempty"`
 	Vet      Tool `yaml:"vet,omitempty" json:"vet,omitempty"`
 	Fmt      Tool `yaml:"fmt,omitempty" json:"fmt,omitempty"`
@@ -52,17 +51,10 @@ func (t *Tools) Setup() {
 		t.Generate.cmd = replace([]string{"go", "generate"}, t.Generate.Method)
 		t.Generate.Args = split([]string{}, t.Generate.Args)
 	}
-	// go fix
-	if t.Fix.Status {
-		t.Fix.name = "Fix"
-		t.Fix.isTool = true
-		t.Fix.cmd = replace([]string{"go fix"}, t.Fix.Method)
-		t.Fix.Args = split([]string{}, t.Fix.Args)
-	}
 	// go fmt
 	if t.Fmt.Status {
 		if len(t.Fmt.Args) == 0 {
-			t.Fmt.Args = []string{"-s", "-w", "-e", "./"}
+			t.Fmt.Args = []string{"-s", "-w", "-e"}
 		}
 		t.Fmt.name = "Fmt"
 		t.Fmt.isTool = true
@@ -99,44 +91,46 @@ func (t *Tools) Setup() {
 
 // Exec a go tool
 func (t *Tool) Exec(path string, stop <-chan bool) (response Response) {
-	if t.dir && filepath.Ext(path) != "" {
-		path = filepath.Dir(path)
-	}
-	if strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "") {
-		args := []string{}
-		if strings.HasSuffix(path, ".go") {
-			args = append(t.Args, path)
+	if t.dir {
+		if filepath.Ext(path) != "" {
 			path = filepath.Dir(path)
 		}
-		if s := ext(path); s == "" || s == "go" {
-			var out, stderr bytes.Buffer
-			done := make(chan error)
-			args = append(t.cmd, t.Args...)
-			cmd := exec.Command(args[0], args[1:]...)
-			if t.Dir != "" {
-				cmd.Dir, _ = filepath.Abs(t.Dir)
+	} else if !strings.HasSuffix(path, ".go") {
+		return
+	}
+	args := []string{}
+	if strings.HasSuffix(path, ".go") {
+		args = append(t.Args, path)
+		path = filepath.Dir(path)
+	}
+	if s := ext(path); s == "" || s == "go" {
+		var out, stderr bytes.Buffer
+		done := make(chan error)
+		args = append(t.cmd, args...)
+		cmd := exec.Command(args[0], args[1:]...)
+		if t.Dir != "" {
+			cmd.Dir, _ = filepath.Abs(t.Dir)
+		} else {
+			cmd.Dir = path
+		}
+		cmd.Stdout = &out
+		cmd.Stderr = &stderr
+		// Start command
+		cmd.Start()
+		go func() { done <- cmd.Wait() }()
+		// Wait a result
+		select {
+		case <-stop:
+			// Stop running command
+			cmd.Process.Kill()
+		case err := <-done:
+			// Command completed
+			response.Name = t.name
+			if err != nil {
+				response.Err = errors.New(stderr.String() + out.String())
 			} else {
-				cmd.Dir = path
-			}
-			cmd.Stdout = &out
-			cmd.Stderr = &stderr
-			// Start command
-			cmd.Start()
-			go func() { done <- cmd.Wait() }()
-			// Wait a result
-			select {
-			case <-stop:
-				// Stop running command
-				cmd.Process.Kill()
-			case err := <-done:
-				// Command completed
-				response.Name = t.name
-				if err != nil {
-					response.Err = errors.New(stderr.String() + out.String())
-				} else {
-					if t.Output {
-						response.Out = out.String()
-					}
+				if t.Output {
+					response.Out = out.String()
 				}
 			}
 		}

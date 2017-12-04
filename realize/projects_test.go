@@ -3,16 +3,17 @@ package realize
 import (
 	"bytes"
 	"errors"
+	"github.com/fsnotify/fsnotify"
 	"log"
 	"os"
-	"strings"
-	"testing"
-	"github.com/fsnotify/fsnotify"
 	"os/signal"
+	"strings"
+	"sync"
+	"testing"
 	"time"
 )
 
-func TestProject_After(t *testing.T) /**/{
+func TestProject_After(t *testing.T) /**/ {
 	var buf bytes.Buffer
 	log.SetOutput(&buf)
 	r := Realize{}
@@ -85,7 +86,7 @@ func TestProject_Change(t *testing.T) {
 	r.Change = func(context Context) {
 		log.Println(context.Event.Name)
 	}
-	event := fsnotify.Event{Name:"test",Op:fsnotify.Write}
+	event := fsnotify.Event{Name: "test", Op: fsnotify.Write}
 	r.Projects[0].Change(event)
 	if !strings.Contains(buf.String(), event.Name) {
 		t.Error("Unexpected error")
@@ -100,12 +101,12 @@ func TestProject_Reload(t *testing.T) {
 		parent: &r,
 	})
 	input := "test/path"
-	r.Projects[0].watcher, _ = NewFileWatcher(false,0)
+	r.Projects[0].watcher, _ = NewFileWatcher(false, 0)
 	r.Reload = func(context Context) {
 		log.Println(context.Path)
 	}
 	stop := make(chan bool)
-	r.Projects[0].Reload(input,stop)
+	r.Projects[0].Reload(input, stop)
 	if !strings.Contains(buf.String(), input) {
 		t.Error("Unexpected error")
 	}
@@ -113,14 +114,14 @@ func TestProject_Reload(t *testing.T) {
 
 func TestProject_Validate(t *testing.T) {
 	data := map[string]bool{
-		"": false,
-		"/test/.path/": false,
-		"./test/path/": false,
-		"/test/path/test.html": false,
-		"/test/path/test.go": false,
-		"/test/ignore/test.go": false,
+		"":                        false,
+		"/test/.path/":            false,
+		"./test/path/":            false,
+		"/test/path/test.html":    false,
+		"/test/path/test.go":      false,
+		"/test/ignore/test.go":    false,
 		"/test/check/notexist.go": false,
-		"/test/check/exist.go": false,
+		"/test/check/exist.go":    false,
 	}
 	r := Realize{}
 	r.Projects = append(r.Projects, Project{
@@ -130,22 +131,26 @@ func TestProject_Validate(t *testing.T) {
 		},
 	})
 	for i, v := range data {
-		if r.Projects[0].Validate(i,true) != v{
-			t.Error("Unexpected error",i,"expected",v)
+		if r.Projects[0].Validate(i, true) != v {
+			t.Error("Unexpected error", i, "expected", v)
 		}
 	}
 }
 
 func TestProject_Watch(t *testing.T) {
+	var wg sync.WaitGroup
 	r := Realize{}
 	r.Projects = append(r.Projects, Project{
 		parent: &r,
 	})
 	r.exit = make(chan os.Signal, 2)
 	signal.Notify(r.exit, os.Interrupt)
-	go func(){
+	go func() {
 		time.Sleep(100)
 		close(r.exit)
 	}()
-	r.Projects[0].Watch(r.exit)
+	wg.Add(1)
+	// test before after and file change
+	r.Projects[0].Watch(&wg)
+	wg.Wait()
 }

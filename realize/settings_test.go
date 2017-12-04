@@ -1,11 +1,11 @@
 package realize
 
 import (
+	"io/ioutil"
+	"math/rand"
+	"os"
 	"testing"
 	"time"
-	"math/rand"
-	"io/ioutil"
-	"os"
 )
 
 // Rand is used for generate a random string

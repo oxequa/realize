@@ -1,26 +1,26 @@
 package realize
 
 import (
-	"testing"
 	"flag"
 	"gopkg.in/urfave/cli.v2"
 	"path/filepath"
+	"testing"
 )
 
 func TestSchema_Add(t *testing.T) {
 	r := Realize{}
-	p := Project{Name:"test"}
+	p := Project{Name: "test"}
 	r.Add(p)
-	if len(r.Schema.Projects) != 1{
-		t.Error("Unexpected error there are",len(r.Schema.Projects),"instead one")
+	if len(r.Schema.Projects) != 1 {
+		t.Error("Unexpected error there are", len(r.Schema.Projects), "instead one")
 	}
 	r.Add(p)
-	if len(r.Schema.Projects) != 1{
-		t.Error("Unexpected error there are",len(r.Schema.Projects),"instead one")
+	if len(r.Schema.Projects) != 1 {
+		t.Error("Unexpected error there are", len(r.Schema.Projects), "instead one")
 	}
-	r.Add(Project{Name:"testing"})
-	if len(r.Schema.Projects) != 2{
-		t.Error("Unexpected error there are",len(r.Schema.Projects),"instead two")
+	r.Add(Project{Name: "testing"})
+	if len(r.Schema.Projects) != 2 {
+		t.Error("Unexpected error there are", len(r.Schema.Projects), "instead two")
 	}
 }
 
@@ -29,15 +29,15 @@ func TestSchema_Remove(t *testing.T) {
 	r.Schema.Projects = []Project{
 		{
 			Name: "test",
-		},{
+		}, {
 			Name: "testing",
-		},{
+		}, {
 			Name: "testing",
 		},
 	}
 	r.Remove("testing")
-	if len(r.Schema.Projects) != 2{
-		t.Error("Unexpected errore there are",len(r.Schema.Projects),"instead one")
+	if len(r.Schema.Projects) != 2 {
+		t.Error("Unexpected errore there are", len(r.Schema.Projects), "instead one")
 	}
 }
 
@@ -55,28 +55,28 @@ func TestSchema_New(t *testing.T) {
 	c := cli.NewContext(nil, set, nil)
 	set.Parse([]string{"--fmt", "--install", "--run", "--build", "--generate", "--test", "--vet"})
 	p := r.New(c)
-	if p.Name != filepath.Base(Wdir()){
-		t.Error("Unexpected error",p.Name,"instead",filepath.Base(Wdir()))
+	if p.Name != filepath.Base(Wdir()) {
+		t.Error("Unexpected error", p.Name, "instead", filepath.Base(Wdir()))
 	}
-	if !p.Tools.Install.Status{
+	if !p.Tools.Install.Status {
 		t.Error("Install should be enabled")
 	}
-	if !p.Tools.Fmt.Status{
+	if !p.Tools.Fmt.Status {
 		t.Error("Fmt should be enabled")
 	}
-	if !p.Tools.Run.Status{
+	if !p.Tools.Run.Status {
 		t.Error("Run should be enabled")
 	}
-	if !p.Tools.Build.Status{
+	if !p.Tools.Build.Status {
 		t.Error("Build should be enabled")
 	}
-	if !p.Tools.Generate.Status{
+	if !p.Tools.Generate.Status {
 		t.Error("Generate should be enabled")
 	}
-	if !p.Tools.Test.Status{
+	if !p.Tools.Test.Status {
 		t.Error("Test should be enabled")
 	}
-	if !p.Tools.Vet.Status{
+	if !p.Tools.Vet.Status {
 		t.Error("Vet should be enabled")
 	}
 }
@@ -86,19 +86,19 @@ func TestSchema_Filter(t *testing.T) {
 	r.Schema.Projects = []Project{
 		{
 			Name: "test",
-		},{
+		}, {
 			Name: "test",
 		},
 		{
 			Name: "example",
 		},
 	}
-	result := r.Filter("Name","test")
-	if len(result) != 2{
+	result := r.Filter("Name", "test")
+	if len(result) != 2 {
 		t.Error("Expected two project")
 	}
-	result = r.Filter("Name","example")
-	if len(result) != 1{
+	result = r.Filter("Name", "example")
+	if len(result) != 1 {
 		t.Error("Expected one project")
 	}
 }

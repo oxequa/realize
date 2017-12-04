@@ -1,10 +1,11 @@
 package realize
 
 import (
-	"testing"
 	"net/http"
 	"runtime"
+	"testing"
 )
+
 func TestServer_Start(t *testing.T) {
 	s := Server{
 		Host: "localhost",
@@ -39,7 +40,7 @@ func TestServer_Open(t *testing.T) {
 		"linux":   "xdg-open",
 	}
 	key := runtime.GOOS
-	if _, ok:= cmd[key]; !ok{
+	if _, ok := cmd[key]; !ok {
 		t.Error("System not supported")
 	}
 }

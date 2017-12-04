@@ -64,19 +64,19 @@ func TestWdir(t *testing.T) {
 	}
 }
 
-func TestExt(t *testing.T){
+func TestExt(t *testing.T) {
 	paths := map[string]string{
-		"/test/a/b/c": "",
-		"/test/a/ac.go": "go",
+		"/test/a/b/c":        "",
+		"/test/a/ac.go":      "go",
 		"/test/a/ac.test.go": "go",
 		"/test/a/ac_test.go": "go",
 		"/test/./ac_test.go": "go",
-		"/test/a/.test": "test",
-		"/test/a/.": "",
+		"/test/a/.test":      "test",
+		"/test/a/.":          "",
 	}
 	for i, v := range paths {
-		if ext(i) != v{
-			t.Error("Wrong extension",ext(i),v)
+		if ext(i) != v {
+			t.Error("Wrong extension", ext(i), v)
 		}
 	}
 

@@ -6,20 +6,20 @@ func TestTools_Setup(t *testing.T) {
 	tools := Tools{
 		Clean: Tool{
 			Status: true,
-			name: "test",
+			name:   "test",
 			isTool: false,
 			Method: "test",
-			Args: []string{"arg"},
+			Args:   []string{"arg"},
 		},
 	}
 	tools.Setup()
-	if tools.Clean.name == "test"{
+	if tools.Clean.name == "test" {
 		t.Error("Unexpected value")
 	}
-	if tools.Clean.Method != "test"{
+	if tools.Clean.Method != "test" {
 		t.Error("Unexpected value")
 	}
-	if !tools.Clean.isTool{
+	if !tools.Clean.isTool {
 		t.Error("Unexpected value")
 	}
 }
