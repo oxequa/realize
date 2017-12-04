@@ -35,14 +35,14 @@ type (
 	Realize struct {
 		Settings Settings `yaml:"settings" json:"settings"`
 		Server   Server   `yaml:"server" json:"server"`
-		Schema   `yaml:",inline"`
-		sync     chan string
+		Schema   `yaml:",inline" json:",inline"`
+		Sync     chan string `yaml:"-" json:"-"`
 		exit     chan os.Signal
-		Err      Func `yaml:"-"`
-		After    Func `yaml:"-"`
-		Before   Func `yaml:"-"`
-		Change   Func `yaml:"-"`
-		Reload   Func `yaml:"-"`
+		Err      Func `yaml:"-" json:"-"`
+		After    Func `yaml:"-"  json:"-"`
+		Before   Func `yaml:"-"  json:"-"`
+		Change   Func `yaml:"-"  json:"-"`
+		Reload   Func `yaml:"-"  json:"-"`
 	}
 
 	// Context is used as argument for func

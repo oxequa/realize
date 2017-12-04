@@ -529,6 +529,9 @@ func (p *Project) stamp(t string, o BufferOut, msg string, stream string) {
 	if stream != "" {
 		fmt.Fprint(Output, stream)
 	}
+	go func() {
+		p.parent.Sync <- "sync"
+	}()
 }
 
 // Run a project

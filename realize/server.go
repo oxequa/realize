@@ -2,10 +2,13 @@ package realize
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	"golang.org/x/net/websocket"
 	"io"
+	"log"
 	"net/http"
 	"os/exec"
 	"runtime"
@@ -15,12 +18,12 @@ import (
 // Dafault host and port
 const (
 	Host = "localhost"
-	Port = 5001
+	Port = 5002
 )
 
 // Server settings
 type Server struct {
-	Parent *Realize `yaml:"-"`
+	Parent *Realize `yaml:"-" json:"-"`
 	Status bool     `yaml:"status" json:"status"`
 	Open   bool     `yaml:"open" json:"open"`
 	Port   int      `yaml:"port" json:"port"`
@@ -29,37 +32,37 @@ type Server struct {
 
 // Websocket projects
 func (s *Server) projects(c echo.Context) (err error) {
-	//websocket.Handler(func(ws *websocket.Conn) {
-	//	msg, _ := json.Marshal(s.parent)
-	//	err = websocket.Message.Send(ws, string(msg))
-	//	go func() {
-	//		for {
-	//			select {
-	//			case <-s.parent.sync:
-	//				msg, _ := json.Marshal(s.parent)
-	//				err = websocket.Message.Send(ws, string(msg))
-	//				if err != nil {
-	//					break
-	//				}
-	//			}
-	//		}
-	//	}()
-	//	for {
-	//		// Read
-	//		text := ""
-	//		err = websocket.Message.Receive(ws, &text)
-	//		if err != nil {
-	//			break
-	//		} else {
-	//			err := json.Unmarshal([]byte(text), &s.parent)
-	//			if err == nil {
-	//				s.parent.Settings.record(s.parent)
-	//				break
-	//			}
-	//		}
-	//	}
-	//	ws.Close()
-	//}).ServeHTTP(c.Response(), c.Request())
+	websocket.Handler(func(ws *websocket.Conn) {
+		msg, _ := json.Marshal(s.Parent)
+		err = websocket.Message.Send(ws, string(msg))
+		go func() {
+			for {
+				select {
+				case <-s.Parent.Sync:
+					msg, _ := json.Marshal(s.Parent)
+					err = websocket.Message.Send(ws, string(msg))
+					if err != nil {
+						break
+					}
+				}
+			}
+		}()
+		for {
+			// Read
+			text := ""
+			err = websocket.Message.Receive(ws, &text)
+			if err != nil {
+				break
+			} else {
+				err := json.Unmarshal([]byte(text), &s.Parent)
+				if err == nil {
+					s.Parent.Settings.Write(s.Parent)
+					break
+				}
+			}
+		}
+		ws.Close()
+	}).ServeHTTP(c.Response(), c.Request())
 	return nil
 }
 
@@ -153,6 +156,7 @@ func (s *Server) Start() (err error) {
 	e.HideBanner = true
 	e.Debug = false
 	go func() {
+		log.Println(s.Parent.Prefix("Started on " + string(s.Host) + ":" + strconv.Itoa(s.Port)))
 		e.Start(string(s.Host) + ":" + strconv.Itoa(s.Port))
 	}()
 	return nil

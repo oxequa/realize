@@ -16,6 +16,7 @@ var r realize.Realize
 
 // Realize cli commands
 func main() {
+	r.Sync = make(chan string)
 	app := &cli.App{
 		Name:        strings.Title(realize.RPrefix),
 		Version:     realize.RVersion,
@@ -1115,6 +1116,18 @@ func setup(c *cli.Context) (err error) {
 // Start realize workflow
 func start(c *cli.Context) (err error) {
 	r.Server = realize.Server{Parent: &r, Status: false, Open: false, Port: realize.Port, Host: realize.Host}
+	// config and start server
+	if c.Bool("server") || r.Server.Status {
+		r.Server.Status = true
+		if c.Bool("open") || r.Server.Open {
+			r.Server.Open = true
+			r.Server.OpenURL()
+		}
+		err = r.Server.Start()
+		if err != nil {
+			return err
+		}
+	}
 	// check no-config and read
 	if !c.Bool("no-config") {
 		// read a config if exist
@@ -1146,18 +1159,6 @@ func start(c *cli.Context) (err error) {
 			if err != nil {
 				return err
 			}
-		}
-	}
-	// config and start server
-	if c.Bool("server") || r.Server.Status {
-		r.Server.Status = true
-		if c.Bool("open") || r.Server.Open {
-			r.Server.Open = true
-			r.Server.OpenURL()
-		}
-		err = r.Server.Start()
-		if err != nil {
-			return err
 		}
 	}
 	// start workflow
