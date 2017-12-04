@@ -6,7 +6,6 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"log"
 	"os"
-	"os/signal"
 	"strings"
 	"sync"
 	"testing"
@@ -142,12 +141,11 @@ func TestProject_Watch(t *testing.T) {
 	r := Realize{}
 	r.Projects = append(r.Projects, Project{
 		parent: &r,
+		exit:   make(chan os.Signal, 1),
 	})
-	r.exit = make(chan os.Signal, 2)
-	signal.Notify(r.exit, os.Interrupt)
 	go func() {
 		time.Sleep(100)
-		close(r.exit)
+		close(r.Projects[0].exit)
 	}()
 	wg.Add(1)
 	// test before after and file change

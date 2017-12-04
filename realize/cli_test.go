@@ -11,9 +11,9 @@ import (
 
 func TestRealize_Stop(t *testing.T) {
 	r := Realize{}
-	r.exit = make(chan os.Signal, 2)
+	r.Projects = append(r.Schema.Projects, Project{exit: make(chan os.Signal, 1)})
 	r.Stop()
-	_, ok := <-r.exit
+	_, ok := <-r.Projects[0].exit
 	if ok != false {
 		t.Error("Unexpected error", "channel should be closed")
 	}
@@ -25,11 +25,11 @@ func TestRealize_Start(t *testing.T) {
 	if err == nil {
 		t.Error("Error expected")
 	}
-	r.Projects = append(r.Projects, Project{Name: "test"})
+	r.Projects = append(r.Projects, Project{Name: "test", exit: make(chan os.Signal, 1)})
 	go func() {
 		time.Sleep(100)
-		close(r.exit)
-		_, ok := <-r.exit
+		close(r.Projects[0].exit)
+		_, ok := <-r.Projects[0].exit
 		if ok != false {
 			t.Error("Unexpected error", "channel should be closed")
 		}

@@ -37,12 +37,11 @@ type (
 		Server   Server   `yaml:"server" json:"server"`
 		Schema   `yaml:",inline" json:",inline"`
 		Sync     chan string `yaml:"-" json:"-"`
-		exit     chan os.Signal
-		Err      Func `yaml:"-" json:"-"`
-		After    Func `yaml:"-"  json:"-"`
-		Before   Func `yaml:"-"  json:"-"`
-		Change   Func `yaml:"-"  json:"-"`
-		Reload   Func `yaml:"-"  json:"-"`
+		Err      Func        `yaml:"-" json:"-"`
+		After    Func        `yaml:"-"  json:"-"`
+		Before   Func        `yaml:"-"  json:"-"`
+		Change   Func        `yaml:"-"  json:"-"`
+		Reload   Func        `yaml:"-"  json:"-"`
 	}
 
 	// Context is used as argument for func
@@ -73,22 +72,22 @@ func init() {
 
 // Stop realize workflow
 func (r *Realize) Stop() error {
-	if r.exit != nil {
-		close(r.exit)
-		return nil
-	} else {
-		return errors.New("exit chan undefined")
+	for k := range r.Schema.Projects {
+		if r.Schema.Projects[k].exit != nil {
+			close(r.Schema.Projects[k].exit)
+		}
 	}
+	return nil
 }
 
 // Start realize workflow
 func (r *Realize) Start() error {
 	if len(r.Schema.Projects) > 0 {
 		var wg sync.WaitGroup
-		r.exit = make(chan os.Signal, 1)
-		signal.Notify(r.exit, os.Interrupt)
 		wg.Add(len(r.Schema.Projects))
 		for k := range r.Schema.Projects {
+			r.Schema.Projects[k].exit = make(chan os.Signal, 1)
+			signal.Notify(r.Schema.Projects[k].exit, os.Interrupt)
 			r.Schema.Projects[k].parent = r
 			go r.Schema.Projects[k].Watch(&wg)
 		}

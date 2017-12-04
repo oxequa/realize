@@ -1116,25 +1116,10 @@ func setup(c *cli.Context) (err error) {
 // Start realize workflow
 func start(c *cli.Context) (err error) {
 	r.Server = realize.Server{Parent: &r, Status: false, Open: false, Port: realize.Port, Host: realize.Host}
-	// config and start server
-	if c.Bool("server") || r.Server.Status {
-		r.Server.Status = true
-		if c.Bool("open") || r.Server.Open {
-			r.Server.Open = true
-			r.Server.OpenURL()
-		}
-		err = r.Server.Start()
-		if err != nil {
-			return err
-		}
-	}
 	// check no-config and read
 	if !c.Bool("no-config") {
 		// read a config if exist
-		err = r.Settings.Read(&r)
-		if err != nil {
-			return err
-		}
+		r.Settings.Read(&r)
 		if c.String("name") != "" {
 			// filter by name flag if exist
 			r.Schema.Projects = r.Schema.Filter("Name", c.String("name"))
@@ -1146,6 +1131,18 @@ func start(c *cli.Context) (err error) {
 			}
 		}
 
+	}
+	// config and start server
+	if c.Bool("server") || r.Server.Status {
+		r.Server.Status = true
+		if c.Bool("open") || r.Server.Open {
+			r.Server.Open = true
+			r.Server.OpenURL()
+		}
+		err = r.Server.Start()
+		if err != nil {
+			return err
+		}
 	}
 	// check project list length
 	if len(r.Schema.Projects) <= 0 {

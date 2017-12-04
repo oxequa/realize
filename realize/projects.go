@@ -47,6 +47,7 @@ type Project struct {
 	parent             *Realize
 	watcher            FileWatcher
 	init               bool
+	exit               chan os.Signal
 	stop               chan bool
 	files              int64
 	folders            int64
@@ -332,7 +333,7 @@ L:
 			}
 		case err := <-p.watcher.Errors():
 			p.Err(err)
-		case <-p.parent.exit:
+		case <-p.exit:
 			p.After()
 			break L
 		}
