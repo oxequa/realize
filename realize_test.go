@@ -1,34 +1,141 @@
 package main
 
 import (
-	"fmt"
-	"gopkg.in/urfave/cli.v2"
-	"reflect"
+	"bytes"
+	"errors"
+	"github.com/tockins/realize/realize"
+	"log"
+	"strings"
 	"testing"
 )
 
-func TestPrefix(t *testing.T) {
-	input := random(10)
-	value := fmt.Sprint(yellow.bold("["), "REALIZE", yellow.bold("]"), " : ", input)
-	result := prefix(input)
-	if result == "" {
-		t.Fatal("Expected a string")
+var mockResponse interface{}
+
+type mockRealize realize.Realize
+
+func (m *mockRealize) add() error {
+	if mockResponse != nil {
+		return mockResponse.(error)
 	}
-	if result != value {
-		t.Fatal("Expected", value, "Instead", result)
+	m.Projects = append(m.Projects, realize.Project{Name: "One"})
+	return nil
+}
+
+func (m *mockRealize) setup() error {
+	if mockResponse != nil {
+		return mockResponse.(error)
+	}
+	return nil
+}
+
+func (m *mockRealize) start() error {
+	if mockResponse != nil {
+		return mockResponse.(error)
+	}
+	return nil
+}
+
+func (m *mockRealize) clean() error {
+	if mockResponse != nil {
+		return mockResponse.(error)
+	}
+	return nil
+}
+
+func (m *mockRealize) remove() error {
+	if mockResponse != nil {
+		return mockResponse.(error)
+	}
+	m.Projects = []realize.Project{}
+	return nil
+}
+
+func TestRealize_add(t *testing.T) {
+	m := mockRealize{}
+	mockResponse = nil
+	if err := m.add(); err != nil {
+		t.Error("Unexpected error")
+	}
+	if len(m.Projects) <= 0 {
+		t.Error("Unexpected error")
+	}
+
+	m = mockRealize{}
+	m.Projects = []realize.Project{{Name: "Default"}}
+	mockResponse = nil
+	if err := m.add(); err != nil {
+		t.Error("Unexpected error")
+	}
+	if len(m.Projects) != 2 {
+		t.Error("Unexpected error")
+	}
+
+	m = mockRealize{}
+	mockResponse = errors.New("error")
+	if err := m.clean(); err == nil {
+		t.Error("Expected error")
+	}
+	if len(m.Projects) != 0 {
+		t.Error("Unexpected error")
 	}
 }
 
-func TestBefore(t *testing.T) {
-	context := cli.Context{}
-	if err := before(&context); err != nil {
-		t.Fatal(err)
+func TestRealize_start(t *testing.T) {
+	m := mockRealize{}
+	mockResponse = nil
+	if err := m.add(); err != nil {
+		t.Error("Unexpected error")
 	}
 }
 
-func TestNew(t *testing.T) {
-	r := new()
-	if reflect.TypeOf(r).String() != "main.realize" {
-		t.Error("Expected a realize struct")
+func TestRealize_setup(t *testing.T) {
+	m := mockRealize{}
+	mockResponse = nil
+	if err := m.setup(); err != nil {
+		t.Error("Unexpected error")
+	}
+}
+
+func TestRealize_clean(t *testing.T) {
+	m := mockRealize{}
+	mockResponse = nil
+	if err := m.clean(); err != nil {
+		t.Error("Unexpected error")
+	}
+	mockResponse = errors.New("error")
+	if err := m.clean(); err == nil {
+		t.Error("Expected error")
+	}
+}
+
+func TestRealize_remove(t *testing.T) {
+	m := mockRealize{}
+	mockResponse = nil
+	if err := m.remove(); err != nil {
+		t.Error("Unexpected error")
+	}
+
+	m = mockRealize{}
+	mockResponse = nil
+	m.Projects = []realize.Project{{Name: "Default"}, {Name: "Default"}}
+	if err := m.remove(); err != nil {
+		t.Error("Unexpected error")
+	}
+	if len(m.Projects) != 0 {
+		t.Error("Unexpected error")
+	}
+
+	mockResponse = errors.New("error")
+	if err := m.clean(); err == nil {
+		t.Error("Expected error")
+	}
+}
+
+func TestRealize_version(t *testing.T) {
+	var buf bytes.Buffer
+	log.SetOutput(&buf)
+	version()
+	if !strings.Contains(buf.String(), realize.RVersion) {
+		t.Error("Version expted", realize.RVersion)
 	}
 }
