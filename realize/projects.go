@@ -673,7 +673,7 @@ func (c *Command) exec(base string, stop <-chan bool) (response Response) {
 		response.Name = c.Cmd
 		response.Out = stdout.String()
 		if err != nil {
-			response.Err = errors.New(stderr.String())
+			response.Err = errors.New(stderr.String() + stdout.String())
 		}
 	}
 	return
