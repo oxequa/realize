@@ -1,3 +1,5 @@
+//go:generate go-bindata -pkg=realize -o=realize/bindata.go realize/assets/...
+
 package main
 
 import (
