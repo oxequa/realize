@@ -190,7 +190,6 @@ func (p *Project) Reload(path string, stop <-chan bool) {
 		if err != nil {
 			p.Err(err)
 		}
-		p.tools(stop, path, fi)
 		// path dir
 		if !fi.IsDir() {
 			path := filepath.Dir(path)
@@ -198,8 +197,8 @@ func (p *Project) Reload(path string, stop <-chan bool) {
 			if err != nil {
 				p.Err(err)
 			}
-			p.tools(stop, path, fi)
 		}
+		p.tools(stop, path, fi)
 	}
 	// Prevent fake events on polling startup
 	p.init = true
