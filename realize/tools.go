@@ -98,9 +98,9 @@ func (t *Tool) Exec(path string, stop <-chan bool) (response Response) {
 	} else if !strings.HasSuffix(path, ".go") {
 		return
 	}
-	args := []string{}
+	args := t.Args
 	if strings.HasSuffix(path, ".go") {
-		args = append(t.Args, path)
+		args = append(args, path)
 		path = filepath.Dir(path)
 	}
 	if s := ext(path); s == "" || s == "go" {
