@@ -156,13 +156,13 @@ func (t *Tool) Compile(path string, stop <-chan bool) (response Response) {
 	cmd.Start()
 	go func() { done <- cmd.Wait() }()
 	// Wait a result
+	response.Name = t.name
 	select {
 	case <-stop:
 		// Stop running command
 		cmd.Process.Kill()
 	case err := <-done:
 		// Command completed
-		response.Name = t.name
 		if err != nil {
 			response.Err = errors.New(stderr.String() + err.Error())
 		}
