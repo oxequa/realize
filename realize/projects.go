@@ -355,15 +355,14 @@ func (p *Project) Validate(path string, fiche bool) bool {
 		if !array(e, p.Watcher.Exts) {
 			return false
 		}
-	} else {
-		separator := string(os.PathSeparator)
-		// supported paths
-		for _, v := range p.Watcher.Ignore {
-			s := append([]string{p.Path}, strings.Split(v, separator)...)
-			abs, _ := filepath.Abs(filepath.Join(s...))
-			if path == abs || strings.HasPrefix(path, abs+separator) {
-				return false
-			}
+	}
+	separator := string(os.PathSeparator)
+	// supported paths
+	for _, v := range p.Watcher.Ignore {
+		s := append([]string{p.Path}, strings.Split(v, separator)...)
+		abs, _ := filepath.Abs(filepath.Join(s...))
+		if path == abs || strings.HasPrefix(path, abs+separator) {
+			return false
 		}
 	}
 	// file check
