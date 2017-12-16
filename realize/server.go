@@ -1,3 +1,5 @@
+//go:generate go-bindata -pkg=realize -o=bindata.go assets/...
+
 package realize
 
 import (
@@ -106,40 +108,40 @@ func (s *Server) Start() (err error) {
 
 	// web panel
 	e.GET("/", func(c echo.Context) error {
-		return s.render(c, "realize/assets/index.html", 1)
+		return s.render(c, "assets/index.html", 1)
 	})
 	e.GET("/assets/js/all.min.js", func(c echo.Context) error {
-		return s.render(c, "realize/assets/assets/js/all.min.js", 2)
+		return s.render(c, "assets/assets/js/all.min.js", 2)
 	})
 	e.GET("/assets/css/app.css", func(c echo.Context) error {
-		return s.render(c, "realize/assets/assets/css/app.css", 3)
+		return s.render(c, "assets/assets/css/app.css", 3)
 	})
 	e.GET("/app/components/settings/index.html", func(c echo.Context) error {
-		return s.render(c, "realize/assets/app/components/settings/index.html", 1)
+		return s.render(c, "assets/app/components/settings/index.html", 1)
 	})
 	e.GET("/app/components/project/index.html", func(c echo.Context) error {
-		return s.render(c, "realize/assets/app/components/project/index.html", 1)
+		return s.render(c, "assets/app/components/project/index.html", 1)
 	})
 	e.GET("/app/components/index.html", func(c echo.Context) error {
-		return s.render(c, "realize/assets/app/components/index.html", 1)
+		return s.render(c, "assets/app/components/index.html", 1)
 	})
 	e.GET("/assets/img/logo.png", func(c echo.Context) error {
-		return s.render(c, "realize/assets/assets/img/logo.png", 5)
+		return s.render(c, "assets/assets/img/logo.png", 5)
 	})
 	e.GET("/assets/img/svg/github-logo.svg", func(c echo.Context) error {
-		return s.render(c, "realize/assets/assets/img/svg/github-logo.svg", 4)
+		return s.render(c, "assets/assets/img/svg/github-logo.svg", 4)
 	})
 	e.GET("/assets/img/svg/ic_arrow_back_black_48px.svg", func(c echo.Context) error {
-		return s.render(c, "realize/assets/assets/img/svg/ic_arrow_back_black_48px.svg", 4)
+		return s.render(c, "assets/assets/img/svg/ic_arrow_back_black_48px.svg", 4)
 	})
 	e.GET("/assets/img/svg/ic_clear_white_48px.svg", func(c echo.Context) error {
-		return s.render(c, "realize/assets/assets/img/svg/ic_clear_white_48px.svg", 4)
+		return s.render(c, "assets/assets/img/svg/ic_clear_white_48px.svg", 4)
 	})
 	e.GET("/assets/img/svg/ic_menu_white_48px.svg", func(c echo.Context) error {
 		return s.render(c, "assets/assets/img/svg/ic_menu_white_48px.svg", 4)
 	})
 	e.GET("/assets/img/svg/ic_settings_black_48px.svg", func(c echo.Context) error {
-		return s.render(c, "realize/assets/assets/img/svg/ic_settings_black_48px.svg", 4)
+		return s.render(c, "assets/assets/img/svg/ic_settings_black_48px.svg", 4)
 	})
 
 	//websocket

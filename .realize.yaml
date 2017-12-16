@@ -1,0 +1,34 @@
+settings:
+  legacy:
+    force: false
+    interval: 0s
+server:
+  status: true
+  open: true
+  port: 3000
+  host: localhost
+schema:
+- name: realize
+  path: .
+  commands:
+    generate:
+      status: true
+    install:
+      status: true
+    test:
+      status: true
+    fmt:
+      status: true
+  watcher:
+    paths:
+    - /
+    extensions:
+    - go
+    - html
+    - css
+    - js
+    ignored_paths:
+    - .git
+    - .realize
+    - vendor
+    - realize/assets

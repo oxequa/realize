@@ -1,28 +1,57 @@
+# Gopkg.toml example
+#
+# Refer to https://github.com/golang/dep/blob/master/docs/Gopkg.toml.md
+# for detailed Gopkg.toml documentation.
+#
+# required = ["github.com/user/thing/cmd/thing"]
+# ignored = ["github.com/user/project/pkgX", "bitbucket.org/user/project/pkgA/pkgY"]
+#
+# [[constraint]]
+#   name = "github.com/user/project"
+#   version = "1.0.0"
+#
+# [[constraint]]
+#   name = "github.com/user/project2"
+#   branch = "dev"
+#   source = "github.com/myfork/project2"
+#
+# [[override]]
+#  name = "github.com/x/y"
+#  version = "2.4.0"
 
-[[dependencies]]
-  branch = "master"
+
+[[constraint]]
   name = "github.com/fatih/color"
+  version = "1.5.0"
 
-[[dependencies]]
-  branch = "master"
+[[constraint]]
   name = "github.com/fsnotify/fsnotify"
+  version = "1.4.2"
 
-[[dependencies]]
-  branch = "master"
+[[constraint]]
+  name = "github.com/go-siris/siris"
+  version = "7.4.0"
+
+[[constraint]]
   name = "github.com/labstack/echo"
+  version = "3.2.5"
 
-[[dependencies]]
-  branch = "master"
+[[constraint]]
+  name = "github.com/sirupsen/logrus"
+  version = "1.0.4"
+
+[[constraint]]
   name = "github.com/tockins/interact"
+  version = "1.1.1"
 
-[[dependencies]]
+[[constraint]]
   branch = "master"
   name = "golang.org/x/net"
 
-[[dependencies]]
+[[constraint]]
   branch = "v2"
   name = "gopkg.in/urfave/cli.v2"
 
-[[dependencies]]
+[[constraint]]
   branch = "v2"
   name = "gopkg.in/yaml.v2"

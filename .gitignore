@@ -33,3 +33,5 @@ docker
 vendor
 bin
 glide.*
+Dockerfile
+docker-compose.yml
