@@ -308,7 +308,7 @@ L:
 						if fi.IsDir() {
 							filepath.Walk(event.Name, p.walk)
 						} else {
-							if event.Op != fsnotify.Write || (eventTime.Truncate(time.Millisecond).After(fi.ModTime().Truncate(time.Millisecond)) || event.Name != p.lastFile) {
+							if event.Op != fsnotify.Write || (!eventTime.Truncate(time.Millisecond).Before(fi.ModTime().Truncate(time.Millisecond)) || event.Name != p.lastFile) {
 								// stop and restart
 								close(p.stop)
 								p.stop = make(chan bool)
