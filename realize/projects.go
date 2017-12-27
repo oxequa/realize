@@ -285,7 +285,7 @@ L:
 		select {
 		case event := <-p.watcher.Events():
 			if p.parent.Settings.Debug {
-				log.Println("Event:", event, "File:", event.Name, "LastFile:", p.lastFile, "Time:", time.Second, "LastTime:", p.lastTime)
+				log.Println("Event:", event, "File:", event.Name, "LastFile:", p.lastFile, "Time:", time.Now(), "LastTime:", p.lastTime)
 			}
 			if time.Now().Truncate(time.Second).After(p.lastTime) || event.Name != p.lastFile {
 				// event time
