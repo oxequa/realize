@@ -284,6 +284,9 @@ L:
 	for {
 		select {
 		case event := <-p.watcher.Events():
+			if p.parent.Settings.Debug {
+				log.Println("Event:", event, "File:", event.Name, "LastFile:", p.lastFile, "Time:", time.Second, "LastTime:", p.lastTime)
+			}
 			if time.Now().Truncate(time.Second).After(p.lastTime) || event.Name != p.lastFile {
 				// event time
 				eventTime := time.Now()
@@ -308,7 +311,7 @@ L:
 						if fi.IsDir() {
 							filepath.Walk(event.Name, p.walk)
 						} else {
-							if event.Op != fsnotify.Write || (eventTime.Truncate(time.Millisecond).After(fi.ModTime().Truncate(time.Millisecond)) || event.Name != p.lastFile) {
+							if event.Op != fsnotify.Write || (!eventTime.Truncate(time.Millisecond).Before(fi.ModTime().Truncate(time.Millisecond)) || event.Name != p.lastFile) {
 								// stop and restart
 								close(p.stop)
 								p.stop = make(chan bool)
