@@ -3,6 +3,7 @@ package realize
 import (
 	"bytes"
 	"errors"
+	"io/ioutil"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -94,6 +95,18 @@ func (t *Tool) Exec(path string, stop <-chan bool) (response Response) {
 	if t.dir {
 		if filepath.Ext(path) != "" {
 			path = filepath.Dir(path)
+		}
+		// check if there is at least one go file
+		matched := false
+		files, _ := ioutil.ReadDir(path)
+		for _, f := range files {
+			matched, _ = filepath.Match("*.go", f.Name())
+			if matched {
+				break
+			}
+		}
+		if !matched {
+			return
 		}
 	} else if !strings.HasSuffix(path, ".go") {
 		return

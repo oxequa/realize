@@ -29,9 +29,10 @@ const (
 // Settings defines a group of general settings and options
 type Settings struct {
 	Files     `yaml:"files,omitempty" json:"files,omitempty"`
-	Legacy    Legacy `yaml:"legacy" json:"legacy"`
-	FileLimit int32  `yaml:"flimit,omitempty" json:"flimit,omitempty"`
 	Recovery  bool   `yaml:"recovery,omitempty" json:"recovery,omitempty"`
+	Debug     bool   `yaml:"debug,omitempty" json:"debug,omitempty"`
+	FileLimit int32  `yaml:"flimit,omitempty" json:"flimit,omitempty"`
+	Legacy    Legacy `yaml:"legacy" json:"legacy"`
 }
 
 // Legacy is used to force polling and set a custom interval
