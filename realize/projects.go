@@ -288,8 +288,6 @@ L:
 				log.Println("Event:", event, "File:", event.Name, "LastFile:", p.lastFile, "Time:", time.Now(), "LastTime:", p.lastTime)
 			}
 			if time.Now().Truncate(time.Second).After(p.lastTime) || event.Name != p.lastFile {
-				// event time
-				eventTime := time.Now()
 				// switch event type
 				switch event.Op {
 				case fsnotify.Chmod:
@@ -311,7 +309,7 @@ L:
 						if fi.IsDir() {
 							filepath.Walk(event.Name, p.walk)
 						} else {
-							if event.Op != fsnotify.Write || (!eventTime.Truncate(time.Millisecond).Before(fi.ModTime().Truncate(time.Millisecond)) || event.Name != p.lastFile) {
+							if event.Op != fsnotify.Write || event.Name != p.lastFile {
 								// stop and restart
 								close(p.stop)
 								p.stop = make(chan bool)
@@ -366,7 +364,7 @@ func (p *Project) Validate(path string, fiche bool) bool {
 		if err != nil {
 			return false
 		}
-		if fi.IsDir() || (!fi.IsDir() && fi.Size() > 0) {
+		if fi.Size() > 0 {
 			return true
 		}
 		return false
