@@ -1,4 +1,5 @@
 settings:
+  debug: true
   legacy:
     force: false
     interval: 0s
@@ -14,6 +15,8 @@ schema:
     generate:
       status: true
     install:
+      status: true
+    vet:
       status: true
     test:
       status: true
