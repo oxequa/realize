@@ -224,7 +224,6 @@ func (p *Project) Reload(path string, stop <-chan bool) {
 		return
 	}
 	if install.Err == nil && build.Err == nil && p.Tools.Run.Status {
-		var start time.Time
 		result := make(chan Response)
 		go func() {
 			for {
@@ -247,7 +246,6 @@ func (p *Project) Reload(path string, stop <-chan bool) {
 		}()
 		go func() {
 			log.Println(p.pname(p.Name, 1), ":", "Running..")
-			start = time.Now()
 			err := p.run(p.Path, result, stop)
 			if err != nil {
 				msg := fmt.Sprintln(p.pname(p.Name, 2), ":", Red.Regular(err))
