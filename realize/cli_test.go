@@ -54,8 +54,8 @@ func TestLogWriter_Write(t *testing.T) {
 	log.SetOutput(&buf)
 	w := LogWriter{}
 	input := ""
-	int, err := w.Write([]byte(input))
-	if err != nil || int > 0 {
-		t.Error("Unexpected error", err, "string lenght should be 0 instead", int)
+	val, err := w.Write([]byte(input))
+	if err != nil || val > 0 {
+		t.Error("Unexpected error", err, "string length should be 0 instead", val)
 	}
 }

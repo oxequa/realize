@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io/ioutil"
+	"log"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -21,6 +22,7 @@ type Tool struct {
 	method []string
 	cmd    []string
 	name   string
+	parent *Project
 }
 
 // Tools go
@@ -117,6 +119,9 @@ func (t *Tool) Exec(path string, stop <-chan bool) (response Response) {
 		path = filepath.Dir(path)
 	}
 	if s := ext(path); s == "" || s == "go" {
+		if t.parent.parent.Settings.Recovery.Tools {
+			log.Println("Tool:", t.name, path, args)
+		}
 		var out, stderr bytes.Buffer
 		done := make(chan error)
 		args = append(t.cmd, args...)

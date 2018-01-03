@@ -186,7 +186,10 @@ func (p *Project) Reload(path string, stop <-chan bool) {
 	}
 	// Go supported tools
 	if len(path) > 0 {
-		fi, err := os.Stat(path)
+		fi, err := os.Stat(filepath.Dir(path))
+		if filepath.Ext(path) == "" {
+			fi, err = os.Stat(path)
+		}
 		if err != nil {
 			p.Err(err)
 		}
@@ -224,7 +227,6 @@ func (p *Project) Reload(path string, stop <-chan bool) {
 		return
 	}
 	if install.Err == nil && build.Err == nil && p.Tools.Run.Status {
-		var start time.Time
 		result := make(chan Response)
 		go func() {
 			for {
@@ -247,7 +249,6 @@ func (p *Project) Reload(path string, stop <-chan bool) {
 		}()
 		go func() {
 			log.Println(p.pname(p.Name, 1), ":", "Running..")
-			start = time.Now()
 			err := p.run(p.Path, result, stop)
 			if err != nil {
 				msg := fmt.Sprintln(p.pname(p.Name, 2), ":", Red.Regular(err))
@@ -284,7 +285,7 @@ L:
 	for {
 		select {
 		case event := <-p.watcher.Events():
-			if p.parent.Settings.Debug {
+			if p.parent.Settings.Recovery.Events {
 				log.Println("Event:", event, "File:", event.Name, "LastFile:", p.lastFile, "Time:", time.Now(), "LastTime:", p.lastTime)
 			}
 			if time.Now().Truncate(time.Second).After(p.lastTime) || event.Name != p.lastFile {
@@ -403,6 +404,7 @@ func (p *Project) tools(stop <-chan bool, path string, fi os.FileInfo) {
 	go func() {
 		for i := 0; i < v.NumField()-1; i++ {
 			tool := v.Field(i).Interface().(Tool)
+			tool.parent = p
 			if tool.Status && tool.isTool {
 				if fi.IsDir() {
 					if tool.dir {
@@ -423,6 +425,9 @@ func (p *Project) tools(stop <-chan bool, path string, fi os.FileInfo) {
 			return
 		case r := <-result:
 			if r.Err != nil {
+				if fi.IsDir(){
+					path, _ = filepath.Abs(fi.Name())
+				}
 				msg = fmt.Sprintln(p.pname(p.Name, 2), ":", Red.Bold(r.Name), Red.Regular("there are some errors in"), ":", Magenta.Bold(path))
 				buff := BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: r.Name, Stream: r.Err.Error()}
 				p.stamp("error", buff, msg, r.Err.Error())
@@ -472,9 +477,9 @@ func (p *Project) walk(path string, info os.FileInfo, err error) error {
 	if p.Validate(path, true) {
 		result := p.watcher.Walk(path, p.init)
 		if result != "" {
-			p.tools(p.stop, path, info)
 			if info.IsDir() {
 				// tools dir
+				p.tools(p.stop, path, info)
 				p.folders++
 			} else {
 				// tools files
