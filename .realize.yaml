@@ -1,10 +1,12 @@
 settings:
-  debug: true
+  recovery:
+    events: true
+    tools: true
   legacy:
     force: false
     interval: 0s
 server:
-  status: true
+  status: false
   open: true
   port: 3000
   host: localhost
@@ -13,7 +15,7 @@ schema:
   path: .
   commands:
     generate:
-      status: true
+      status: false
     install:
       status: true
     vet:
