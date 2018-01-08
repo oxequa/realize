@@ -335,7 +335,7 @@ L:
 }
 
 // Validate a file path
-func (p *Project) Validate(path string, fiche bool) bool {
+func (p *Project) Validate(path string, fcheck bool) bool {
 	if len(path) <= 0 {
 		return false
 	}
@@ -349,6 +349,10 @@ func (p *Project) Validate(path string, fiche bool) bool {
 		if !array(e, p.Watcher.Exts) {
 			return false
 		}
+	}else{
+		if !array(filepath.Base(path), p.Watcher.Paths) {
+			return false
+		}
 	}
 	separator := string(os.PathSeparator)
 	// supported paths
@@ -360,8 +364,11 @@ func (p *Project) Validate(path string, fiche bool) bool {
 		}
 	}
 	// file check
-	if fiche {
+	if fcheck {
 		fi, err := os.Stat(path)
+		if !fi.IsDir() && ext(path) == ""{
+			return false
+		}
 		if err != nil {
 			return false
 		}
