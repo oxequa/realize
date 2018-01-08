@@ -575,8 +575,10 @@ func (p *Project) run(path string, stream chan Response, stop <-chan bool) (err 
 		dirPath, _ = filepath.Abs(p.Tools.Run.Dir)
 	}
 	name := filepath.Base(path)
-	if path == "." {
+	if path == "." && p.Tools.Run.Dir == "" {
 		name = filepath.Base(Wdir())
+	}else{
+		name = filepath.Base(dirPath)
 	}
 	path = filepath.Join(dirPath, name)
 	if _, err := os.Stat(path); err == nil {
