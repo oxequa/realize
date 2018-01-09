@@ -114,8 +114,8 @@ func TestProject_Reload(t *testing.T) {
 func TestProject_Validate(t *testing.T) {
 	data := map[string]bool{
 		"":                        false,
-		"/test/.path/":            false,
-		"./test/path/":            false,
+		"/test/.path/":            true,
+		"./test/path/":            true,
 		"/test/path/test.html":    false,
 		"/test/path/test.go":      false,
 		"/test/ignore/test.go":    false,
