@@ -294,7 +294,7 @@ L:
 				case fsnotify.Chmod:
 				case fsnotify.Remove:
 					p.watcher.Remove(event.Name)
-					if p.Validate(event.Name, false) {
+					if p.Validate(event.Name, false) && ext(event.Name) != "" {
 						// stop and restart
 						close(p.stop)
 						p.stop = make(chan bool)
@@ -320,7 +320,6 @@ L:
 							p.lastTime = time.Now().Truncate(time.Second)
 							p.lastFile = event.Name
 						}
-
 					}
 				}
 			}
@@ -335,7 +334,7 @@ L:
 }
 
 // Validate a file path
-func (p *Project) Validate(path string, fiche bool) bool {
+func (p *Project) Validate(path string, fcheck bool) bool {
 	if len(path) <= 0 {
 		return false
 	}
@@ -360,8 +359,11 @@ func (p *Project) Validate(path string, fiche bool) bool {
 		}
 	}
 	// file check
-	if fiche {
+	if fcheck {
 		fi, err := os.Stat(path)
+		if !fi.IsDir() && ext(path) == "" {
+			return false
+		}
 		if err != nil {
 			return false
 		}
@@ -425,7 +427,7 @@ func (p *Project) tools(stop <-chan bool, path string, fi os.FileInfo) {
 			return
 		case r := <-result:
 			if r.Err != nil {
-				if fi.IsDir(){
+				if fi.IsDir() {
 					path, _ = filepath.Abs(fi.Name())
 				}
 				msg = fmt.Sprintln(p.pname(p.Name, 2), ":", Red.Bold(r.Name), Red.Regular("there are some errors in"), ":", Magenta.Bold(path))
@@ -568,8 +570,10 @@ func (p *Project) run(path string, stream chan Response, stop <-chan bool) (err 
 		dirPath, _ = filepath.Abs(p.Tools.Run.Dir)
 	}
 	name := filepath.Base(path)
-	if path == "." {
+	if path == "." && p.Tools.Run.Dir == "" {
 		name = filepath.Base(Wdir())
+	} else {
+		name = filepath.Base(dirPath)
 	}
 	path = filepath.Join(dirPath, name)
 	if _, err := os.Stat(path); err == nil {

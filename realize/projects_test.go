@@ -130,7 +130,7 @@ func TestProject_Validate(t *testing.T) {
 		},
 	})
 	for i, v := range data {
-		if r.Projects[0].Validate(i, true) != v {
+		if r.Projects[0].Validate(i, false) != v {
 			t.Error("Unexpected error", i, "expected", v)
 		}
 	}
