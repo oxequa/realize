@@ -1,7 +1,6 @@
 package realize
 
 import (
-	"net/http"
 	"runtime"
 	"testing"
 )
