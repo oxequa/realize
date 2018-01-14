@@ -51,9 +51,8 @@ type Project struct {
 	stop               chan bool
 	files              int64
 	folders            int64
-	lastFile           string
+	last			   last
 	paths              []string
-	lastTime           time.Time
 	Name               string            `yaml:"name" json:"name"`
 	Path               string            `yaml:"path" json:"path"`
 	Environment        map[string]string `yaml:"environment,omitempty" json:"environment,omitempty"`
@@ -62,6 +61,12 @@ type Project struct {
 	Watcher            Watch             `yaml:"watcher" json:"watcher"`
 	Buffer             Buffer            `yaml:"-" json:"buffer"`
 	ErrorOutputPattern string            `yaml:"errorOutputPattern,omitempty" json:"errorOutputPattern,omitempty"`
+}
+
+// Last is used to save info about last file changed
+type last struct{
+	file string
+	time time.Time
 }
 
 // Response exec
@@ -286,9 +291,9 @@ L:
 		select {
 		case event := <-p.watcher.Events():
 			if p.parent.Settings.Recovery.Events {
-				log.Println("Event:", event, "File:", event.Name, "LastFile:", p.lastFile, "Time:", time.Now(), "LastTime:", p.lastTime)
+				log.Println("File:", event.Name, "LastFile:", p.last.file, "Time:", time.Now(), "LastTime:", p.last.time)
 			}
-			if time.Now().Truncate(time.Second).After(p.lastTime) || event.Name != p.lastFile {
+			if time.Now().Truncate(time.Second).After(p.last.time) {
 				// switch event type
 				switch event.Op {
 				case fsnotify.Chmod:
@@ -310,15 +315,13 @@ L:
 						if fi.IsDir() {
 							filepath.Walk(event.Name, p.walk)
 						} else {
-							if event.Op != fsnotify.Write || event.Name != p.lastFile {
-								// stop and restart
-								close(p.stop)
-								p.stop = make(chan bool)
-								p.Change(event)
-								go p.Reload(event.Name, p.stop)
-							}
-							p.lastTime = time.Now().Truncate(time.Second)
-							p.lastFile = event.Name
+							// stop and restart
+							close(p.stop)
+							p.stop = make(chan bool)
+							p.Change(event)
+							go p.Reload(event.Name, p.stop)
+							p.last.time = time.Now().Truncate(time.Second)
+							p.last.file = event.Name
 						}
 					}
 				}
@@ -479,6 +482,9 @@ func (p *Project) walk(path string, info os.FileInfo, err error) error {
 	if p.Validate(path, true) {
 		result := p.watcher.Walk(path, p.init)
 		if result != "" {
+			if p.parent.Settings.Recovery.Index {
+				log.Println("Indexing",path)
+			}
 			if info.IsDir() {
 				// tools dir
 				p.tools(p.stop, path, info)
