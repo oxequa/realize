@@ -1,7 +1,8 @@
 settings:
   recovery:
-    events: true
-    tools: true
+    index: true
+    events: false
+    tools: false
   legacy:
     force: false
     interval: 0s
@@ -15,7 +16,7 @@ schema:
   path: .
   commands:
     generate:
-      status: false
+      status: true
     install:
       status: true
     vet:
@@ -35,5 +36,7 @@ schema:
     ignored_paths:
     - .git
     - .realize
+    - .idea
     - vendor
     - realize/assets
+    - realize/bindata.go
