@@ -35,6 +35,7 @@ type Settings struct {
 }
 
 type Recovery struct {
+	Index  bool
 	Events bool
 	Tools  bool
 }
