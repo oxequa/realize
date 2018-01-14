@@ -1,39 +1,39 @@
 settings:
   recovery:
-    index: true
-    events: false
-    tools: false
+    index: true       # print files indexing
+    events: false     # print each event
+    tools: false      # print each tool
   legacy:
-    force: false
-    interval: 0s
+    force: false      # enable polling watcher
+    interval: 0s      # polling interval
 server:
-  status: false
-  open: true
-  port: 3000
-  host: localhost
+  status: false       # web panel
+  open: true          # open in default browser
+  port: 3000          # server port
+  host: localhost     # server host
 schema:
-- name: realize
-  path: .
-  commands:
-    generate:
+- name: realize       # project name
+  path: .             # project path, '.' is for wdir path
+  commands:           # all go commands supported
+    generate:         # go generate
       status: true
-    install:
+    install:          # go install
       status: true
-    vet:
+    vet:              # go vet
       status: true
-    test:
+    test:             # go test
       status: true
-    fmt:
+    fmt:              # go fmt
       status: true
   watcher:
-    paths:
+    paths:            # paths watched
     - /
-    extensions:
+    extensions:       # extensions watched
     - go
     - html
     - css
     - js
-    ignored_paths:
+    ignored_paths:    # paths ignored
     - .git
     - .realize
     - .idea
