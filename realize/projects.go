@@ -364,10 +364,10 @@ func (p *Project) Validate(path string, fcheck bool) bool {
 	// file check
 	if fcheck {
 		fi, err := os.Stat(path)
-		if !fi.IsDir() && ext(path) == "" {
+		if err != nil {
 			return false
 		}
-		if err != nil {
+		if !fi.IsDir() && ext(path) == "" {
 			return false
 		}
 		if fi.Size() > 0 {

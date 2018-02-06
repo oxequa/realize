@@ -158,7 +158,7 @@ For more examples check: [Realize Examples](https://github.com/tockins/realize-e
             - -w
         test:
             status: true
-            method: gb test    // support differents build tool
+            method: gb test    // support different build tools
         generate:
             status: true
         install:
