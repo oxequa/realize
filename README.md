@@ -48,10 +48,8 @@
 - Any suggestion? [Suggest an amazing feature! 🕺🏻](https://github.com/tockins/realize/issues/new)
 
 ## Supporters
-
-<p align="center">
-
-    <img src="http://gorealize.io/img/do_logo.png" width="200px">
+<p align="center"><br>
+    <img src="http://gorealize.io/img/do_logo.png" width="250px">
 </p>
 
 ## Get started
