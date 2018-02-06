@@ -47,6 +47,12 @@
 - Redesigned panel that displays build errors, console outputs and warnings.
 - Any suggestion? [Suggest an amazing feature! 🕺🏻](https://github.com/tockins/realize/issues/new)
 
+## Supporters
+
+<p align="center">
+    <img src="http://gorealize.io/img/do_logo.png" width="150px">
+</p>
+
 ## Get started
 	$ go get github.com/tockins/realize
 
