@@ -49,7 +49,7 @@
 
 ## Supporters
 <p align="center"><br>
-    <img src="http://gorealize.io/img/do_logo.png" width="250px">
+    <img src="http://gorealize.io/img/do_logo.png" width="180px">
 </p>
 
 ## Get started
