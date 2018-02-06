@@ -49,7 +49,8 @@
 
 ## Supporters
 
-<p align="center" style="margin-top:50px; margin-bottom:30px;">
+<p align="center">
+
     <img src="http://gorealize.io/img/do_logo.png" width="200px">
 </p>
 
