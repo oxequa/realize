@@ -547,7 +547,9 @@ func (p *Project) run(path string, stream chan Response, stop <-chan bool) (err 
 	defer func() {
 		// https://github.com/golang/go/issues/5615
 		// https://github.com/golang/go/issues/6720
-		build.Process.Signal(os.Interrupt)
+		if build != nil {
+			build.Process.Signal(os.Interrupt)
+		}
 	}()
 
 	// custom error pattern
