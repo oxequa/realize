@@ -28,7 +28,8 @@ var (
 type Watch struct {
 	Paths   []string  `yaml:"paths" json:"paths"`
 	Exts    []string  `yaml:"extensions" json:"extensions"`
-	Ignore  []string  `yaml:"ignored_paths,omitempty" json:"ignored_paths,omitempty"`
+	IgnoredExts    []string  `yaml:"ignored_extensions,omitempty" json:"ignored_extensions,omitempty"`
+	IgnoredPaths  []string  `yaml:"ignored_paths,omitempty" json:"ignored_paths,omitempty"`
 	Scripts []Command `yaml:"scripts,omitempty" json:"scripts,omitempty"`
 	Hidden  bool      `yaml:"skip_hidden,omitempty" json:"skip_hidden,omitempty"`
 }
@@ -347,14 +348,24 @@ func (p *Project) Validate(path string, fcheck bool) bool {
 	}
 	// check for a valid ext or path
 	if e := ext(path); e != "" {
-		// supported exts
-		if !array(e, p.Watcher.Exts) {
-			return false
+		for _, v := range p.Watcher.IgnoredExts {
+			if v == e {
+				return false
+			}
+		}
+		// supported extensions
+		for index, v := range p.Watcher.Exts{
+			if e == v {
+				break
+			}
+			if index == len(p.Watcher.Exts)-1{
+				return false
+			}
 		}
 	}
 	separator := string(os.PathSeparator)
 	// supported paths
-	for _, v := range p.Watcher.Ignore {
+	for _, v := range p.Watcher.IgnoredPaths {
 		s := append([]string{p.Path}, strings.Split(v, separator)...)
 		abs, _ := filepath.Abs(filepath.Join(s...))
 		if path == abs || strings.HasPrefix(path, abs+separator) {

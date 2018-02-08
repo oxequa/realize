@@ -128,7 +128,8 @@ func TestProject_Validate(t *testing.T) {
 	r.Projects = append(r.Projects, Project{
 		parent: &r,
 		Watcher: Watch{
-			Ignore: []string{"/test/ignore"},
+			Exts: []string{"go","html"},
+			IgnoredPaths: []string{"/test/ignore"},
 		},
 	})
 	for i, v := range data {

@@ -8,16 +8,6 @@ import (
 	"strings"
 )
 
-// Array check if a string is in given array
-func array(str string, list []string) bool {
-	for _, v := range list {
-		if v == str {
-			return true
-		}
-	}
-	return false
-}
-
 // Params parse one by one the given argumentes
 func params(params *cli.Context) []string {
 	argsN := params.NArg()

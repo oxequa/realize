@@ -795,7 +795,7 @@ func setup(c *cli.Context) (err error) {
 							Resolve: func(d interact.Context) bool {
 								val, _ := d.Ans().Bool()
 								if val {
-									r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore = r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore[:len(r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore)-1]
+									r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.IgnoredPaths = r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.IgnoredPaths[:len(r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.IgnoredPaths)-1]
 								}
 								return val
 							},
@@ -815,7 +815,7 @@ func setup(c *cli.Context) (err error) {
 									if err != nil {
 										return d.Err()
 									}
-									r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore = append(r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore, val)
+									r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.IgnoredPaths = append(r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.IgnoredPaths, val)
 									d.Reload()
 									return nil
 								},
@@ -1128,7 +1128,10 @@ func start(c *cli.Context) (err error) {
 	// check no-config and read
 	if !c.Bool("no-config") {
 		// read a config if exist
-		r.Settings.Read(&r)
+		err := r.Settings.Read(&r)
+		if err != nil{
+			return err
+		}
 		if c.String("name") != "" {
 			// filter by name flag if exist
 			r.Schema.Projects = r.Schema.Filter("Name", c.String("name"))
@@ -1143,6 +1146,7 @@ func start(c *cli.Context) (err error) {
 	}
 	// check project list length
 	if len(r.Schema.Projects) <= 0 {
+		println("len",r.Schema.Projects)
 		// create a new project based on given params
 		project := r.Schema.New(c)
 		// Add to projects list
