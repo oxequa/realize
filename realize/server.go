@@ -107,7 +107,6 @@ func (s *Server) Set(status bool, open bool, port int, host string) {
 
 // Start the web server
 func (s *Server) Start() (err error) {
-	println(s.Status,"start")
 	if s.Status {
 		e := echo.New()
 		e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
