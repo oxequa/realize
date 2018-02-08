@@ -38,6 +38,7 @@ func main() {
 					&cli.BoolFlag{Name: "install", Aliases: []string{"i"}, Value: false, Usage: "Enable go install"},
 					&cli.BoolFlag{Name: "build", Aliases: []string{"b"}, Value: false, Usage: "Enable go build"},
 					&cli.BoolFlag{Name: "run", Aliases: []string{"nr"}, Value: false, Usage: "Enable go run"},
+					&cli.BoolFlag{Name: "legacy", Aliases: []string{"l"}, Value: false, Usage: "Legacy watch by polling instead fsnotify"},
 					&cli.BoolFlag{Name: "no-config", Aliases: []string{"nc"}, Value: false, Usage: "Ignore existing config and doesn't create a new one"},
 				},
 				Action: func(c *cli.Context) error {
@@ -1117,6 +1118,10 @@ func setup(c *cli.Context) (err error) {
 // Start realize workflow
 func start(c *cli.Context) (err error) {
 	r.Server = realize.Server{Parent: &r, Status: false, Open: false, Port: realize.Port, Host: realize.Host}
+	// set legacy watcher
+	if c.Bool("legacy"){
+		r.Settings.Legacy.Set(1)
+	}
 	// check no-config and read
 	if !c.Bool("no-config") {
 		// read a config if exist

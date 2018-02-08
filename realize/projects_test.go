@@ -100,7 +100,9 @@ func TestProject_Reload(t *testing.T) {
 		parent: &r,
 	})
 	input := "test/path"
-	r.Projects[0].watcher, _ = NewFileWatcher(false, 0)
+	r.Settings.Legacy.Force = false
+	r.Settings.Legacy.Interval = 0
+	r.Projects[0].watcher, _ = NewFileWatcher(r.Settings.Legacy)
 	r.Reload = func(context Context) {
 		log.Println(context.Path)
 	}

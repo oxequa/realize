@@ -2,7 +2,7 @@ package realize
 
 // this code is imported from moby, unfortunately i can't import it directly as dependencies from its repo,
 // cause there was a problem between moby vendor and fsnotify
-// i have just added only walk methods and some little changes to polling interval, originally set as static.
+// i have just added only the walk methods and some little changes to polling interval, originally set as static.
 
 import (
 	"errors"
@@ -57,7 +57,7 @@ type (
 // PollingWatcher returns a poll-based file watcher
 func PollingWatcher(interval time.Duration) FileWatcher {
 	if interval == 0 {
-		interval = 100 * time.Millisecond
+		interval = time.Duration(1) * time.Second
 	}
 	return &filePoller{
 		interval: interval,
@@ -67,13 +67,13 @@ func PollingWatcher(interval time.Duration) FileWatcher {
 }
 
 // NewFileWatcher tries to use an fs-event watcher, and falls back to the poller if there is an error
-func NewFileWatcher(force bool, interval time.Duration) (FileWatcher, error) {
-	if !force {
+func NewFileWatcher(l Legacy) (FileWatcher, error) {
+	if !l.Force {
 		if w, err := EventWatcher(); err == nil {
 			return w, nil
 		}
 	}
-	return PollingWatcher(interval), nil
+	return PollingWatcher(l.Interval), nil
 }
 
 // EventWatcher returns an fs-event based file watcher
