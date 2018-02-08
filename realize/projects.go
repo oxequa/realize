@@ -348,6 +348,10 @@ func (p *Project) Validate(path string, fcheck bool) bool {
 	}
 	// check for a valid ext or path
 	if e := ext(path); e != "" {
+		if len(p.Watcher.Exts) == 0{
+			return false
+		}
+		// check ignored
 		for _, v := range p.Watcher.IgnoredExts {
 			if v == e {
 				return false
@@ -355,6 +359,7 @@ func (p *Project) Validate(path string, fcheck bool) bool {
 		}
 		// supported extensions
 		for index, v := range p.Watcher.Exts{
+			println(v)
 			if e == v {
 				break
 			}
