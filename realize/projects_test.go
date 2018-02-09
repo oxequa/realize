@@ -48,7 +48,7 @@ func TestProject_Before(t *testing.T) {
 	r = Realize{}
 	r.Projects = append(r.Projects, Project{
 		parent: &r,
-		Environment: map[string]string{
+		Env: map[string]string{
 			input: input,
 		},
 	})
@@ -129,7 +129,9 @@ func TestProject_Validate(t *testing.T) {
 		parent: &r,
 		Watcher: Watch{
 			Exts: []string{},
-			IgnoredPaths: []string{"/test/ignore"},
+			Ignore: Ignore{
+				Paths:[]string{"/test/ignore"},
+			},
 		},
 	})
 	for i, v := range data {

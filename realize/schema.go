@@ -68,7 +68,9 @@ func (s *Schema) New(c *cli.Context) Project {
 		Args: params(c),
 		Watcher: Watch{
 			Paths:  []string{"/"},
-			IgnoredPaths: []string{".git", ".realize", "vendor"},
+			Ignore: Ignore{
+				Paths:[]string{".git", ".realize", "vendor"},
+			},
 			Exts:   []string{"go"},
 		},
 	}

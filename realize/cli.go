@@ -34,7 +34,7 @@ type (
 	// Realize main struct
 	Realize struct {
 		Settings Settings `yaml:"settings" json:"settings"`
-		Server   Server   `yaml:"server" json:"server"`
+		Server   Server   `yaml:"server,omitempty" json:"server,omitempty"`
 		Schema   `yaml:",inline" json:",inline"`
 		Sync     chan string `yaml:"-" json:"-"`
 		Err      Func        `yaml:"-" json:"-"`
