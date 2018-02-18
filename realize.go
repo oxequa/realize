@@ -1118,20 +1118,17 @@ func setup(c *cli.Context) (err error) {
 // Start realize workflow
 func start(c *cli.Context) (err error) {
 	// set legacy watcher
-	if c.Bool("legacy"){
-		r.Settings.Legacy.Set(c.Bool("legacy"),1)
+	if c.Bool("legacy") {
+		r.Settings.Legacy.Set(c.Bool("legacy"), 1)
 	}
 	// set server
-	if c.Bool("server"){
-		r.Server.Set(c.Bool("server"), c.Bool("open"),realize.Port,realize.Host)
+	if c.Bool("server") {
+		r.Server.Set(c.Bool("server"), c.Bool("open"), realize.Port, realize.Host)
 	}
 	// check no-config and read
 	if !c.Bool("no-config") {
 		// read a config if exist
-		err := r.Settings.Read(&r)
-		if err != nil{
-			return err
-		}
+		r.Settings.Read(&r)
 		if c.String("name") != "" {
 			// filter by name flag if exist
 			r.Schema.Projects = r.Schema.Filter("Name", c.String("name"))
@@ -1146,7 +1143,7 @@ func start(c *cli.Context) (err error) {
 	}
 	// check project list length
 	if len(r.Schema.Projects) <= 0 {
-		println("len",r.Schema.Projects)
+		println("len", r.Schema.Projects)
 		// create a new project based on given params
 		project := r.Schema.New(c)
 		// Add to projects list
