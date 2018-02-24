@@ -1,11 +1,11 @@
 # Realize
 
-[![GoDoc](https://img.shields.io/badge/documentation-godoc-blue.svg?style=flat-square)](https://godoc.org/github.com/tockins/realize)
-[![Travis](https://img.shields.io/travis/tockins/realize.svg?style=flat-square)](https://travis-ci.org/tockins/realize)
-[![AUR](https://img.shields.io/aur/license/yaourt.svg?style=flat-square)](https://raw.githubusercontent.com/tockins/realize/v1/LICENSE)
-[![](https://img.shields.io/badge/realize-examples-yellow.svg?style=flat-square)](https://github.com/tockins/realize-examples)
-[![Gitter](https://img.shields.io/gitter/room/tockins/realize.svg?style=flat-square)](https://gitter.im/tockins/realize?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Go Report Card](https://goreportcard.com/badge/github.com/tockins/realize?style=flat-square)](https://goreportcard.com/report/github.com/tockins/realize)
+[![GoDoc](https://img.shields.io/badge/documentation-godoc-blue.svg?style=flat-square)](https://godoc.org/github.com/oxequa/realize)
+[![Travis](https://img.shields.io/travis/oxequa/realize.svg?style=flat-square)](https://travis-ci.org/oxequa/realize)
+[![AUR](https://img.shields.io/aur/license/yaourt.svg?style=flat-square)](https://raw.githubusercontent.com/oxequa/realize/v1/LICENSE)
+[![](https://img.shields.io/badge/realize-examples-yellow.svg?style=flat-square)](https://github.com/oxequa/realize-examples)
+[![Gitter](https://img.shields.io/gitter/room/oxequa/realize.svg?style=flat-square)](https://gitter.im/oxequa/realize?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Go Report Card](https://goreportcard.com/badge/github.com/oxequa/realize?style=flat-square)](https://goreportcard.com/report/github.com/oxequa/realize)
 <!--[![OpenCollective](https://opencollective.com/realize/backers/badge.svg?style=flat-square)](#backers)
 [![OpenCollective](https://opencollective.com/realize/sponsors/badge.svg?style=flat-square)](#sponsors)-->
 
@@ -45,7 +45,7 @@
 - Export logs and errors to an external file.
 - Step-by-step project initialization.
 - Redesigned panel that displays build errors, console outputs and warnings.
-- Any suggestion? [Suggest an amazing feature! 🕺🏻](https://github.com/tockins/realize/issues/new)
+- Any suggestion? [Suggest an amazing feature! 🕺🏻](https://github.com/oxequa/realize/issues/new)
 
 ## Supporters
 <p align="center"><br>
@@ -53,7 +53,7 @@
 </p>
 
 ## Get started
-	$ go get github.com/tockins/realize
+	$ go get github.com/oxequa/realize
 
 ## Commands List
 
@@ -87,7 +87,7 @@ Some examples:
     $ realize start --name="realize" --build
     $ realize start --path="realize" --run --no-config
     $ realize start --install --test --fmt --no-config
-    $ realize start --path="/Users/username/go/src/github.com/tockins/realize-examples/coin/"
+    $ realize start --path="/Users/username/go/src/github.com/oxequa/realize-examples/coin/"
 
 If you want, you can specify additional arguments for your project:
 
@@ -126,7 +126,7 @@ Remove a project by its name
 
 *** there is no more a .realize dir, but only a .realize.yaml file ***
 
-For more examples check: [Realize Examples](https://github.com/tockins/realize-examples)
+For more examples check: [Realize Examples](https://github.com/oxequa/realize-examples)
 
     settings:
         legacy:
@@ -197,8 +197,8 @@ For more examples check: [Realize Examples](https://github.com/tockins/realize-e
           errorOutputPattern: mypattern   //custom error pattern
 
 ## Support and Suggestions
-💬 Chat with us [Gitter](https://gitter.im/tockins/realize)<br>
-⭐️ Suggest a new [Feature](https://github.com/tockins/realize/issues/new)
+💬 Chat with us [Gitter](https://gitter.im/oxequa/realize)<br>
+⭐️ Suggest a new [Feature](https://github.com/oxequa/realize/issues/new)
 
 ## Backers
 
