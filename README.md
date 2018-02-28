@@ -12,7 +12,7 @@
 <br>
 
 <div align="center">
-    <img src="https://i.imgur.com/7XiZyR1.png" width="125px">
+    <img src="https://i.imgur.com/bXXWQcc.png" width="125px">
     <h1 style="">The #1 Golang Task Runner</h1>
 	<p style="font-size: 18px; font-weight: 400;">Enhance your workflow by automating the most common tasks and using the best performing Golang live reloading.</p>
 </div>
