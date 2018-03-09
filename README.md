@@ -1,23 +1,16 @@
-# Realize
-
-[![GoDoc](https://img.shields.io/badge/documentation-godoc-blue.svg?style=flat-square)](https://godoc.org/github.com/oxequa/realize)
-[![Travis](https://img.shields.io/travis/oxequa/realize.svg?style=flat-square)](https://travis-ci.org/oxequa/realize)
-[![AUR](https://img.shields.io/aur/license/yaourt.svg?style=flat-square)](https://raw.githubusercontent.com/oxequa/realize/v1/LICENSE)
-[![](https://img.shields.io/badge/realize-examples-yellow.svg?style=flat-square)](https://github.com/oxequa/realize-examples)
-[![Gitter](https://img.shields.io/gitter/room/oxequa/realize.svg?style=flat-square)](https://gitter.im/oxequa/realize?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Go Report Card](https://goreportcard.com/badge/github.com/oxequa/realize?style=flat-square)](https://goreportcard.com/report/github.com/oxequa/realize)
-<!--[![OpenCollective](https://opencollective.com/realize/backers/badge.svg?style=flat-square)](#backers)
-[![OpenCollective](https://opencollective.com/realize/sponsors/badge.svg?style=flat-square)](#sponsors)-->
-
-<br>
-
-<div align="center">
-    <img src="https://i.imgur.com/bXXWQcc.png" width="125px">
-    <h1 style="">The #1 Golang Task Runner</h1>
-	<p style="font-size: 18px; font-weight: 400;">Enhance your workflow by automating the most common tasks and using the best performing Golang live reloading.</p>
-</div>
-
-<br>
+<p align="center">
+  <img src="https://i.imgur.com/vJfIiId.png" width="125px">
+</p>
+<p align="center">
+  <a href="https://travis-ci.org/oxequa/realize"><img src="https://img.shields.io/travis/oxequa/realize.svg?style=flat-square" alt="Build status"></a>
+  <a href="https://goreportcard.com/report/github.com/oxequa/realize"><img src="https://goreportcard.com/badge/github.com/oxequa/realize?style=flat-square" alt="GoReport"></a>
+  <a href="http://godoc.org/github.com/oxequa/realize"><img src="http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square" alt="GoDoc"></a>
+  <a href="https://raw.githubusercontent.com/oxequa/realize/v1/LICENSE"><img src="https://img.shields.io/aur/license/yaourt.svg?style=flat-square" alt="License"></a>
+  <a href="https://gitter.im/oxequa/realize?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge"><img src="https://img.shields.io/gitter/room/oxequa/realize.svg?style=flat-square" alt="Gitter"></a>
+</p>
+<hr>
+<h3 align="center">#1 Golang live reload and task runner</h3>
+<hr>
 
 <p align="center">
     <img src="https://gorealize.io/img/realize-ui-2.png">
@@ -52,8 +45,10 @@
     <img src="http://gorealize.io/img/do_logo.png" width="180px">
 </p>
 
-## Get started
-	$ go get github.com/oxequa/realize
+## Quickstart
+```
+go get github.com/oxequa/realize
+```
 
 ## Commands List
 
