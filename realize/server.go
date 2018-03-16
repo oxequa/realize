@@ -146,7 +146,7 @@ func (s *Server) Start() (err error) {
 
 	//websocket
 	e.GET("/ws", s.projects)
-	e.HideBanner = true
+	// e.HideBanner = true
 	e.Debug = false
 	go func() {
 		log.Println(s.Parent.Prefix("Started on " + string(s.Host) + ":" + strconv.Itoa(s.Port)))

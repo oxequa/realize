@@ -41,7 +41,7 @@
   version = "1.0.4"
 
 [[constraint]]
-  name = "github.com/tockins/interact"
+  name = "github.com/oxequa/interact"
   version = "1.1.1"
 
 [[constraint]]
