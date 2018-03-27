@@ -65,7 +65,8 @@ func init() {
 	if build.Default.GOPATH == "" {
 		log.Fatal("$GOPATH isn't set properly")
 	}
-	if err := os.Setenv("GOBIN", filepath.Join(build.Default.GOPATH, "bin")); err != nil {
+	path := filepath.SplitList(build.Default.GOPATH)
+	if err := os.Setenv("GOBIN", filepath.Join(path[len(path)-1], "bin")); err != nil {
 		log.Fatal(err)
 	}
 }
