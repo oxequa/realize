@@ -69,7 +69,7 @@ type Project struct {
 }
 
 // Last is used to save info about last file changed
-type last struct{
+type last struct {
 	file string
 	time time.Time
 }
@@ -495,7 +495,7 @@ func (p *Project) walk(path string, info os.FileInfo, err error) error {
 		result := p.watcher.Walk(path, p.init)
 		if result != "" {
 			if p.parent.Settings.Recovery.Index {
-				log.Println("Indexing",path)
+				log.Println("Indexing", path)
 			}
 			p.tools(p.stop, path, info)
 			if info.IsDir() {
@@ -596,6 +596,9 @@ func (p *Project) run(path string, stream chan Response, stop <-chan bool) (err 
 		name = filepath.Base(dirPath)
 	}
 	path = filepath.Join(dirPath, name)
+	if p.Tools.Run.Method != "" {
+        path = p.Tools.Run.Method
+	}
 	if _, err := os.Stat(path); err == nil {
 		build = exec.Command(path, args...)
 	} else if _, err := os.Stat(path + RExtWin); err == nil {
