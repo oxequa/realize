@@ -43,7 +43,7 @@ func (t *Tools) Setup() {
 	if t.Clean.Status {
 		t.Clean.name = "Clean"
 		t.Clean.isTool = true
-		t.Clean.cmd = replace([]string{"go clean"}, t.Clean.Method)
+		t.Clean.cmd = replace([]string{"go", "clean"}, t.Clean.Method)
 		t.Clean.Args = split([]string{}, t.Clean.Args)
 	}
 	// go generate
@@ -134,7 +134,12 @@ func (t *Tool) Exec(path string, stop <-chan bool) (response Response) {
 		cmd.Stdout = &out
 		cmd.Stderr = &stderr
 		// Start command
-		cmd.Start()
+		err := cmd.Start()
+		if err != nil{
+			response.Name = t.name
+			response.Err = err
+			return
+		}
 		go func() { done <- cmd.Wait() }()
 		// Wait a result
 		select {
@@ -145,7 +150,7 @@ func (t *Tool) Exec(path string, stop <-chan bool) (response Response) {
 			// Command completed
 			response.Name = t.name
 			if err != nil {
-				response.Err = errors.New(stderr.String() + out.String())
+				response.Err = errors.New(stderr.String() + out.String() + err.Error())
 			} else {
 				if t.Output {
 					response.Out = out.String()

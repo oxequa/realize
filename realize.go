@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/tockins/interact"
-	"github.com/tockins/realize/realize"
+	"github.com/oxequa/interact"
+	"github.com/oxequa/realize/realize"
 	"gopkg.in/urfave/cli.v2"
 	"log"
 	"os"

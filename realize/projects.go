@@ -26,7 +26,7 @@ var (
 
 // Watch info
 type Watch struct {
-	Exts    []string  `yaml:"exts" json:"exts"`
+	Exts    []string  `yaml:"extensions" json:"extensions"`
 	Paths   []string  `yaml:"paths" json:"paths"`
 	Scripts []Command `yaml:"scripts,omitempty" json:"scripts,omitempty"`
 	Hidden  bool      `yaml:"hidden,omitempty" json:"hidden,omitempty"`
@@ -40,7 +40,7 @@ type Ignore struct{
 
 // Command fields
 type Command struct {
-	Cmd    string `yaml:"cmd" json:"cmd"`
+	Cmd    string `yaml:"command" json:"command"`
 	Type   string `yaml:"type" json:"type"`
 	Path   string `yaml:"path,omitempty" json:"path,omitempty"`
 	Global bool   `yaml:"global,omitempty" json:"global,omitempty"`
@@ -62,7 +62,7 @@ type Project struct {
 	Path               string            `yaml:"path" json:"path"`
 	Env        	   map[string]string `yaml:"env,omitempty" json:"env,omitempty"`
 	Args               []string          `yaml:"args,omitempty" json:"args,omitempty"`
-	Tools              Tools             `yaml:"tools" json:"tools"`
+	Tools              Tools             `yaml:"commands" json:"commands"`
 	Watcher            Watch             `yaml:"watcher" json:"watcher"`
 	Buffer             Buffer            `yaml:"-" json:"buffer"`
 	ErrPattern string            `yaml:"pattern,omitempty" json:"pattern,omitempty"`
@@ -196,7 +196,7 @@ func (p *Project) Reload(path string, stop <-chan bool) {
 	}
 	// Go supported tools
 	if len(path) > 0 {
-		fi, err := os.Stat(filepath.Dir(path))
+		fi, err := os.Stat(path)
 		if filepath.Ext(path) == "" {
 			fi, err = os.Stat(path)
 		}
@@ -477,8 +477,8 @@ func (p *Project) cmd(stop <-chan bool, flag string, global bool) {
 		case <-done:
 			return
 		case r := <-result:
-			msg = fmt.Sprintln(p.pname(p.Name, 5), ":", Green.Bold("Command"), Green.Bold("\"")+r.Name+Green.Bold("\""))
-			if r.Err != nil {
+			 msg = fmt.Sprintln(p.pname(p.Name, 5), ":", Green.Bold("Command"), Green.Bold("\"")+r.Name+Green.Bold("\""))
+			 if r.Err != nil {
 				out = BufferOut{Time: time.Now(), Text: r.Err.Error(), Type: flag}
 				p.stamp("error", out, msg, fmt.Sprint(Red.Regular(r.Err.Error())))
 			} else {
@@ -497,9 +497,9 @@ func (p *Project) walk(path string, info os.FileInfo, err error) error {
 			if p.parent.Settings.Recovery.Index {
 				log.Println("Indexing",path)
 			}
+			p.tools(p.stop, path, info)
 			if info.IsDir() {
 				// tools dir
-				p.tools(p.stop, path, info)
 				p.folders++
 			} else {
 				// tools files
@@ -544,7 +544,7 @@ func (p *Project) stamp(t string, o BufferOut, msg string, stream string) {
 		log.Print(msg)
 	}
 	if stream != "" {
-		fmt.Fprint(Output, stream)
+		fmt.Fprintln(Output, stream)
 	}
 	go func() {
 		p.parent.Sync <- "sync"
