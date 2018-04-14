@@ -61,6 +61,12 @@ type Resource struct {
 	Name   string
 }
 
+// Set legacy watcher with an interval
+func (l *Legacy) Set(status bool, interval int){
+	l.Force = true
+	l.Interval = time.Duration(interval) * time.Second
+}
+
 // Remove realize folder
 func (s *Settings) Remove(d string) error {
 	_, err := os.Stat(d)

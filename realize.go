@@ -38,6 +38,7 @@ func main() {
 					&cli.BoolFlag{Name: "install", Aliases: []string{"i"}, Value: false, Usage: "Enable go install"},
 					&cli.BoolFlag{Name: "build", Aliases: []string{"b"}, Value: false, Usage: "Enable go build"},
 					&cli.BoolFlag{Name: "run", Aliases: []string{"nr"}, Value: false, Usage: "Enable go run"},
+					&cli.BoolFlag{Name: "legacy", Aliases: []string{"l"}, Value: false, Usage: "Legacy watch by polling instead fsnotify"},
 					&cli.BoolFlag{Name: "no-config", Aliases: []string{"nc"}, Value: false, Usage: "Ignore existing config and doesn't create a new one"},
 				},
 				Action: func(c *cli.Context) error {
@@ -794,7 +795,7 @@ func setup(c *cli.Context) (err error) {
 							Resolve: func(d interact.Context) bool {
 								val, _ := d.Ans().Bool()
 								if val {
-									r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore = r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore[:len(r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore)-1]
+									r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore.Paths = r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore.Paths[:len(r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore.Paths)-1]
 								}
 								return val
 							},
@@ -814,7 +815,7 @@ func setup(c *cli.Context) (err error) {
 									if err != nil {
 										return d.Err()
 									}
-									r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore = append(r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore, val)
+									r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore.Paths = append(r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore.Paths, val)
 									d.Reload()
 									return nil
 								},
@@ -1080,7 +1081,7 @@ func setup(c *cli.Context) (err error) {
 							if err != nil {
 								return d.Err()
 							}
-							r.Schema.Projects[len(r.Schema.Projects)-1].ErrorOutputPattern = val
+							r.Schema.Projects[len(r.Schema.Projects)-1].ErrPattern = val
 							return nil
 						},
 					},
@@ -1116,7 +1117,14 @@ func setup(c *cli.Context) (err error) {
 
 // Start realize workflow
 func start(c *cli.Context) (err error) {
-	r.Server = realize.Server{Parent: &r, Status: false, Open: false, Port: realize.Port, Host: realize.Host}
+	// set legacy watcher
+	if c.Bool("legacy") {
+		r.Settings.Legacy.Set(c.Bool("legacy"), 1)
+	}
+	// set server
+	if c.Bool("server") {
+		r.Server.Set(c.Bool("server"), c.Bool("open"), realize.Port, realize.Host)
+	}
 	// check no-config and read
 	if !c.Bool("no-config") {
 		// read a config if exist
@@ -1133,20 +1141,9 @@ func start(c *cli.Context) (err error) {
 		}
 
 	}
-	// config and start server
-	if c.Bool("server") || r.Server.Status {
-		r.Server.Status = true
-		if c.Bool("open") || r.Server.Open {
-			r.Server.Open = true
-			r.Server.OpenURL()
-		}
-		err = r.Server.Start()
-		if err != nil {
-			return err
-		}
-	}
 	// check project list length
 	if len(r.Schema.Projects) <= 0 {
+		println("len", r.Schema.Projects)
 		// create a new project based on given params
 		project := r.Schema.New(c)
 		// Add to projects list
@@ -1157,6 +1154,18 @@ func start(c *cli.Context) (err error) {
 			if err != nil {
 				return err
 			}
+		}
+	}
+	// Start web server
+	if r.Server.Status {
+		r.Server.Parent = &r
+		err = r.Server.Start()
+		if err != nil {
+			return err
+		}
+		err = r.Server.OpenURL()
+		if err != nil {
+			return err
 		}
 	}
 	// start workflow

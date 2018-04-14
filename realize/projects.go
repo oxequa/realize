@@ -26,17 +26,22 @@ var (
 
 // Watch info
 type Watch struct {
-	Paths   []string  `yaml:"paths" json:"paths"`
 	Exts    []string  `yaml:"extensions" json:"extensions"`
-	Ignore  []string  `yaml:"ignored_paths,omitempty" json:"ignored_paths,omitempty"`
+	Paths   []string  `yaml:"paths" json:"paths"`
 	Scripts []Command `yaml:"scripts,omitempty" json:"scripts,omitempty"`
-	Hidden  bool      `yaml:"skip_hidden,omitempty" json:"skip_hidden,omitempty"`
+	Hidden  bool      `yaml:"hidden,omitempty" json:"hidden,omitempty"`
+	Ignore  Ignore    `yaml:"ignore,omitempty" json:"ignore,omitempty"`
+}
+
+type Ignore struct{
+	Exts   []string  `yaml:"exts,omitempty" json:"exts,omitempty"`
+	Paths  []string  `yaml:"paths,omitempty" json:"paths,omitempty"`
 }
 
 // Command fields
 type Command struct {
-	Type   string `yaml:"type" json:"type"`
 	Cmd    string `yaml:"command" json:"command"`
+	Type   string `yaml:"type" json:"type"`
 	Path   string `yaml:"path,omitempty" json:"path,omitempty"`
 	Global bool   `yaml:"global,omitempty" json:"global,omitempty"`
 	Output bool   `yaml:"output,omitempty" json:"output,omitempty"`
@@ -46,21 +51,21 @@ type Command struct {
 type Project struct {
 	parent             *Realize
 	watcher            FileWatcher
-	init               bool
-	exit               chan os.Signal
 	stop               chan bool
+	exit               chan os.Signal
+	paths              []string
+	last			   last
 	files              int64
 	folders            int64
-	last               last
-	paths              []string
+	init               bool
 	Name               string            `yaml:"name" json:"name"`
 	Path               string            `yaml:"path" json:"path"`
-	Environment        map[string]string `yaml:"environment,omitempty" json:"environment,omitempty"`
-	Tools              Tools             `yaml:"commands" json:"commands"`
+	Env        	   map[string]string `yaml:"env,omitempty" json:"env,omitempty"`
 	Args               []string          `yaml:"args,omitempty" json:"args,omitempty"`
+	Tools              Tools             `yaml:"commands" json:"commands"`
 	Watcher            Watch             `yaml:"watcher" json:"watcher"`
 	Buffer             Buffer            `yaml:"-" json:"buffer"`
-	ErrorOutputPattern string            `yaml:"errorOutputPattern,omitempty" json:"errorOutputPattern,omitempty"`
+	ErrPattern string            `yaml:"pattern,omitempty" json:"pattern,omitempty"`
 }
 
 // Last is used to save info about last file changed
@@ -111,7 +116,7 @@ func (p *Project) Before() {
 	// setup go tools
 	p.Tools.Setup()
 	// set env const
-	for key, item := range p.Environment {
+	for key, item := range p.Env {
 		if err := os.Setenv(key, item); err != nil {
 			p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error(), Type: "Env error", Stream: ""})
 		}
@@ -191,7 +196,7 @@ func (p *Project) Reload(path string, stop <-chan bool) {
 	}
 	// Go supported tools
 	if len(path) > 0 {
-		fi, err := os.Stat(filepath.Dir(path))
+		fi, err := os.Stat(path)
 		if filepath.Ext(path) == "" {
 			fi, err = os.Stat(path)
 		}
@@ -274,7 +279,7 @@ func (p *Project) Watch(wg *sync.WaitGroup) {
 	// change channel
 	p.stop = make(chan bool)
 	// init a new watcher
-	p.watcher, err = NewFileWatcher(p.parent.Settings.Legacy.Force, p.parent.Settings.Legacy.Interval)
+	p.watcher, err = NewFileWatcher(p.parent.Settings.Legacy)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -347,14 +352,28 @@ func (p *Project) Validate(path string, fcheck bool) bool {
 	}
 	// check for a valid ext or path
 	if e := ext(path); e != "" {
-		// supported exts
-		if !array(e, p.Watcher.Exts) {
+		if len(p.Watcher.Exts) == 0{
 			return false
+		}
+		// check ignored
+		for _, v := range p.Watcher.Ignore.Exts {
+			if v == e {
+				return false
+			}
+		}
+		// supported extensions
+		for index, v := range p.Watcher.Exts{
+			if e == v {
+				break
+			}
+			if index == len(p.Watcher.Exts)-1{
+				return false
+			}
 		}
 	}
 	separator := string(os.PathSeparator)
 	// supported paths
-	for _, v := range p.Watcher.Ignore {
+	for _, v := range p.Watcher.Ignore.Paths {
 		s := append([]string{p.Path}, strings.Split(v, separator)...)
 		abs, _ := filepath.Abs(filepath.Join(s...))
 		if path == abs || strings.HasPrefix(path, abs+separator) {
@@ -364,16 +383,9 @@ func (p *Project) Validate(path string, fcheck bool) bool {
 	// file check
 	if fcheck {
 		fi, err := os.Stat(path)
-		if err != nil {
+		if err != nil || fi.Mode()&os.ModeSymlink != 0 || !fi.IsDir() && ext(path) == "" || fi.Size() <= 0{
 			return false
 		}
-		if !fi.IsDir() && ext(path) == "" {
-			return false
-		}
-		if fi.Size() > 0 {
-			return true
-		}
-		return false
 	}
 	return true
 
@@ -465,8 +477,8 @@ func (p *Project) cmd(stop <-chan bool, flag string, global bool) {
 		case <-done:
 			return
 		case r := <-result:
-			msg = fmt.Sprintln(p.pname(p.Name, 5), ":", Green.Bold("Command"), Green.Bold("\"")+r.Name+Green.Bold("\""))
-			if r.Err != nil {
+			 msg = fmt.Sprintln(p.pname(p.Name, 5), ":", Green.Bold("Command"), Green.Bold("\"")+r.Name+Green.Bold("\""))
+			 if r.Err != nil {
 				out = BufferOut{Time: time.Now(), Text: r.Err.Error(), Type: flag}
 				p.stamp("error", out, msg, fmt.Sprint(Red.Regular(r.Err.Error())))
 			} else {
@@ -485,9 +497,9 @@ func (p *Project) walk(path string, info os.FileInfo, err error) error {
 			if p.parent.Settings.Recovery.Index {
 				log.Println("Indexing", path)
 			}
+			p.tools(p.stop, path, info)
 			if info.IsDir() {
 				// tools dir
-				p.tools(p.stop, path, info)
 				p.folders++
 			} else {
 				// tools files
@@ -532,7 +544,7 @@ func (p *Project) stamp(t string, o BufferOut, msg string, stream string) {
 		log.Print(msg)
 	}
 	if stream != "" {
-		fmt.Fprint(Output, stream)
+		fmt.Fprintln(Output, stream)
 	}
 	go func() {
 		p.parent.Sync <- "sync"
@@ -547,14 +559,16 @@ func (p *Project) run(path string, stream chan Response, stop <-chan bool) (err 
 	defer func() {
 		// https://github.com/golang/go/issues/5615
 		// https://github.com/golang/go/issues/6720
-		build.Process.Signal(os.Interrupt)
+		if build != nil {
+			build.Process.Signal(os.Interrupt)
+		}
 	}()
 
 	// custom error pattern
 	isErrorText := func(string) bool {
 		return false
 	}
-	errRegexp, err := regexp.Compile(p.ErrorOutputPattern)
+	errRegexp, err := regexp.Compile(p.ErrPattern)
 	if err != nil {
 		r.Err = err
 		stream <- r

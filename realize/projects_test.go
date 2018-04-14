@@ -48,7 +48,7 @@ func TestProject_Before(t *testing.T) {
 	r = Realize{}
 	r.Projects = append(r.Projects, Project{
 		parent: &r,
-		Environment: map[string]string{
+		Env: map[string]string{
 			input: input,
 		},
 	})
@@ -100,7 +100,9 @@ func TestProject_Reload(t *testing.T) {
 		parent: &r,
 	})
 	input := "test/path"
-	r.Projects[0].watcher, _ = NewFileWatcher(false, 0)
+	r.Settings.Legacy.Force = false
+	r.Settings.Legacy.Interval = 0
+	r.Projects[0].watcher, _ = NewFileWatcher(r.Settings.Legacy)
 	r.Reload = func(context Context) {
 		log.Println(context.Path)
 	}
@@ -126,12 +128,16 @@ func TestProject_Validate(t *testing.T) {
 	r.Projects = append(r.Projects, Project{
 		parent: &r,
 		Watcher: Watch{
-			Ignore: []string{"/test/ignore"},
+			Exts: []string{},
+			Ignore: Ignore{
+				Paths:[]string{"/test/ignore"},
+			},
 		},
 	})
 	for i, v := range data {
-		if r.Projects[0].Validate(i, false) != v {
-			t.Error("Unexpected error", i, "expected", v)
+		result := r.Projects[0].Validate(i, false)
+		if  result != v {
+			t.Error("Unexpected error", i, "expected", v, result)
 		}
 	}
 }
