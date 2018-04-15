@@ -62,7 +62,7 @@ type Resource struct {
 }
 
 // Set legacy watcher with an interval
-func (l *Legacy) Set(status bool, interval int){
+func (l *Legacy) Set(status bool, interval int) {
 	l.Force = true
 	l.Interval = time.Duration(interval) * time.Second
 }

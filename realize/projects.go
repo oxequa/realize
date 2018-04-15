@@ -30,12 +30,12 @@ type Watch struct {
 	Paths   []string  `yaml:"paths" json:"paths"`
 	Scripts []Command `yaml:"scripts,omitempty" json:"scripts,omitempty"`
 	Hidden  bool      `yaml:"hidden,omitempty" json:"hidden,omitempty"`
-	Ignore  Ignore    `yaml:"ignore,omitempty" json:"ignore,omitempty"`
+	Ignore  []string  `yaml:"ignored_paths,omitempty" json:"ignored_paths,omitempty"`
 }
 
-type Ignore struct{
-	Exts   []string  `yaml:"exts,omitempty" json:"exts,omitempty"`
-	Paths  []string  `yaml:"paths,omitempty" json:"paths,omitempty"`
+type Ignore struct {
+	Exts  []string `yaml:"exts,omitempty" json:"exts,omitempty"`
+	Paths []string `yaml:"paths,omitempty" json:"paths,omitempty"`
 }
 
 // Command fields
@@ -49,22 +49,22 @@ type Command struct {
 
 // Project info
 type Project struct {
-	parent             *Realize
-	watcher            FileWatcher
-	stop               chan bool
-	exit               chan os.Signal
-	paths              []string
-	last			   last
-	files              int64
-	folders            int64
-	init               bool
-	Name               string            `yaml:"name" json:"name"`
-	Path               string            `yaml:"path" json:"path"`
-	Env        	   map[string]string `yaml:"env,omitempty" json:"env,omitempty"`
-	Args               []string          `yaml:"args,omitempty" json:"args,omitempty"`
-	Tools              Tools             `yaml:"commands" json:"commands"`
-	Watcher            Watch             `yaml:"watcher" json:"watcher"`
-	Buffer             Buffer            `yaml:"-" json:"buffer"`
+	parent     *Realize
+	watcher    FileWatcher
+	stop       chan bool
+	exit       chan os.Signal
+	paths      []string
+	last       last
+	files      int64
+	folders    int64
+	init       bool
+	Name       string            `yaml:"name" json:"name"`
+	Path       string            `yaml:"path" json:"path"`
+	Env        map[string]string `yaml:"env,omitempty" json:"env,omitempty"`
+	Args       []string          `yaml:"args,omitempty" json:"args,omitempty"`
+	Tools      Tools             `yaml:"commands" json:"commands"`
+	Watcher    Watch             `yaml:"watcher" json:"watcher"`
+	Buffer     Buffer            `yaml:"-" json:"buffer"`
 	ErrPattern string            `yaml:"pattern,omitempty" json:"pattern,omitempty"`
 }
 
@@ -352,28 +352,28 @@ func (p *Project) Validate(path string, fcheck bool) bool {
 	}
 	// check for a valid ext or path
 	if e := ext(path); e != "" {
-		if len(p.Watcher.Exts) == 0{
+		if len(p.Watcher.Exts) == 0 {
 			return false
 		}
 		// check ignored
-		for _, v := range p.Watcher.Ignore.Exts {
+		for _, v := range p.Watcher.Ignore {
 			if v == e {
 				return false
 			}
 		}
 		// supported extensions
-		for index, v := range p.Watcher.Exts{
+		for index, v := range p.Watcher.Exts {
 			if e == v {
 				break
 			}
-			if index == len(p.Watcher.Exts)-1{
+			if index == len(p.Watcher.Exts)-1 {
 				return false
 			}
 		}
 	}
 	separator := string(os.PathSeparator)
 	// supported paths
-	for _, v := range p.Watcher.Ignore.Paths {
+	for _, v := range p.Watcher.Ignore {
 		s := append([]string{p.Path}, strings.Split(v, separator)...)
 		abs, _ := filepath.Abs(filepath.Join(s...))
 		if path == abs || strings.HasPrefix(path, abs+separator) {
@@ -383,7 +383,7 @@ func (p *Project) Validate(path string, fcheck bool) bool {
 	// file check
 	if fcheck {
 		fi, err := os.Stat(path)
-		if err != nil || fi.Mode()&os.ModeSymlink != 0 || !fi.IsDir() && ext(path) == "" || fi.Size() <= 0{
+		if err != nil || fi.Mode()&os.ModeSymlink != 0 || !fi.IsDir() && ext(path) == "" || fi.Size() <= 0 {
 			return false
 		}
 	}
@@ -477,8 +477,8 @@ func (p *Project) cmd(stop <-chan bool, flag string, global bool) {
 		case <-done:
 			return
 		case r := <-result:
-			 msg = fmt.Sprintln(p.pname(p.Name, 5), ":", Green.Bold("Command"), Green.Bold("\"")+r.Name+Green.Bold("\""))
-			 if r.Err != nil {
+			msg = fmt.Sprintln(p.pname(p.Name, 5), ":", Green.Bold("Command"), Green.Bold("\"")+r.Name+Green.Bold("\""))
+			if r.Err != nil {
 				out = BufferOut{Time: time.Now(), Text: r.Err.Error(), Type: flag}
 				p.stamp("error", out, msg, fmt.Sprint(Red.Regular(r.Err.Error())))
 			} else {

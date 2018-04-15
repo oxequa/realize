@@ -795,7 +795,7 @@ func setup(c *cli.Context) (err error) {
 							Resolve: func(d interact.Context) bool {
 								val, _ := d.Ans().Bool()
 								if val {
-									r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore.Paths = r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore.Paths[:len(r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore.Paths)-1]
+									r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore = r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore[:len(r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore)-1]
 								}
 								return val
 							},
@@ -815,7 +815,7 @@ func setup(c *cli.Context) (err error) {
 									if err != nil {
 										return d.Err()
 									}
-									r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore.Paths = append(r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore.Paths, val)
+									r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore = append(r.Schema.Projects[len(r.Schema.Projects)-1].Watcher.Ignore, val)
 									d.Reload()
 									return nil
 								},

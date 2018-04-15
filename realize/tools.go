@@ -135,7 +135,7 @@ func (t *Tool) Exec(path string, stop <-chan bool) (response Response) {
 		cmd.Stderr = &stderr
 		// Start command
 		err := cmd.Start()
-		if err != nil{
+		if err != nil {
 			response.Name = t.name
 			response.Err = err
 			return
