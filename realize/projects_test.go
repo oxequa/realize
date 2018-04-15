@@ -128,15 +128,13 @@ func TestProject_Validate(t *testing.T) {
 	r.Projects = append(r.Projects, Project{
 		parent: &r,
 		Watcher: Watch{
-			Exts: []string{},
-			Ignore: Ignore{
-				Paths:[]string{"/test/ignore"},
-			},
+			Exts:   []string{},
+			Ignore: []string{"/test/ignore"},
 		},
 	})
 	for i, v := range data {
 		result := r.Projects[0].Validate(i, false)
-		if  result != v {
+		if result != v {
 			t.Error("Unexpected error", i, "expected", v, result)
 		}
 	}

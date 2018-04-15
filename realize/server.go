@@ -14,7 +14,6 @@ import (
 	"os/exec"
 	"runtime"
 	"strconv"
-	"github.com/go-siris/siris/core/errors"
 )
 
 // Dafault host and port
