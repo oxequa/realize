@@ -596,6 +596,9 @@ func (p *Project) run(path string, stream chan Response, stop <-chan bool) (err 
 		name = filepath.Base(dirPath)
 	}
 	path = filepath.Join(dirPath, name)
+	if p.Tools.Run.Method != "" {
+        path = p.Tools.Run.Method
+	}
 	if _, err := os.Stat(path); err == nil {
 		build = exec.Command(path, args...)
 	} else if _, err := os.Stat(path + RExtWin); err == nil {
