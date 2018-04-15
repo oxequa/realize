@@ -14,6 +14,7 @@ import (
 	"os/exec"
 	"runtime"
 	"strconv"
+	"errors"
 )
 
 // Dafault host and port
