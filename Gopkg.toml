@@ -22,11 +22,11 @@
 
 [[constraint]]
   name = "github.com/fatih/color"
-  version = "1.5.0"
+  version = "1.6.0"
 
 [[constraint]]
   name = "github.com/fsnotify/fsnotify"
-  version = "1.4.2"
+  version = "1.4.7"
 
 [[constraint]]
   name = "github.com/go-siris/siris"
@@ -34,15 +34,15 @@
 
 [[constraint]]
   name = "github.com/labstack/echo"
-  version = "3.2.5"
-
-[[constraint]]
-  name = "github.com/sirupsen/logrus"
-  version = "1.0.4"
+  version = "3.3.5"
 
 [[constraint]]
   name = "github.com/oxequa/interact"
   version = "1.1.1"
+
+[[constraint]]
+  name = "github.com/sirupsen/logrus"
+  version = "1.0.5"
 
 [[constraint]]
   branch = "master"
@@ -53,5 +53,5 @@
   name = "gopkg.in/urfave/cli.v2"
 
 [[constraint]]
-  branch = "v2"
   name = "gopkg.in/yaml.v2"
+  version = "2.2.1"

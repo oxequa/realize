@@ -18,7 +18,7 @@ var (
 	// RPrefix tool name
 	RPrefix = "realize"
 	// RVersion current version
-	RVersion = "2.1"
+	RVersion = "2.0.2"
 	// RExt file extension
 	RExt = ".yaml"
 	// RFile config file name
