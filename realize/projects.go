@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/fsnotify/fsnotify"
 	"log"
 	"math/big"
 	"os"
@@ -17,6 +16,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/fsnotify/fsnotify"
 )
 
 var (
@@ -586,18 +587,18 @@ func (p *Project) run(path string, stream chan Response, stop <-chan bool) (err 
 		args = append(args, a...)
 	}
 	dirPath := os.Getenv("GOBIN")
-	if p.Tools.Run.Dir != "" {
-		dirPath, _ = filepath.Abs(p.Tools.Run.Dir)
+	if p.Tools.Run.Path != "" {
+		dirPath, _ = filepath.Abs(p.Tools.Run.Path)
 	}
 	name := filepath.Base(path)
-	if path == "." && p.Tools.Run.Dir == "" {
+	if path == "." && p.Tools.Run.Path == "" {
 		name = filepath.Base(Wdir())
-	} else if p.Tools.Run.Dir != "" {
+	} else if p.Tools.Run.Path != "" {
 		name = filepath.Base(dirPath)
 	}
 	path = filepath.Join(dirPath, name)
 	if p.Tools.Run.Method != "" {
-        path = p.Tools.Run.Method
+		path = p.Tools.Run.Method
 	}
 	if _, err := os.Stat(path); err == nil {
 		build = exec.Command(path, args...)
@@ -617,6 +618,9 @@ func (p *Project) run(path string, stream chan Response, stop <-chan bool) (err 
 	stderr, err := build.StderrPipe()
 	if err != nil {
 		return err
+	}
+	if p.Tools.Run.Dir != "" {
+		build.Dir = p.Tools.Run.Dir
 	}
 	if err := build.Start(); err != nil {
 		return err
