@@ -139,7 +139,7 @@ For more examples check: [Realize Examples](https://github.com/oxequa/realize-ex
     schema:
     - name: coin
       path: coin              // project path
-      environment:            // env variables available at startup
+      env:            // env variables available at startup
             test: test
             myvar: value
       commands:               // go commands supported
