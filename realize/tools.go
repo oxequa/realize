@@ -14,7 +14,7 @@ import (
 type Tool struct {
 	Args   []string `yaml:"args,omitempty" json:"args,omitempty"`
 	Method string   `yaml:"method,omitempty" json:"method,omitempty"`
-	Path   string   `yaml:"path,omitempty" json:"dir,omitempty"`
+	Path   string   `yaml:"path,omitempty" json:"path,omitempty"`
 	Dir    string   `yaml:"dir,omitempty" json:"dir,omitempty"` //wdir of the command
 	Status bool     `yaml:"status,omitempty" json:"status,omitempty"`
 	Output bool     `yaml:"output,omitempty" json:"output,omitempty"`
