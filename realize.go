@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/oxequa/interact"
-	"github.com/robcapo/realize/realize"
+	"github.com/oxequa/realize/realize"
 	"gopkg.in/urfave/cli.v2"
 	"log"
 	"os"
