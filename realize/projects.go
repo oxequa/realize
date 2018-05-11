@@ -372,14 +372,8 @@ func (p *Project) Validate(path string, fcheck bool) bool {
 			}
 		}
 	}
-	separator := string(os.PathSeparator)
-	// supported paths
-	for _, v := range p.Watcher.Ignore {
-		s := append([]string{p.Path}, strings.Split(v, separator)...)
-		abs, _ := filepath.Abs(filepath.Join(s...))
-		if path == abs || strings.HasPrefix(path, abs+separator) {
-			return false
-		}
+	if p.shouldIgnore(path) {
+		return false
 	}
 	// file check
 	if fcheck {
@@ -492,6 +486,10 @@ func (p *Project) cmd(stop <-chan bool, flag string, global bool) {
 
 // Watch the files tree of a project
 func (p *Project) walk(path string, info os.FileInfo, err error) error {
+	if p.shouldIgnore(path) {
+		return filepath.SkipDir
+	}
+
 	if p.Validate(path, true) {
 		result := p.watcher.Walk(path, p.init)
 		if result != "" {
@@ -509,6 +507,19 @@ func (p *Project) walk(path string, info os.FileInfo, err error) error {
 		}
 	}
 	return nil
+}
+
+func (p *Project) shouldIgnore(path string) bool {
+	separator := string(os.PathSeparator)
+	// supported paths
+	for _, v := range p.Watcher.Ignore {
+		s := append([]string{p.Path}, strings.Split(v, separator)...)
+		abs, _ := filepath.Abs(filepath.Join(s...))
+		if path == abs || strings.HasPrefix(path, abs+separator) {
+			return true
+		}
+	}
+	return false
 }
 
 // Print on files, cli, ws
