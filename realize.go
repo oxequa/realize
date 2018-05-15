@@ -1143,7 +1143,6 @@ func start(c *cli.Context) (err error) {
 	}
 	// check project list length
 	if len(r.Schema.Projects) <= 0 {
-		println("len", r.Schema.Projects)
 		// create a new project based on given params
 		project := r.Schema.New(c)
 		// Add to projects list
