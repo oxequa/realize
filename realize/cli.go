@@ -3,7 +3,7 @@ package realize
 import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
-	"github.com/go-siris/siris/core/errors"
+	"errors"
 	"go/build"
 	"log"
 	"os"
