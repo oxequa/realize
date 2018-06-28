@@ -573,6 +573,7 @@ func (p *Project) run(path string, stream chan Response, stop <-chan bool) (err 
 		// https://github.com/golang/go/issues/6720
 		if build != nil {
 			build.Process.Signal(os.Interrupt)
+			build.Process.Wait()
 		}
 	}()
 
