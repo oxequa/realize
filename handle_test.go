@@ -2,6 +2,7 @@ package core
 
 import (
 	"bytes"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -26,10 +27,20 @@ func TestActivityWalk(t *testing.T) {
 	if err := model.Walk(path, watcher); err != nil {
 		t.Fatal(err)
 	}
-	if len(model.Files) != 12 {
+	var countFiles int
+	var countFolders int
+	files, _ := ioutil.ReadDir(path)
+	for _, file := range files {
+		if !file.IsDir() && !Hidden(file.Name()) {
+			countFiles++
+		} else if file.IsDir() {
+			countFolders++
+		}
+	}
+	if len(model.Files) != countFiles {
 		t.Fatal("Wrong files count")
 	}
-	if len(model.Folders) != 1 {
+	if len(model.Folders) != countFolders {
 		t.Fatal("Wrong folders count")
 	}
 }
