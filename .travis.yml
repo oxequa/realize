@@ -1,0 +1,16 @@
+language: go
+
+go:
+    - 1.9.x
+    - 1.10.x
+    - tip
+matrix:
+  allow_failures:
+    - go: tip
+
+install:
+  - go get ./...
+
+script:
+  - go install .
+  - go test -v ./...
