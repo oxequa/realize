@@ -15,17 +15,20 @@ import (
 	"time"
 )
 
+// Watch paths and file extensions
 type Watch struct {
 	Ext  []string `yaml:"ext,omitempty" json:"ext,omitempty"`
 	Path []string `yaml:"path,omitempty" json:"path,omitempty"`
 }
 
+// Logger events, output, errors
 type Logger struct {
 	error   []interface{}
 	output  []interface{}
 	general []interface{}
 }
 
+// Ignore paths and file extensions
 type Ignore struct {
 	Hidden bool     `yaml:"hidden,omitempty" json:"hidden,omitempty"`
 	Ext    []string `yaml:"ext,omitempty" json:"ext,omitempty"`
