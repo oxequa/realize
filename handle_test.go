@@ -33,14 +33,14 @@ func TestActivityWalk(t *testing.T) {
 	for _, file := range files {
 		if !file.IsDir() && !Hidden(file.Name()) {
 			countFiles++
-		} else if file.IsDir() {
+		} else if file.IsDir() && !Hidden(file.Name()) {
 			countFolders++
 		}
 	}
 	if len(model.Files) != countFiles {
 		t.Fatal("Wrong files count")
 	}
-	if len(model.Folders) != countFolders {
+	if len(model.Folders) != countFolders+1 {
 		t.Fatal("Wrong folders count")
 	}
 }
