@@ -14,6 +14,16 @@ type Server struct {
 	Server fresh.Fresh `yaml:"-" json:"-"`
 }
 
+func (s *Server) Start() {
+	if s.Active {
+		f := fresh.New()
+		f.Config().Banner = false
+		f.WS("ws", s.WebSocket)
+		s.Server = f
+		go f.Start()
+	}
+}
+
 func (s *Server) WebSocket(c fresh.Context) (err error) {
 	if s.Active {
 		ws := c.Request().WS()
@@ -40,21 +50,11 @@ func (s *Server) WebSocket(c fresh.Context) (err error) {
 			} else {
 				err := json.Unmarshal([]byte(text), &s.Schema)
 				if err == nil {
-					s.Options.Broker.Push(Prefix("Error", Red), err)
+					//TODO update config
 					break
 				}
 			}
 		}
 	}
 	return nil
-}
-
-func (s *Server) Start() {
-	if s.Active {
-		f := fresh.New()
-		f.Config().Banner = false
-		f.WS("ws", s.WebSocket)
-		s.Server = f
-		go f.Start()
-	}
 }

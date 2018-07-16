@@ -2,9 +2,10 @@ package core
 
 import (
 	"bufio"
-	"errors"
+	"fmt"
 	"github.com/fsnotify/fsnotify"
 	"github.com/oxequa/grace"
+	"log"
 	"math/big"
 	"os"
 	"os/exec"
@@ -83,31 +84,27 @@ func toInterface(s interface{}) []interface{} {
 	return intf
 }
 
-// Walk file three
-func (a *Activity) Walk(path string, watcher FileWatcher) error {
-	filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
-		wdir, err := os.Getwd()
+// Push a list of msg on stdout
+func (a *Activity) Push(msg ...interface{}) {
+	log.Println(msg...)
+	if a.Realize != nil && a.Options.Broker.File {
+		f, err := os.OpenFile(logFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 		if err != nil {
 			panic(err)
 		}
-		if path == wdir || strings.HasPrefix(path, wdir) {
-			if res, _ := a.Validate(path); res {
-				act := watcher.Walk(path, true)
-				if ext := Ext(act); ext != "" {
-					a.Files = append(a.Files, act)
-				} else {
-					a.Folders = append(a.Files, act)
-				}
-			} else {
-				fi, _ := os.Stat(path)
-				if fi.IsDir() {
-					return filepath.SkipDir
-				}
-			}
+		defer f.Close()
+		msg := append([]interface{}{time.Now().Format(time.RFC3339)}, msg...)
+		if _, err = f.WriteString(fmt.Sprintln(msg...)); err != nil {
+			panic(err)
 		}
-		return nil
-	})
-	return nil
+	}
+}
+
+// Recover check recover flag before push a msg
+func (a *Activity) Recover(msg ...interface{}) {
+	if a.Realize != nil && a.Options.Broker.Recovery {
+		a.Push(msg...)
+	}
 }
 
 // Scan an activity and wait a change
@@ -140,7 +137,7 @@ func (a *Activity) Scan(wg *sync.WaitGroup) (e error) {
 			for _, g := range glob {
 				if _, err := os.Stat(g); err == nil {
 					if err = a.Walk(g, watcher); err != nil {
-						a.Options.Broker.Push(Prefix("Indexing", Red), err)
+						a.Recover(Prefix("Indexing", Red), err.Error())
 					}
 				}
 			}
@@ -157,7 +154,7 @@ L:
 	for {
 		select {
 		case event := <-watcher.Events():
-			a.Options.Broker.Push(Prefix("File Changed", Magenta), event.Name)
+			a.Recover(Prefix("File Changed", Magenta), event.Name)
 			if time.Now().Truncate(time.Second).After(ltime) {
 				switch event.Op {
 				case fsnotify.Remove:
@@ -166,20 +163,20 @@ L:
 						// stop and restart
 						close(reload)
 						reload = make(chan bool)
-						Record(Prefix("Removed", Magenta), event.Name)
+						a.Push(Prefix("Removed", Magenta), event.Name)
 						go a.Run(reload, a.Tasks)
 					}
 				case fsnotify.Create, fsnotify.Write, fsnotify.Rename:
 					if s, fi := a.Validate(event.Name); s {
 						if fi.IsDir() {
 							if err = a.Walk(event.Name, watcher); err != nil {
-								a.Options.Broker.Push(Prefix("Indexing", Red), err)
+								a.Recover(Prefix("Indexing", Red), err.Error())
 							}
 						} else {
 							// stop and restart
 							close(reload)
 							reload = make(chan bool)
-							Record(Prefix("Changed", Magenta), event.Name)
+							a.Push(Prefix("Changed", Magenta), event.Name)
 							go a.Run(reload, a.Tasks)
 							ltime = time.Now().Truncate(time.Second)
 						}
@@ -187,14 +184,43 @@ L:
 				}
 			}
 		case err := <-watcher.Errors():
-			a.Options.Broker.Push(Prefix("Watch Error", Red), err)
+			a.Recover(Prefix("Watch", Red), err.Error())
 		case <-a.Exit:
 			// run task after
+			a.Recover(Prefix("Loop stopped", Red))
 			a.Run(reload, a.TasksAfter)
 			break L
 		}
 	}
 	return
+}
+
+// Walk file three
+func (a *Activity) Walk(path string, watcher FileWatcher) error {
+	filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+		wdir, err := os.Getwd()
+		if err != nil {
+			panic(err)
+		}
+		if path == wdir || strings.HasPrefix(path, wdir) {
+			if res, _ := a.Validate(path); res {
+				a.Recover(Prefix("Indexing", Magenta), path)
+				act := watcher.Walk(path, true)
+				if ext := Ext(act); ext != "" {
+					a.Files = append(a.Files, act)
+				} else {
+					a.Folders = append(a.Files, act)
+				}
+			} else {
+				fi, _ := os.Stat(path)
+				if fi.IsDir() {
+					return filepath.SkipDir
+				}
+			}
+		}
+		return nil
+	})
+	return nil
 }
 
 // Run exec a list of commands in parallel or in sequence
@@ -206,11 +232,13 @@ func (a *Activity) Run(reload <-chan bool, tasks ...interface{}) {
 		case Command:
 			select {
 			case <-reload:
+				a.Recover(Prefix("Tasks loop stopped", Red))
 				w.Done()
 				break
 			default:
 				// Exec command
 				if len(t.Cmd) > 0 {
+					a.Recover(Prefix("Running task", Green), t.Cmd)
 					w.Add(1)
 					a.Exec(t, &w, reload)
 				}
@@ -272,7 +300,7 @@ func (a *Activity) Validate(path string) (s bool, fi os.FileInfo) {
 	}
 	// validate path
 	if fpath, err := filepath.Abs(path); err != nil {
-		a.Options.Broker.Push(Prefix("Error", Red), err)
+		a.Recover(Prefix("Error", Red), err.Error())
 		return
 	} else {
 		if a.Ignore != nil && len(a.Ignore.Path) > 0 {
@@ -285,7 +313,7 @@ func (a *Activity) Validate(path string) (s bool, fi os.FileInfo) {
 					// check glob
 					paths, err := filepath.Glob(v)
 					if err != nil {
-						a.Options.Broker.Push(Prefix("Error", Red), err)
+						a.Recover(Prefix("Error", Red), err.Error())
 						return
 					}
 					for _, p := range paths {
@@ -308,7 +336,7 @@ func (a *Activity) Validate(path string) (s bool, fi os.FileInfo) {
 					// check glob
 					paths, err := filepath.Glob(v)
 					if err != nil {
-						a.Options.Broker.Push(Prefix("Error", Red), err)
+						a.Recover(Prefix("Error", Red), err.Error())
 						return
 					}
 					for _, p := range paths {
@@ -340,7 +368,7 @@ func (a *Activity) Exec(c Command, w *sync.WaitGroup, reload <-chan bool) error 
 			build.Process.Wait()
 		}
 		// Print command end
-		Record(Prefix("Cmd", Green),
+		a.Push(Prefix("Cmd", Green),
 			Print("Finished",
 				Green.Regular("'")+
 					strings.Split(c.Cmd, " -")[0]+
@@ -353,7 +381,7 @@ func (a *Activity) Exec(c Command, w *sync.WaitGroup, reload <-chan bool) error 
 	// Split command
 	args := strings.Split(c.Cmd, " ")
 	build = exec.Command(args[0], args[1:]...)
-	// Custom error pattern
+	//TODO Custom error pattern
 
 	// Get exec dir
 	if len(c.Dir) > 0 {
@@ -380,7 +408,7 @@ func (a *Activity) Exec(c Command, w *sync.WaitGroup, reload <-chan bool) error 
 		return err
 	} else {
 		// Print command start
-		Record(Prefix("Cmd", Green),
+		a.Push(Prefix("Cmd", Green),
 			Print("Running\t",
 				Green.Regular("'")+
 					strings.Split(c.Cmd, " -")[0]+
@@ -395,10 +423,10 @@ func (a *Activity) Exec(c Command, w *sync.WaitGroup, reload <-chan bool) error 
 		for output.Scan() {
 			if len(output.Text()) > 0 {
 				if err {
-					// check custom error pattern
-					Record(Prefix("Err", Red), errors.New(output.Text()))
+					//TODO check custom error pattern
+					a.Push(Prefix("Err", Red), output.Text())
 				} else {
-					Record(Prefix("Out", Blue), output.Text())
+					a.Push(Prefix("Out", Blue), output.Text())
 				}
 			}
 		}
@@ -413,10 +441,12 @@ func (a *Activity) Exec(c Command, w *sync.WaitGroup, reload <-chan bool) error 
 	// Wait command result
 	select {
 	case <-reload:
+		a.Recover(Prefix("Build process stopped", Yellow))
 		// Stop running command
 		build.Process.Kill()
 		break
 	case <-done:
+		a.Recover(Prefix("Build done", Green))
 		break
 	}
 	return nil

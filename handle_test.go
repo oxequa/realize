@@ -2,6 +2,7 @@ package core
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -10,6 +11,55 @@ import (
 	"testing"
 	"time"
 )
+
+func TestActivityPush(t *testing.T) {
+	var buf bytes.Buffer
+	log.SetOutput(&buf)
+	r := Realize{
+		Options: Options{
+			Broker: Broker{
+				File: true,
+			},
+		},
+	}
+	r.Schema = append(r.Schema, Activity{Realize: &r})
+	r.Schema[0].Push("test", "push")
+	expected := fmt.Sprintln("test", "push")
+	if buf.String() != expected {
+		t.Fatal("Mismatch", buf.String(), expected)
+	}
+	if _, err := os.Stat(logFile); os.IsNotExist(err) {
+		t.Fatal("Expected a log file")
+	} else {
+		os.Remove(logFile)
+	}
+}
+
+func TestActivityRecover(t *testing.T) {
+	var buf bytes.Buffer
+	log.SetOutput(&buf)
+	r := Realize{
+		Options: Options{
+			Broker: Broker{
+				Recovery: true,
+			},
+		},
+	}
+	r.Schema = append(r.Schema, Activity{Realize: &r})
+	r.Schema[0].Recover("test", "recover")
+	expected := fmt.Sprintln("test", "recover")
+	if buf.String() != expected {
+		t.Fatal("Mismatch", buf.String(), expected)
+	}
+	// switch off recovery
+	buf = bytes.Buffer{}
+	r.Options.Broker.Recovery = false
+	r.Schema[0].Recover("test", "recover")
+	if len(buf.String()) > 0 {
+		t.Fatal("Unexpected string", buf.String())
+	}
+
+}
 
 func TestActivityWalk(t *testing.T) {
 	dir, err := os.Getwd()
@@ -97,7 +147,7 @@ func TestActivityScan(t *testing.T) {
 
 }
 
-func TestActivityReload(t *testing.T) /**/ {
+func TestActivityReload(t *testing.T) {
 	var buf bytes.Buffer
 	log.SetOutput(&buf)
 	activity := Activity{}

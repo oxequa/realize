@@ -74,17 +74,6 @@ func Print(msg ...interface{}) string {
 	return buffer.String()
 }
 
-// Event print a new message on cli and stream on server
-func Record(prefix string, msg interface{}) {
-	// switch type err string
-	switch m := msg.(type) {
-	case string:
-		log.Println(prefix, m)
-	case error:
-		log.Println(prefix, m)
-	}
-}
-
 // Rewrite timestamp log layout
 func (l Log) Write(bytes []byte) (int, error) {
 	if len(bytes) > 0 {
