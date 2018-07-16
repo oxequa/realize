@@ -9,17 +9,18 @@ const (
 	logFile = "realize.log"
 )
 
-// Legacy force polling and set a custom interval
-type Legacy struct {
+// Polling force polling and set a custom interval
+type Polling struct {
 	Force    bool          `yaml:"force,omitempty" json:"force,omitempty"`
 	Interval time.Duration `yaml:"interval,omitempty" json:"interval,omitempty"`
 }
 
-// Options is a group of general settings
-type Options struct {
-	FileLimit int32  `yaml:"flimit,omitempty" json:"flimit,omitempty"`
-	Legacy    Legacy `yaml:"legacy,omitempty" json:"legacy,omitempty"`
-	Broker    Broker `yaml:"broker,omitempty" json:"broker,omitempty"`
+// Settings is a group of general settings
+type Settings struct {
+	Broker    Broker  `yaml:"broker,omitempty" json:"broker,omitempty"`
+	Server    Server  `yaml:"server,omitempty" json:"server,omitempty"`
+	Polling   Polling `yaml:"polling,omitempty" json:"polling,omitempty"`
+	FileLimit int32   `yaml:"file_limit,omitempty" json:"file_limit,omitempty"`
 }
 
 // Broker send information about error
