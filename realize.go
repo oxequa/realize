@@ -17,11 +17,10 @@ type Log struct{}
 
 // Realize main struct
 type Realize struct {
-	Sync    chan string `yaml:"-" json:"-"`
-	Exit    chan bool   `yaml:"-" json:"-"`
-	Server  Server      `yaml:"server,omitempty" json:"server,omitempty"`
-	Options Options     `yaml:"options,omitempty" json:"options,omitempty"`
-	Schema  []Activity  `yaml:"schema,inline,omitempty" json:"schema,inline,omitempty"`
+	Sync     chan string `yaml:"-" json:"-"`
+	Exit     chan bool   `yaml:"-" json:"-"`
+	Settings Settings    `yaml:"settings,omitempty" json:"settings,omitempty"`
+	Schema   []Activity  `yaml:"schema,inline,omitempty" json:"schema,inline,omitempty"`
 }
 
 // initial set up

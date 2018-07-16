@@ -88,7 +88,7 @@ func toInterface(s interface{}) []interface{} {
 // Push a list of msg on stdout
 func (a *Activity) Push(msg ...interface{}) {
 	log.Println(msg...)
-	if a.Realize != nil && a.Options.Broker.File {
+	if a.Realize != nil && a.Settings.Broker.File {
 		f, err := os.OpenFile(logFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 		if err != nil {
 			panic(err)
@@ -103,7 +103,7 @@ func (a *Activity) Push(msg ...interface{}) {
 
 // Recover check recover flag before push a msg
 func (a *Activity) Recover(msg ...interface{}) {
-	if a.Realize != nil && a.Options.Broker.Recovery {
+	if a.Realize != nil && a.Settings.Broker.Recovery {
 		a.Push(msg...)
 	}
 }
@@ -123,7 +123,7 @@ func (a *Activity) Scan(wg *sync.WaitGroup) (e error) {
 	// new chan
 	reload = make(chan bool)
 	// new file watcher
-	watcher, err := NewFileWatcher(a.Options.Legacy)
+	watcher, err := NewFileWatcher(a.Settings.Polling)
 	if err != nil {
 		panic(e)
 	}

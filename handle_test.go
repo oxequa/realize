@@ -16,7 +16,7 @@ func TestActivityPush(t *testing.T) {
 	var buf bytes.Buffer
 	log.SetOutput(&buf)
 	r := Realize{
-		Options: Options{
+		Settings: Settings{
 			Broker: Broker{
 				File: true,
 			},
@@ -39,7 +39,7 @@ func TestActivityRecover(t *testing.T) {
 	var buf bytes.Buffer
 	log.SetOutput(&buf)
 	r := Realize{
-		Options: Options{
+		Settings: Settings{
 			Broker: Broker{
 				Recovery: true,
 			},
@@ -53,7 +53,7 @@ func TestActivityRecover(t *testing.T) {
 	}
 	// switch off recovery
 	buf = bytes.Buffer{}
-	r.Options.Broker.Recovery = false
+	r.Settings.Broker.Recovery = false
 	r.Schema[0].Recover("test", "recover")
 	if len(buf.String()) > 0 {
 		t.Fatal("Unexpected string", buf.String())
@@ -67,7 +67,7 @@ func TestActivityWalk(t *testing.T) {
 		t.Fatal(err)
 	}
 	var watcher FileWatcher
-	watcher, err = NewFileWatcher(Legacy{Force: false})
+	watcher, err = NewFileWatcher(Polling{Force: false})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -186,7 +186,7 @@ func TestActivityValidate(t *testing.T) {
 	paths := map[string]bool{
 		"/style.go":       true,
 		"./handle.go":     true,
-		"/options.go":     true,
+		"/settings.go":    true,
 		"/realize.go":     true,
 		"../test.html":    false,
 		"notify.go":       false,
