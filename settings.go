@@ -5,7 +5,6 @@ import (
 )
 
 const (
-	perm    = 0775
 	logFile = "realize.log"
 )
 
