@@ -17,10 +17,9 @@ type Legacy struct {
 
 // Options is a group of general settings
 type Options struct {
-	FileLimit int32             `yaml:"flimit,omitempty" json:"flimit,omitempty"`
-	Legacy    Legacy            `yaml:"legacy,omitempty" json:"legacy,omitempty"`
-	Broker    Broker            `yaml:"broker,omitempty" json:"broker,omitempty"`
-	Env       map[string]string `yaml:"env,omitempty" json:"env,omitempty"`
+	FileLimit int32  `yaml:"flimit,omitempty" json:"flimit,omitempty"`
+	Legacy    Legacy `yaml:"legacy,omitempty" json:"legacy,omitempty"`
+	Broker    Broker `yaml:"broker,omitempty" json:"broker,omitempty"`
 }
 
 // Broker send informations about error

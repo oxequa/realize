@@ -24,9 +24,9 @@ type Watch struct {
 
 // Logger events, output, errors
 type Logger struct {
-	error   []interface{}
-	output  []interface{}
-	general []interface{}
+	Error   []interface{} `yaml:"error,omitempty" json:"error,omitempty"`
+	Output  []interface{} `yaml:"output,omitempty" json:"output,omitempty"`
+	General []interface{} `yaml:"general,omitempty" json:"general,omitempty"`
 }
 
 // Ignore paths and file extensions
@@ -58,14 +58,15 @@ type Response struct {
 // Activity struct contains all data about a program.
 type Activity struct {
 	*Realize
-	logs        Logger        `yaml:"logs,omitempty" json:"logs,omitempty"`
-	Watch       *Watch        `yaml:"watch,omitempty" json:"watch,omitempty"`
-	Ignore      *Ignore       `yaml:"ignore,omitempty" json:"ignore,omitempty"`
-	Files       []string      `yaml:"files,omitempty" json:"files,omitempty"`
-	Folders     []string      `yaml:"folders,omitempty" json:"folders,omitempty"`
-	Tasks       []interface{} `yaml:"tasks,omitempty" json:"tasks,omitempty"`
-	TasksAfter  []interface{} `yaml:"after,omitempty" json:"after,omitempty"`
-	TasksBefore []interface{} `yaml:"before,omitempty" json:"before,omitempty"`
+	Logs        Logger            `yaml:"logs,omitempty" json:"logs,omitempty"`
+	Watch       *Watch            `yaml:"watch,omitempty" json:"watch,omitempty"`
+	Ignore      *Ignore           `yaml:"ignore,omitempty" json:"ignore,omitempty"`
+	Files       []string          `yaml:"files,omitempty" json:"files,omitempty"`
+	Folders     []string          `yaml:"folders,omitempty" json:"folders,omitempty"`
+	Env         map[string]string `yaml:"env,omitempty" json:"env,omitempty"`
+	Tasks       []interface{}     `yaml:"tasks,omitempty" json:"tasks,omitempty"`
+	TasksAfter  []interface{}     `yaml:"after,omitempty" json:"after,omitempty"`
+	TasksBefore []interface{}     `yaml:"before,omitempty" json:"before,omitempty"`
 }
 
 // Parallel list of commands to exec in parallel
