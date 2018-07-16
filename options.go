@@ -22,7 +22,7 @@ type Options struct {
 	Broker    Broker `yaml:"broker,omitempty" json:"broker,omitempty"`
 }
 
-// Broker send informations about error
+// Broker send information about error
 type Broker struct {
 	Recovery bool `yaml:"recovery,omitempty" json:"recovery,omitempty"`
 	File     bool `yaml:"file,omitempty" json:"file,omitempty"`
