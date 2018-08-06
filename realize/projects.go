@@ -114,6 +114,11 @@ func (p *Project) Before() {
 		p.parent.Before(Context{Project: p})
 		return
 	}
+
+	if hasGoMod(Wdir()) {
+		p.Tools.vgo = true
+	}
+
 	// setup go tools
 	p.Tools.Setup()
 	// set env const

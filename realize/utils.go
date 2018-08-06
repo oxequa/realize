@@ -2,10 +2,12 @@ package realize
 
 import (
 	"errors"
-	"gopkg.in/urfave/cli.v2"
 	"log"
 	"os"
+	"path"
 	"strings"
+
+	"gopkg.in/urfave/cli.v2"
 )
 
 // Params parse one by one the given argumentes
@@ -72,4 +74,13 @@ func Wdir() string {
 		log.Fatal(err.Error())
 	}
 	return dir
+}
+
+func hasGoMod(dir string) bool {
+	filename := path.Join(dir, "go.mod")
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		return false
+	}
+
+	return true
 }

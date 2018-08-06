@@ -1,9 +1,8 @@
 package realize
 
 import (
-	"fmt"
-	"github.com/fsnotify/fsnotify"
 	"errors"
+	"fmt"
 	"go/build"
 	"log"
 	"os"
@@ -12,13 +11,15 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/fsnotify/fsnotify"
 )
 
 var (
 	// RPrefix tool name
 	RPrefix = "realize"
 	// RVersion current version
-	RVersion = "2.0.2"
+	RVersion = "2.0.3"
 	// RExt file extension
 	RExt = ".yaml"
 	// RFile config file name
