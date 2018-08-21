@@ -116,12 +116,6 @@ func (p *Project) Before() {
 	}
 	// setup go tools
 	p.Tools.Setup()
-	// set env const
-	for key, item := range p.Env {
-		if err := os.Setenv(key, item); err != nil {
-			p.Buffer.StdErr = append(p.Buffer.StdErr, BufferOut{Time: time.Now(), Text: err.Error(), Type: "Env error", Stream: ""})
-		}
-	}
 	// global commands before
 	p.cmd(p.stop, "before", true)
 	// indexing files and dirs
@@ -563,6 +557,13 @@ func (p *Project) stamp(t string, o BufferOut, msg string, stream string) {
 	}()
 }
 
+func (p Project) buildEnvs() (envs []string) {
+	for k, v := range p.Env {
+		envs = append(envs, fmt.Sprintf("%s=%s", strings.Replace(k, "=", "", -1), v))
+	}
+	return
+}
+
 // Run a project
 func (p *Project) run(path string, stream chan Response, stop <-chan bool) (err error) {
 	var args []string
@@ -624,6 +625,10 @@ func (p *Project) run(path string, stream chan Response, stop <-chan bool) (err 
 		} else {
 			return errors.New("project not found")
 		}
+	}
+	appendEnvs := p.buildEnvs()
+	if len(appendEnvs) > 0 {
+		build.Env = append(build.Env, appendEnvs...)
 	}
 	// scan project stream
 	stdout, err := build.StdoutPipe()
