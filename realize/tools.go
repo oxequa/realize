@@ -36,15 +36,23 @@ type Tools struct {
 	Install  Tool `yaml:"install,omitempty" json:"install,omitempty"`
 	Build    Tool `yaml:"build,omitempty" json:"build,omitempty"`
 	Run      Tool `yaml:"run,omitempty" json:"run,omitempty"`
+	vgo      bool
 }
 
 // Setup go tools
 func (t *Tools) Setup() {
+	var gocmd string
+	if t.vgo {
+		gocmd = "vgo"
+	} else {
+		gocmd = "go"
+	}
+
 	// go clean
 	if t.Clean.Status {
 		t.Clean.name = "Clean"
 		t.Clean.isTool = true
-		t.Clean.cmd = replace([]string{"go", "clean"}, t.Clean.Method)
+		t.Clean.cmd = replace([]string{gocmd, "clean"}, t.Clean.Method)
 		t.Clean.Args = split([]string{}, t.Clean.Args)
 	}
 	// go generate
@@ -52,7 +60,7 @@ func (t *Tools) Setup() {
 		t.Generate.dir = true
 		t.Generate.isTool = true
 		t.Generate.name = "Generate"
-		t.Generate.cmd = replace([]string{"go", "generate"}, t.Generate.Method)
+		t.Generate.cmd = replace([]string{gocmd, "generate"}, t.Generate.Method)
 		t.Generate.Args = split([]string{}, t.Generate.Args)
 	}
 	// go fmt
@@ -70,7 +78,7 @@ func (t *Tools) Setup() {
 		t.Vet.dir = true
 		t.Vet.name = "Vet"
 		t.Vet.isTool = true
-		t.Vet.cmd = replace([]string{"go", "vet"}, t.Vet.Method)
+		t.Vet.cmd = replace([]string{gocmd, "vet"}, t.Vet.Method)
 		t.Vet.Args = split([]string{}, t.Vet.Args)
 	}
 	// go test
@@ -78,17 +86,17 @@ func (t *Tools) Setup() {
 		t.Test.dir = true
 		t.Test.isTool = true
 		t.Test.name = "Test"
-		t.Test.cmd = replace([]string{"go", "test"}, t.Test.Method)
+		t.Test.cmd = replace([]string{gocmd, "test"}, t.Test.Method)
 		t.Test.Args = split([]string{}, t.Test.Args)
 	}
 	// go install
 	t.Install.name = "Install"
-	t.Install.cmd = replace([]string{"go", "install"}, t.Install.Method)
+	t.Install.cmd = replace([]string{gocmd, "install"}, t.Install.Method)
 	t.Install.Args = split([]string{}, t.Install.Args)
 	// go build
 	if t.Build.Status {
 		t.Build.name = "Build"
-		t.Build.cmd = replace([]string{"go", "build"}, t.Build.Method)
+		t.Build.cmd = replace([]string{gocmd, "build"}, t.Build.Method)
 		t.Build.Args = split([]string{}, t.Build.Args)
 	}
 }
