@@ -644,6 +644,12 @@ func (p *Project) run(path string, stream chan Response, stop <-chan bool) (err 
 	if p.Tools.Run.Dir != "" {
 		build.Dir = p.Tools.Run.Dir
 	}
+	for _, e := range os.Environ() {
+        build.Env = append(build.Env, e)
+    }
+	for k, v := range p.Env {
+		build.Env = append(build.Env, fmt.Sprintf("%s=%s", k, v))
+	}
 	if err := build.Start(); err != nil {
 		return err
 	}
