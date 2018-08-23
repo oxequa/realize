@@ -44,18 +44,6 @@ func TestProject_Before(t *testing.T) {
 	if !strings.Contains(buf.String(), input) {
 		t.Error("Unexpected error")
 	}
-
-	r = Realize{}
-	r.Projects = append(r.Projects, Project{
-		parent: &r,
-		Env: map[string]string{
-			input: input,
-		},
-	})
-	r.Projects[0].Before()
-	if os.Getenv(input) != input {
-		t.Error("Unexpected error expected", input, "instead", os.Getenv(input))
-	}
 }
 
 func TestProject_Err(t *testing.T) {
