@@ -42,9 +42,7 @@ func main() {
 					&cli.BoolFlag{Name: "legacy", Aliases: []string{"l"}, Value: false, Usage: "Legacy watch by polling instead fsnotify"},
 					&cli.BoolFlag{Name: "no-config", Aliases: []string{"nc"}, Value: false, Usage: "Ignore existing config and doesn't create a new one"},
 				},
-				Action: func(c *cli.Context) error {
-					return start(c)
-				},
+				Action: start,
 			},
 			{
 				Name:        "add",
@@ -61,18 +59,14 @@ func main() {
 					&cli.BoolFlag{Name: "build", Aliases: []string{"b"}, Value: false, Usage: "Enable go build"},
 					&cli.BoolFlag{Name: "run", Aliases: []string{"nr"}, Value: false, Usage: "Enable go run"},
 				},
-				Action: func(c *cli.Context) error {
-					return add(c)
-				},
+				Action: add,
 			},
 			{
 				Name:        "init",
 				Category:    "Configuration",
 				Aliases:     []string{"i"},
 				Description: "Make a new config file step by step.",
-				Action: func(c *cli.Context) error {
-					return setup(c)
-				},
+				Action:      setup,
 			},
 			{
 				Name:        "remove",
@@ -82,9 +76,7 @@ func main() {
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Value: ""},
 				},
-				Action: func(c *cli.Context) error {
-					return remove(c)
-				},
+				Action: remove,
 			},
 			{
 				Name:        "clean",
