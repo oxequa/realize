@@ -343,7 +343,7 @@ L:
 
 // Validate a file path
 func (p *Project) Validate(path string, fcheck bool) bool {
-	if len(path) <= 0 {
+	if len(path) == 0 {
 		return false
 	}
 	// check if skip hidden
