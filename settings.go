@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	logFile = "realize.log"
+	logs = "realize.log"
 )
 
 // Polling force polling and set a custom interval
