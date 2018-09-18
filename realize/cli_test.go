@@ -44,7 +44,7 @@ func TestRealize_Prefix(t *testing.T) {
 	r := Realize{}
 	input := "test"
 	result := r.Prefix(input)
-	if len(result) <= 0 && !strings.Contains(result, input) {
+	if len(result) == 0 && !strings.Contains(result, input) {
 		t.Error("Unexpected error")
 	}
 }

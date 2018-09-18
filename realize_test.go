@@ -56,7 +56,7 @@ func TestRealize_add(t *testing.T) {
 	if err := m.add(); err != nil {
 		t.Error("Unexpected error")
 	}
-	if len(m.Projects) <= 0 {
+	if len(m.Projects) == 0 {
 		t.Error("Unexpected error")
 	}
 
