@@ -592,9 +592,7 @@ func (p *Project) run(path string, stream chan Response, stop <-chan bool) (err 
 		r.Err = err
 		stream <- r
 	} else {
-		isErrorText = func(t string) bool {
-			return errRegexp.MatchString(t)
-		}
+		isErrorText = errRegexp.MatchString
 	}
 
 	// add additional arguments
