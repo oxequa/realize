@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -58,6 +59,7 @@ type Response struct {
 // Activity struct contains all data about a program.
 type Activity struct {
 	*Realize
+	Name        string            `yaml:"name,omitempty" json:"name,omitempty"`
 	Logs        Logger            `yaml:"logs,omitempty" json:"logs,omitempty"`
 	Watch       *Watch            `yaml:"watch,omitempty" json:"watch,omitempty"`
 	Ignore      *Ignore           `yaml:"ignore,omitempty" json:"ignore,omitempty"`
@@ -87,9 +89,12 @@ func toInterface(s interface{}) []interface{} {
 
 // Push a list of msg on stdout
 func (a *Activity) Push(msg ...interface{}) {
+	if a.Realize != nil && len(a.Realize.Schema) > 1 {
+		msg = append([]interface{}{Prefix(a.Name, White)}, msg...)
+	}
 	log.Println(msg...)
 	if a.Realize != nil && a.Settings.Broker.File {
-		f, err := os.OpenFile(logFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+		f, err := os.OpenFile(logs, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 		if err != nil {
 			panic(err)
 		}
@@ -108,7 +113,7 @@ func (a *Activity) Recover(msg ...interface{}) {
 	}
 }
 
-// Scan an activity and wait a change
+// Scan an activity and wait for a change
 func (a *Activity) Scan(wg *sync.WaitGroup) (e error) {
 	var ltime time.Time
 	var w sync.WaitGroup
@@ -268,7 +273,7 @@ func (a *Activity) Run(reload <-chan bool, tasks ...interface{}) {
 
 // Validate a path
 func (a *Activity) Validate(path string) (s bool, fi os.FileInfo) {
-	if len(path) <= 0 {
+	if len(path) == 0 {
 		return
 	}
 	// validate hidden
@@ -365,8 +370,13 @@ func (a *Activity) Exec(c Command, w *sync.WaitGroup, reload <-chan bool) error 
 		// https://github.com/golang/go/issues/5615
 		// https://github.com/golang/go/issues/6720
 		if build != nil {
-			build.Process.Signal(os.Interrupt)
-			build.Process.Wait()
+			if runtime.GOOS == "windows" {
+				build.Process.Kill()
+				build.Process.Wait()
+			} else {
+				build.Process.Signal(os.Interrupt)
+				build.Process.Wait()
+			}
 		}
 		// Print command end
 		a.Push(Prefix("Cmd", Green),

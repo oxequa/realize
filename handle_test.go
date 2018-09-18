@@ -28,10 +28,10 @@ func TestActivityPush(t *testing.T) {
 	if buf.String() != expected {
 		t.Fatal("Mismatch", buf.String(), expected)
 	}
-	if _, err := os.Stat(logFile); os.IsNotExist(err) {
+	if _, err := os.Stat(logs); os.IsNotExist(err) {
 		t.Fatal("Expected a log file")
 	} else {
-		os.Remove(logFile)
+		os.Remove(logs)
 	}
 }
 
