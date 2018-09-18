@@ -20,6 +20,8 @@ var (
 	Magenta = colorBase(color.FgHiMagenta)
 	// Cyan color
 	Cyan = colorBase(color.FgHiCyan)
+	// Cyan color
+	White = colorBase(color.FgHiWhite)
 )
 
 // ColorBase type
