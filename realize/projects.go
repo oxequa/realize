@@ -608,15 +608,12 @@ func (p *Project) run(path string, stream chan Response, stop <-chan bool) (err 
 	}
 
 	listCmd := exec.Command("go", "list")
-	if err := listCmd.Run(); err != nil {
-		return err
-	}
 	listCmdOutput, err := listCmd.Output()
 	if err != nil {
 		return err
 	}
 
-	name := filepath.Base(string(listCmdOutput))
+	name := filepath.Base(strings.TrimSpace(string(listCmdOutput)))
 	path = filepath.Join(dirPath, name)
 	if p.Tools.Run.Method != "" {
 		path = p.Tools.Run.Method
