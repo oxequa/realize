@@ -43,6 +43,8 @@ type (
 		Before   Func        `yaml:"-"  json:"-"`
 		Change   Func        `yaml:"-"  json:"-"`
 		Reload   Func        `yaml:"-"  json:"-"`
+
+		mu sync.Mutex
 	}
 
 	// Context is used as argument for func

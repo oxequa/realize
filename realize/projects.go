@@ -15,14 +15,10 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
-)
-
-var (
-	msg string
-	out BufferOut
 )
 
 // Watch info
@@ -58,7 +54,7 @@ type Project struct {
 	last       last
 	files      int64
 	folders    int64
-	init       bool
+	init       int32
 	Name       string            `yaml:"name" json:"name"`
 	Path       string            `yaml:"path" json:"path"`
 	Env        map[string]string `yaml:"env,omitempty" json:"env,omitempty"`
@@ -134,8 +130,8 @@ func (p *Project) Before() {
 		}
 	}
 	// start message
-	msg = fmt.Sprintln(p.pname(p.Name, 1), ":", Blue.Bold("Watching"), Magenta.Bold(p.files), "file/s", Magenta.Bold(p.folders), "folder/s")
-	out = BufferOut{Time: time.Now(), Text: "Watching " + strconv.FormatInt(p.files, 10) + " files/s " + strconv.FormatInt(p.folders, 10) + " folder/s"}
+	msg := fmt.Sprintln(p.pname(p.Name, 1), ":", Blue.Bold("Watching"), Magenta.Bold(p.files), "file/s", Magenta.Bold(p.folders), "folder/s")
+	out := BufferOut{Time: time.Now(), Text: "Watching " + strconv.FormatInt(p.files, 10) + " files/s " + strconv.FormatInt(p.folders, 10) + " folder/s"}
 	p.stamp("log", out, msg, "")
 }
 
@@ -146,8 +142,8 @@ func (p *Project) Err(err error) {
 		return
 	}
 	if err != nil {
-		msg = fmt.Sprintln(p.pname(p.Name, 2), ":", Red.Regular(err.Error()))
-		out = BufferOut{Time: time.Now(), Text: err.Error()}
+		msg := fmt.Sprintln(p.pname(p.Name, 2), ":", Red.Regular(err.Error()))
+		out := BufferOut{Time: time.Now(), Text: err.Error()}
 		p.stamp("error", out, msg, "")
 	}
 }
@@ -164,8 +160,8 @@ func (p *Project) Change(event fsnotify.Event) {
 		ext = "DIR"
 	}
 	// change message
-	msg = fmt.Sprintln(p.pname(p.Name, 4), ":", Magenta.Bold(strings.ToUpper(ext)), "changed", Magenta.Bold(event.Name))
-	out = BufferOut{Time: time.Now(), Text: ext + " changed " + event.Name}
+	msg := fmt.Sprintln(p.pname(p.Name, 4), ":", Magenta.Bold(strings.ToUpper(ext)), "changed", Magenta.Bold(event.Name))
+	out := BufferOut{Time: time.Now(), Text: ext + " changed " + event.Name}
 	p.stamp("log", out, msg, "")
 }
 
@@ -175,23 +171,20 @@ func (p *Project) Reload(path string, stop <-chan bool) {
 		p.parent.Reload(Context{Project: p, Watcher: p.watcher, Path: path, Stop: stop})
 		return
 	}
-	var done bool
+	var done int32
 	var install, build Response
 	go func() {
-		for {
-			select {
-			case <-stop:
-				done = true
-				return
-			}
+		select {
+		case <-stop:
+			atomic.StoreInt32(&done, 1)
 		}
 	}()
-	if done {
+	if atomic.LoadInt32(&done) == 1 {
 		return
 	}
 	// before command
 	p.cmd(stop, "before", false)
-	if done {
+	if atomic.LoadInt32(&done) == 1 {
 		return
 	}
 	// Go supported tools
@@ -206,34 +199,34 @@ func (p *Project) Reload(path string, stop <-chan bool) {
 		p.tools(stop, path, fi)
 	}
 	// Prevent fake events on polling startup
-	p.init = true
+	atomic.StoreInt32(&p.init, 1)
 	// prevent errors using realize without config with only run flag
 	if p.Tools.Run.Status && !p.Tools.Install.Status && !p.Tools.Build.Status {
 		p.Tools.Install.Status = true
 	}
-	if done {
+	if atomic.LoadInt32(&done) == 1 {
 		return
 	}
 	if p.Tools.Install.Status {
-		msg = fmt.Sprintln(p.pname(p.Name, 1), ":", Green.Regular(p.Tools.Install.name), "started")
-		out = BufferOut{Time: time.Now(), Text: p.Tools.Install.name + " started"}
+		msg := fmt.Sprintln(p.pname(p.Name, 1), ":", Green.Regular(p.Tools.Install.name), "started")
+		out := BufferOut{Time: time.Now(), Text: p.Tools.Install.name + " started"}
 		p.stamp("log", out, msg, "")
 		start := time.Now()
 		install = p.Tools.Install.Compile(p.Path, stop)
 		install.print(start, p)
 	}
-	if done {
+	if atomic.LoadInt32(&done) == 1 {
 		return
 	}
 	if p.Tools.Build.Status {
-		msg = fmt.Sprintln(p.pname(p.Name, 1), ":", Green.Regular(p.Tools.Build.name), "started")
-		out = BufferOut{Time: time.Now(), Text: p.Tools.Build.name + " started"}
+		msg := fmt.Sprintln(p.pname(p.Name, 1), ":", Green.Regular(p.Tools.Build.name), "started")
+		out := BufferOut{Time: time.Now(), Text: p.Tools.Build.name + " started"}
 		p.stamp("log", out, msg, "")
 		start := time.Now()
 		build = p.Tools.Build.Compile(p.Path, stop)
 		build.print(start, p)
 	}
-	if done {
+	if atomic.LoadInt32(&done) == 1 {
 		return
 	}
 	if install.Err == nil && build.Err == nil && p.Tools.Run.Status {
@@ -267,7 +260,7 @@ func (p *Project) Reload(path string, stop <-chan bool) {
 			}
 		}()
 	}
-	if done {
+	if atomic.LoadInt32(&done) == 1 {
 		return
 	}
 	p.cmd(stop, "after", false)
@@ -439,13 +432,13 @@ func (p *Project) tools(stop <-chan bool, path string, fi os.FileInfo) {
 				if fi.IsDir() {
 					path, _ = filepath.Abs(fi.Name())
 				}
-				msg = fmt.Sprintln(p.pname(p.Name, 2), ":", Red.Bold(r.Name), Red.Regular("there are some errors in"), ":", Magenta.Bold(path))
-				buff := BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: r.Name, Stream: r.Err.Error()}
-				p.stamp("error", buff, msg, r.Err.Error())
+				msg := fmt.Sprintln(p.pname(p.Name, 2), ":", Red.Bold(r.Name), Red.Regular("there are some errors in"), ":", Magenta.Bold(path))
+				out := BufferOut{Time: time.Now(), Text: "there are some errors in", Path: path, Type: r.Name, Stream: r.Err.Error()}
+				p.stamp("error", out, msg, r.Err.Error())
 			} else if r.Out != "" {
-				msg = fmt.Sprintln(p.pname(p.Name, 3), ":", Red.Bold(r.Name), Red.Regular("outputs"), ":", Blue.Bold(path))
-				buff := BufferOut{Time: time.Now(), Text: "outputs", Path: path, Type: r.Name, Stream: r.Out}
-				p.stamp("out", buff, msg, r.Out)
+				msg := fmt.Sprintln(p.pname(p.Name, 3), ":", Red.Bold(r.Name), Red.Regular("outputs"), ":", Blue.Bold(path))
+				out := BufferOut{Time: time.Now(), Text: "outputs", Path: path, Type: r.Name, Stream: r.Out}
+				p.stamp("out", out, msg, r.Out)
 			}
 		}
 	}
@@ -471,7 +464,8 @@ func (p *Project) cmd(stop <-chan bool, flag string, global bool) {
 		case <-done:
 			return
 		case r := <-result:
-			msg = fmt.Sprintln(p.pname(p.Name, 5), ":", Green.Bold("Command"), Green.Bold("\"")+r.Name+Green.Bold("\""))
+			msg := fmt.Sprintln(p.pname(p.Name, 5), ":", Green.Bold("Command"), Green.Bold("\"")+r.Name+Green.Bold("\""))
+			var out BufferOut
 			if r.Err != nil {
 				out = BufferOut{Time: time.Now(), Text: r.Err.Error(), Type: flag}
 				p.stamp("error", out, msg, fmt.Sprint(Red.Regular(r.Err.Error())))
@@ -490,7 +484,7 @@ func (p *Project) walk(path string, info os.FileInfo, err error) error {
 	}
 
 	if p.Validate(path, true) {
-		result := p.watcher.Walk(path, p.init)
+		result := p.watcher.Walk(path, atomic.LoadInt32(&p.init) == 1)
 		if result != "" {
 			if p.parent.Settings.Recovery.Index {
 				log.Println("Indexing", path)
@@ -527,7 +521,9 @@ func (p *Project) stamp(t string, o BufferOut, msg string, stream string) {
 	content := []string{ctime.Format("2006-01-02 15:04:05"), strings.ToUpper(p.Name), ":", o.Text, "\r\n", stream}
 	switch t {
 	case "out":
+		p.parent.mu.Lock()
 		p.Buffer.StdOut = append(p.Buffer.StdOut, o)
+		p.parent.mu.Unlock()
 		if p.parent.Settings.Files.Outputs.Status {
 			f := p.parent.Settings.Create(p.Path, p.parent.Settings.Files.Outputs.Name)
 			if _, err := f.WriteString(strings.Join(content, " ")); err != nil {
@@ -535,7 +531,9 @@ func (p *Project) stamp(t string, o BufferOut, msg string, stream string) {
 			}
 		}
 	case "log":
+		p.parent.mu.Lock()
 		p.Buffer.StdLog = append(p.Buffer.StdLog, o)
+		p.parent.mu.Unlock()
 		if p.parent.Settings.Files.Logs.Status {
 			f := p.parent.Settings.Create(p.Path, p.parent.Settings.Files.Logs.Name)
 			if _, err := f.WriteString(strings.Join(content, " ")); err != nil {
@@ -543,7 +541,9 @@ func (p *Project) stamp(t string, o BufferOut, msg string, stream string) {
 			}
 		}
 	case "error":
+		p.parent.mu.Lock()
 		p.Buffer.StdErr = append(p.Buffer.StdErr, o)
+		p.parent.mu.Unlock()
 		if p.parent.Settings.Files.Errors.Status {
 			f := p.parent.Settings.Create(p.Path, p.parent.Settings.Files.Errors.Name)
 			if _, err := f.WriteString(strings.Join(content, " ")); err != nil {
@@ -562,7 +562,7 @@ func (p *Project) stamp(t string, o BufferOut, msg string, stream string) {
 	}()
 }
 
-func (p Project) buildEnvs() (envs []string) {
+func (p *Project) buildEnvs() (envs []string) {
 	for k, v := range p.Env {
 		envs = append(envs, fmt.Sprintf("%s=%s", strings.Replace(k, "=", "", -1), v))
 	}
@@ -679,12 +679,12 @@ func (p *Project) run(path string, stream chan Response, stop <-chan bool) (err 
 // Print with time after
 func (r *Response) print(start time.Time, p *Project) {
 	if r.Err != nil {
-		msg = fmt.Sprintln(p.pname(p.Name, 2), ":", Red.Bold(r.Name), "\n", r.Err.Error())
-		out = BufferOut{Time: time.Now(), Text: r.Err.Error(), Type: r.Name, Stream: r.Out}
+		msg := fmt.Sprintln(p.pname(p.Name, 2), ":", Red.Bold(r.Name), "\n", r.Err.Error())
+		out := BufferOut{Time: time.Now(), Text: r.Err.Error(), Type: r.Name, Stream: r.Out}
 		p.stamp("error", out, msg, r.Out)
 	} else {
-		msg = fmt.Sprintln(p.pname(p.Name, 5), ":", Green.Bold(r.Name), "completed in", Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
-		out = BufferOut{Time: time.Now(), Text: r.Name + " in " + big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3) + " s"}
+		msg := fmt.Sprintln(p.pname(p.Name, 5), ":", Green.Bold(r.Name), "completed in", Magenta.Regular(big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3), " s"))
+		out := BufferOut{Time: time.Now(), Text: r.Name + " in " + big.NewFloat(float64(time.Since(start).Seconds())).Text('f', 3) + " s"}
 		p.stamp("log", out, msg, r.Out)
 	}
 }
