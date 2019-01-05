@@ -137,6 +137,12 @@ func (w *filePoller) Add(name string) error {
 		return errPollerClosed
 	}
 
+	if w.watches == nil {
+		w.watches = make(map[string]chan struct{})
+	} else if _, exists := w.watches[name]; exists {
+		return fmt.Errorf("watch exists")
+	}
+
 	f, err := os.Open(name)
 	if err != nil {
 		return err
@@ -146,12 +152,6 @@ func (w *filePoller) Add(name string) error {
 		return err
 	}
 
-	if w.watches == nil {
-		w.watches = make(map[string]chan struct{})
-	}
-	if _, exists := w.watches[name]; exists {
-		return fmt.Errorf("watch exists")
-	}
 	chClose := make(chan struct{})
 	w.watches[name] = chClose
 	go w.watch(f, fi, chClose)
