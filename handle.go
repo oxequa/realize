@@ -215,7 +215,7 @@ func (a *Activity) Walk(path string, watcher FileWatcher) error {
 				if ext := Ext(act); ext != "" {
 					a.Files = append(a.Files, act)
 				} else {
-					a.Folders = append(a.Files, act)
+					a.Folders = append(a.Folders, act)
 				}
 			} else {
 				fi, _ := os.Stat(path)
@@ -367,8 +367,8 @@ func (a *Activity) Exec(c Command, w *sync.WaitGroup, reload <-chan bool) error 
 	var build *exec.Cmd
 	var lifetime time.Time
 	defer func() {
-		// https://github.com/golang/go/issues/5615
-		// https://github.com/golang/go/issues/6720
+		// ref https://github.com/golang/go/issues/5615
+		// ref https://github.com/golang/go/issues/6720
 		if build != nil {
 			if runtime.GOOS == "windows" {
 				build.Process.Kill()
@@ -380,11 +380,9 @@ func (a *Activity) Exec(c Command, w *sync.WaitGroup, reload <-chan bool) error 
 		}
 		// Print command end
 		a.Push(Prefix("Cmd", Green),
-			Print("Finished",
-				Green.Regular("'")+
-					strings.Split(c.Cmd, " -")[0]+
-					Green.Regular("'"),
-				"in", Magenta.Regular(big.NewFloat(time.Since(lifetime).Seconds()).Text('f', 3), "s")))
+			Print("Stop",
+				Green.Regular("'")+strings.Split(c.Cmd, " -")[0]+Green.Regular("'"), "in",
+				Magenta.Regular(big.NewFloat(time.Since(lifetime).Seconds()).Text('f', 3), "s")))
 		// Command done
 		w.Done()
 	}()
@@ -420,10 +418,8 @@ func (a *Activity) Exec(c Command, w *sync.WaitGroup, reload <-chan bool) error 
 	} else {
 		// Print command start
 		a.Push(Prefix("Cmd", Green),
-			Print("Running\t",
-				Green.Regular("'")+
-					strings.Split(c.Cmd, " -")[0]+
-					Green.Regular("'")))
+			Print("Start",
+				Green.Regular("'")+strings.Split(c.Cmd, " -")[0]+Green.Regular("'")))
 		// Start time
 		lifetime = time.Now()
 	}
