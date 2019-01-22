@@ -16,13 +16,13 @@ func TestActivityPush(t *testing.T) {
 	log.SetOutput(&buf)
 	r := Realize{
 		Settings: Settings{
-			Broker: Broker{
+			Logs: Logs{
 				File: true,
 			},
 		},
 	}
-	r.Schema = append(r.Schema, Activity{Realize: &r})
-	r.Schema[0].Push("test", "push")
+	r.Projects = append(r.Projects, Project{Realize: &r})
+	r.Projects[0].Push("test", "push")
 	expected := fmt.Sprintln("test", "push")
 	if buf.String() != expected {
 		t.Fatal("Mismatch", buf.String(), expected)
@@ -39,21 +39,21 @@ func TestActivityRecover(t *testing.T) {
 	log.SetOutput(&buf)
 	r := Realize{
 		Settings: Settings{
-			Broker: Broker{
+			Logs: Logs{
 				Recovery: true,
 			},
 		},
 	}
-	r.Schema = append(r.Schema, Activity{Realize: &r})
-	r.Schema[0].Recover("test", "recover")
+	r.Projects = append(r.Projects, Project{Realize: &r})
+	r.Projects[0].Recover("test", "recover")
 	expected := fmt.Sprintln("test", "recover")
 	if buf.String() != expected {
 		t.Fatal("Mismatch", buf.String(), expected)
 	}
 	// switch off recovery
 	buf = bytes.Buffer{}
-	r.Settings.Broker.Recovery = false
-	r.Schema[0].Recover("test", "recover")
+	r.Settings.Logs.Recovery = false
+	r.Projects[0].Recover("test", "recover")
 	if len(buf.String()) > 0 {
 		t.Fatal("Unexpected string", buf.String())
 	}
@@ -66,13 +66,13 @@ func TestActivityWalk(t *testing.T) {
 		t.Fatal(err)
 	}
 	var watcher FileWatcher
-	watcher, err = NewFileWatcher(Polling{Force: false})
+	watcher, err = NewFileWatcher(Polling{Active: false})
 	if err != nil {
 		t.Fatal(err)
 	}
 	path, _ := filepath.Abs(dir)
 	path = filepath.Join(dir, string(os.PathSeparator))
-	model := Activity{Ignore: &Ignore{Hidden: true}}
+	model := Project{Ignore: &Ignore{Hidden: true}}
 	if err := model.Walk(path, watcher); err != nil {
 		t.Fatal(err)
 	}
@@ -104,10 +104,10 @@ func TestActivityExec(t *testing.T) {
 	var wg sync.WaitGroup
 	log.SetOutput(&buf)
 	wg.Add(1)
-	activity := Activity{}
+	Project := Project{}
 	reload := make(chan bool)
-	command := Command{Cmd: "sleep 1"}
-	activity.Exec(command, &wg, reload)
+	command := Command{Task: "sleep 1"}
+	Project.Exec(command, &wg, reload)
 	if buf.Len() == 0 {
 		t.Fatal("Unexpected error")
 	}
@@ -119,7 +119,7 @@ func TestActivityScan(t *testing.T) {
 	log.SetOutput(&buf)
 	wg.Add(1)
 	realize := Realize{Exit: make(chan bool)}
-	activity := Activity{
+	Project := Project{
 		Realize: &realize,
 		Watch: &Watch{
 			Path: []string{
@@ -128,23 +128,23 @@ func TestActivityScan(t *testing.T) {
 		},
 	}
 	sequence := Series{
-		Tasks: toInterface([]Command{
+		Tasks: ToInterface([]Command{
 			{
-				Cmd: "echo test",
+				Task: "echo test",
 			},
 			{
-				Cmd: "sleep 1",
+				Task: "sleep 1",
 			},
 		}),
 	}
-	activity.Tasks = make([]interface{}, 0)
-	activity.Tasks = append(activity.Tasks, sequence)
+	Project.Tasks = make([]interface{}, 0)
+	Project.Tasks = append(Project.Tasks, sequence)
 	// stop scan after 1.5 sec
 	go func() {
 		time.Sleep(1500 * time.Millisecond)
 		realize.Exit <- true
 	}()
-	activity.Scan(&wg)
+	Project.Scan(&wg)
 	if buf.Len() == 0 {
 		t.Fatal("Unexpected error")
 	}
@@ -154,32 +154,32 @@ func TestActivityScan(t *testing.T) {
 func TestActivityReload(t *testing.T) {
 	var buf bytes.Buffer
 	log.SetOutput(&buf)
-	activity := Activity{}
+	Project := Project{}
 	reload := make(chan bool)
 	tasks := make([]interface{}, 0)
 	parallel := Parallel{
-		Tasks: toInterface([]Command{
+		Tasks: ToInterface([]Command{
 			{
-				Cmd: "echo clean super command root test",
+				Task: "echo clean super command root test",
 			},
 			{
-				Cmd: "go fmt",
+				Task: "go fmt",
 			},
 		}),
 	}
 	sequence := Series{
-		Tasks: toInterface([]Command{
+		Tasks: ToInterface([]Command{
 			{
-				Cmd: "go install",
+				Task: "go install",
 			},
 			{
-				Cmd: "go build",
+				Task: "go build",
 			},
 		}),
 	}
 	tasks = append(tasks, parallel)
 	tasks = append(tasks, sequence)
-	activity.Run(reload, tasks...)
+	Project.Run(reload, tasks...)
 	if buf.Len() == 0 {
 		t.Fatal("Unexpected error")
 	}
@@ -196,7 +196,7 @@ func TestActivityValidate(t *testing.T) {
 		"notify.go":       false,
 		"realize_test.go": false,
 	}
-	activity := Activity{
+	project := Project{
 		Ignore: &Ignore{
 			Path: []string{
 				"notify.go",
@@ -214,13 +214,13 @@ func TestActivityValidate(t *testing.T) {
 		},
 	}
 	for p, s := range paths {
-		val, _ := activity.Validate(p)
+		val, _ := project.Validate(p)
 		if val != s {
 			t.Fatal("Unexpected result", val, "instead", s, "path", p)
 		}
 	}
 	// Test watch extensions and paths
-	activity = Activity{
+	project = Project{
 		Ignore: &Ignore{
 			Ext: []string{
 				"html",
@@ -236,7 +236,7 @@ func TestActivityValidate(t *testing.T) {
 		},
 	}
 	for p := range paths {
-		val, _ := activity.Validate(p)
+		val, _ := project.Validate(p)
 		if val {
 			t.Fatal("Unexpected result", val, "path", p)
 		}

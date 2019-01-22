@@ -7,11 +7,11 @@ import (
 )
 
 type Server struct {
-	*Realize
-	Port   bool        `yaml:"port,omitempty" json:"port,omitempty"`
-	Host   bool        `yaml:"host,omitempty" json:"host,omitempty"`
-	Active bool        `yaml:"active,omitempty" json:"active,omitempty"`
-	Server fresh.Fresh `yaml:"-" json:"-"`
+	*Realize `yaml:"-" json:"-"`
+	Active   bool        `yaml:"active" json:"active"`
+	Port     int         `yaml:"port" json:"port"`
+	Host     string      `yaml:"host" json:"host"`
+	Server   fresh.Fresh `yaml:"-" json:"-"`
 }
 
 func (s *Server) Start() {
@@ -27,13 +27,13 @@ func (s *Server) Start() {
 func (s *Server) WebSocket(c fresh.Context) (err error) {
 	if s.Active {
 		ws := c.Request().WS()
-		msg, _ := json.Marshal(s.Schema)
+		msg, _ := json.Marshal(s.Projects)
 		err = websocket.Message.Send(ws, string(msg))
 		go func() {
 			for {
 				select {
 				case <-s.Realize.Sync:
-					msg, _ := json.Marshal(s.Schema)
+					msg, _ := json.Marshal(s.Projects)
 					err = websocket.Message.Send(ws, string(msg))
 					if err != nil {
 						break
@@ -48,7 +48,7 @@ func (s *Server) WebSocket(c fresh.Context) (err error) {
 			if err != nil {
 				break
 			} else {
-				err := json.Unmarshal([]byte(text), &s.Schema)
+				err := json.Unmarshal([]byte(text), &s.Projects)
 				if err == nil {
 					//TODO update config
 					break

@@ -19,8 +19,8 @@ type Log struct{}
 type Realize struct {
 	Sync     chan string `yaml:"-" json:"-"`
 	Exit     chan bool   `yaml:"-" json:"-"`
-	Settings Settings    `yaml:"settings,omitempty" json:"settings,omitempty"`
-	Schema   []Activity  `yaml:"schema,inline,omitempty" json:"schema,inline,omitempty"`
+	Settings Settings    `yaml:"settings" json:"settings"`
+	Projects []Project   `yaml:"projects,omitempty" json:"projects,omitempty"`
 }
 
 // initial set up

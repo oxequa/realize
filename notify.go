@@ -68,7 +68,7 @@ func PollingWatcher(interval time.Duration) FileWatcher {
 
 // NewFileWatcher tries to use an fs-event watcher, and falls back to the poller if there is an error
 func NewFileWatcher(l Polling) (FileWatcher, error) {
-	if !l.Force {
+	if !l.Active {
 		if w, err := EventWatcher(); err == nil {
 			return w, nil
 		}

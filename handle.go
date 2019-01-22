@@ -42,11 +42,16 @@ type Series struct {
 	Tasks []interface{} `yaml:"sequence,omitempty" json:"sequence,omitempty"`
 }
 
-// Command fields. Path run from a custom path. Log display command output.
+// Parallel list of commands to exec in parallel
+type Parallel struct {
+	Tasks []interface{} `yaml:"parallel,omitempty" json:"parallel,omitempty"`
+}
+
+// Command instance, run from a custom path, log command output.
 type Command struct {
-	Log bool   `yaml:"log,omitempty" json:"log,omitempty"`
-	Cmd string `yaml:"cmd,omitempty" json:"cmd,omitempty"`
-	Dir string `yaml:"dir,omitempty" json:"dir,omitempty"`
+	Log  bool   `yaml:"log,omitempty" json:"log,omitempty"`
+	Task string `yaml:"task,omitempty" json:"task,omitempty"`
+	Dir  string `yaml:"dir,omitempty" json:"dir,omitempty"`
 }
 
 // Response contains a command response
@@ -56,9 +61,9 @@ type Response struct {
 	Err error
 }
 
-// Activity struct contains all data about a program.
-type Activity struct {
-	*Realize
+// Project struct contains all data about a program.
+type Project struct {
+	*Realize    `yaml:"-" json:"-"`
 	Name        string            `yaml:"name,omitempty" json:"name,omitempty"`
 	Logs        Logger            `yaml:"logs,omitempty" json:"logs,omitempty"`
 	Watch       *Watch            `yaml:"watch,omitempty" json:"watch,omitempty"`
@@ -71,13 +76,8 @@ type Activity struct {
 	TasksBefore []interface{}     `yaml:"before,omitempty" json:"before,omitempty"`
 }
 
-// Parallel list of commands to exec in parallel
-type Parallel struct {
-	Tasks []interface{} `yaml:"parallel,omitempty" json:"parallel,omitempty"`
-}
-
 // ToInterface convert an interface to an array of interface
-func toInterface(s interface{}) []interface{} {
+func ToInterface(s interface{}) []interface{} {
 	v := reflect.ValueOf(s)
 	// There is no need to check, we want to panic if it's not slice or array
 	intf := make([]interface{}, v.Len())
@@ -88,12 +88,12 @@ func toInterface(s interface{}) []interface{} {
 }
 
 // Push a list of msg on stdout
-func (a *Activity) Push(msg ...interface{}) {
-	if a.Realize != nil && len(a.Realize.Schema) > 1 {
-		msg = append([]interface{}{Prefix(a.Name, White)}, msg...)
+func (p *Project) Push(msg ...interface{}) {
+	if p.Realize != nil && len(p.Realize.Projects) > 1 {
+		msg = append([]interface{}{Prefix(p.Name, White)}, msg...)
 	}
 	log.Println(msg...)
-	if a.Realize != nil && a.Settings.Broker.File {
+	if p.Realize != nil && p.Settings.Logs.File {
 		f, err := os.OpenFile(logs, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 		if err != nil {
 			panic(err)
@@ -107,14 +107,14 @@ func (a *Activity) Push(msg ...interface{}) {
 }
 
 // Recover check recover flag before push a msg
-func (a *Activity) Recover(msg ...interface{}) {
-	if a.Realize != nil && a.Settings.Broker.Recovery {
-		a.Push(msg...)
+func (p *Project) Recover(msg ...interface{}) {
+	if p.Realize != nil && p.Settings.Logs.Recovery {
+		p.Push(msg...)
 	}
 }
 
-// Scan an activity and wait for a change
-func (a *Activity) Scan(wg *sync.WaitGroup) (e error) {
+// Scan an Project and wait for a change
+func (p *Project) Scan(wg *sync.WaitGroup) (e error) {
 	var ltime time.Time
 	var w sync.WaitGroup
 	var reload chan bool
@@ -128,7 +128,7 @@ func (a *Activity) Scan(wg *sync.WaitGroup) (e error) {
 	// new chan
 	reload = make(chan bool)
 	// new file watcher
-	watcher, err := NewFileWatcher(a.Settings.Polling)
+	watcher, err := NewFileWatcher(p.Settings.Polling)
 	if err != nil {
 		panic(e)
 	}
@@ -137,64 +137,64 @@ func (a *Activity) Scan(wg *sync.WaitGroup) (e error) {
 	// indexing
 	go func() {
 		defer w.Done()
-		for _, p := range a.Watch.Path {
-			abs, _ := filepath.Abs(p)
+		for _, item := range p.Watch.Path {
+			abs, _ := filepath.Abs(item)
 			glob, _ := filepath.Glob(abs)
 			for _, g := range glob {
 				if _, err := os.Stat(g); err == nil {
-					if err = a.Walk(g, watcher); err != nil {
-						a.Recover(Prefix("Indexing", Red), err.Error())
+					if err = p.Walk(g, watcher); err != nil {
+						p.Recover(Prefix("Indexing", Red), err.Error())
 					}
 				}
 			}
 		}
 	}()
 	// run tasks before
-	a.Run(reload, a.TasksBefore)
+	p.Run(reload, p.TasksBefore)
 	// wait indexing and before
 	w.Wait()
 
 	// run tasks list
-	go a.Run(reload, a.Tasks...)
+	go p.Run(reload, p.Tasks...)
 L:
 	for {
 		select {
 		case event := <-watcher.Events():
-			a.Recover(Prefix("File Changed", Magenta), event.Name)
+			p.Recover(Prefix("File Changed", Magenta), event.Name)
 			if time.Now().Truncate(time.Second).After(ltime) {
 				switch event.Op {
 				case fsnotify.Remove:
 					watcher.Remove(event.Name)
-					if s, _ := a.Validate(event.Name); s && Ext(event.Name) != "" {
+					if s, _ := p.Validate(event.Name); s && Ext(event.Name) != "" {
 						// stop and restart
 						close(reload)
 						reload = make(chan bool)
-						a.Push(Prefix("Removed", Magenta), event.Name)
-						go a.Run(reload, a.Tasks)
+						p.Push(Prefix("Removed", Magenta), event.Name)
+						go p.Run(reload, p.Tasks)
 					}
 				case fsnotify.Create, fsnotify.Write, fsnotify.Rename:
-					if s, fi := a.Validate(event.Name); s {
+					if s, fi := p.Validate(event.Name); s {
 						if fi.IsDir() {
-							if err = a.Walk(event.Name, watcher); err != nil {
-								a.Recover(Prefix("Indexing", Red), err.Error())
+							if err = p.Walk(event.Name, watcher); err != nil {
+								p.Recover(Prefix("Indexing", Red), err.Error())
 							}
 						} else {
 							// stop and restart
 							close(reload)
 							reload = make(chan bool)
-							a.Push(Prefix("Changed", Magenta), event.Name)
-							go a.Run(reload, a.Tasks)
+							p.Push(Prefix("Changed", Magenta), event.Name)
+							go p.Run(reload, p.Tasks)
 							ltime = time.Now().Truncate(time.Second)
 						}
 					}
 				}
 			}
 		case err := <-watcher.Errors():
-			a.Recover(Prefix("Watch", Red), err.Error())
-		case <-a.Exit:
+			p.Recover(Prefix("Watch", Red), err.Error())
+		case <-p.Exit:
 			// run task after
-			a.Recover(Prefix("Loop stopped", Red))
-			a.Run(reload, a.TasksAfter)
+			p.Recover(Prefix("Loop stopped", Red))
+			p.Run(reload, p.TasksAfter)
 			break L
 		}
 	}
@@ -202,20 +202,20 @@ L:
 }
 
 // Walk file three
-func (a *Activity) Walk(path string, watcher FileWatcher) error {
+func (p *Project) Walk(path string, watcher FileWatcher) error {
 	filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
 		wdir, err := os.Getwd()
 		if err != nil {
 			panic(err)
 		}
 		if path == wdir || strings.HasPrefix(path, wdir) {
-			if res, _ := a.Validate(path); res {
-				a.Recover(Prefix("Indexing", Magenta), path)
+			if res, _ := p.Validate(path); res {
+				p.Recover(Prefix("Indexing", Magenta), path)
 				act := watcher.Walk(path, true)
 				if ext := Ext(act); ext != "" {
-					a.Files = append(a.Files, act)
+					p.Files = append(p.Files, act)
 				} else {
-					a.Folders = append(a.Folders, act)
+					p.Folders = append(p.Folders, act)
 				}
 			} else {
 				fi, _ := os.Stat(path)
@@ -230,7 +230,7 @@ func (a *Activity) Walk(path string, watcher FileWatcher) error {
 }
 
 // Run exec a list of commands in parallel or in sequence
-func (a *Activity) Run(reload <-chan bool, tasks ...interface{}) {
+func (p *Project) Run(reload <-chan bool, tasks ...interface{}) {
 	var w sync.WaitGroup
 	// Loop tasks
 	for _, task := range tasks {
@@ -238,15 +238,15 @@ func (a *Activity) Run(reload <-chan bool, tasks ...interface{}) {
 		case Command:
 			select {
 			case <-reload:
-				a.Recover(Prefix("Tasks loop stopped", Red))
+				p.Recover(Prefix("Tasks loop stopped", Red))
 				w.Done()
 				break
 			default:
 				// Exec command
-				if len(t.Cmd) > 0 {
-					a.Recover(Prefix("Running task", Green), t.Cmd)
+				if len(t.Task) > 0 {
+					p.Recover(Prefix("Running task", Green), t.Task)
 					w.Add(1)
-					a.Exec(t, &w, reload)
+					p.Exec(t, &w, reload)
 				}
 			}
 			break
@@ -255,7 +255,7 @@ func (a *Activity) Run(reload <-chan bool, tasks ...interface{}) {
 			for _, t := range t.Tasks {
 				wl.Add(1)
 				go func(t interface{}) {
-					a.Run(reload, t)
+					p.Run(reload, t)
 					wl.Done()
 				}(t)
 			}
@@ -263,7 +263,7 @@ func (a *Activity) Run(reload <-chan bool, tasks ...interface{}) {
 			break
 		case Series:
 			for _, c := range t.Tasks {
-				a.Run(reload, c)
+				p.Run(reload, c)
 			}
 			break
 		}
@@ -272,28 +272,28 @@ func (a *Activity) Run(reload <-chan bool, tasks ...interface{}) {
 }
 
 // Validate a path
-func (a *Activity) Validate(path string) (s bool, fi os.FileInfo) {
+func (p *Project) Validate(path string) (s bool, fi os.FileInfo) {
 	if len(path) == 0 {
 		return
 	}
 	// validate hidden
-	if a.Ignore != nil && a.Ignore.Hidden {
+	if p.Ignore != nil && p.Ignore.Hidden {
 		if Hidden(path) {
 			return
 		}
 	}
 	// validate extension
 	if e := Ext(path); e != "" {
-		if a.Ignore != nil && len(a.Ignore.Ext) > 0 {
-			for _, v := range a.Ignore.Ext {
+		if p.Ignore != nil && len(p.Ignore.Ext) > 0 {
+			for _, v := range p.Ignore.Ext {
 				if v == e {
 					return
 				}
 			}
 		}
-		if a.Watch != nil && len(a.Watch.Ext) > 0 {
+		if p.Watch != nil && len(p.Watch.Ext) > 0 {
 			match := false
-			for _, v := range a.Watch.Ext {
+			for _, v := range p.Watch.Ext {
 				if v == e {
 					match = true
 					break
@@ -306,11 +306,11 @@ func (a *Activity) Validate(path string) (s bool, fi os.FileInfo) {
 	}
 	// validate path
 	if fpath, err := filepath.Abs(path); err != nil {
-		a.Recover(Prefix("Error", Red), err.Error())
+		p.Recover(Prefix("Error", Red), err.Error())
 		return
 	} else {
-		if a.Ignore != nil && len(a.Ignore.Path) > 0 {
-			for _, v := range a.Ignore.Path {
+		if p.Ignore != nil && len(p.Ignore.Path) > 0 {
+			for _, v := range p.Ignore.Path {
 				v, _ := filepath.Abs(v)
 				if strings.Contains(fpath, v) {
 					return
@@ -319,7 +319,7 @@ func (a *Activity) Validate(path string) (s bool, fi os.FileInfo) {
 					// check glob
 					paths, err := filepath.Glob(v)
 					if err != nil {
-						a.Recover(Prefix("Error", Red), err.Error())
+						p.Recover(Prefix("Error", Red), err.Error())
 						return
 					}
 					for _, p := range paths {
@@ -330,9 +330,9 @@ func (a *Activity) Validate(path string) (s bool, fi os.FileInfo) {
 				}
 			}
 		}
-		if a.Watch != nil && len(a.Watch.Path) > 0 {
+		if p.Watch != nil && len(p.Watch.Path) > 0 {
 			match := false
-			for _, v := range a.Watch.Path {
+			for _, v := range p.Watch.Path {
 				v, _ := filepath.Abs(v)
 				if strings.Contains(fpath, v) {
 					match = true
@@ -342,7 +342,7 @@ func (a *Activity) Validate(path string) (s bool, fi os.FileInfo) {
 					// check glob
 					paths, err := filepath.Glob(v)
 					if err != nil {
-						a.Recover(Prefix("Error", Red), err.Error())
+						p.Recover(Prefix("Error", Red), err.Error())
 						return
 					}
 					for _, p := range paths {
@@ -363,7 +363,7 @@ func (a *Activity) Validate(path string) (s bool, fi os.FileInfo) {
 }
 
 // Exec a command
-func (a *Activity) Exec(c Command, w *sync.WaitGroup, reload <-chan bool) error {
+func (p *Project) Exec(c Command, w *sync.WaitGroup, reload <-chan bool) error {
 	var build *exec.Cmd
 	var lifetime time.Time
 	defer func() {
@@ -379,16 +379,16 @@ func (a *Activity) Exec(c Command, w *sync.WaitGroup, reload <-chan bool) error 
 			}
 		}
 		// Print command end
-		a.Push(Prefix("Cmd", Green),
+		p.Push(Prefix("Cmd", Green),
 			Print("Stop",
-				Green.Regular("'")+strings.Split(c.Cmd, " -")[0]+Green.Regular("'"), "in",
+				Green.Regular("'")+strings.Split(c.Task, " -")[0]+Green.Regular("'"), "in",
 				Magenta.Regular(big.NewFloat(time.Since(lifetime).Seconds()).Text('f', 3), "s")))
 		// Command done
 		w.Done()
 	}()
 	done := make(chan error)
 	// Split command
-	args := strings.Split(c.Cmd, " ")
+	args := strings.Split(c.Task, " ")
 	build = exec.Command(args[0], args[1:]...)
 	//TODO Custom error pattern
 
@@ -417,9 +417,9 @@ func (a *Activity) Exec(c Command, w *sync.WaitGroup, reload <-chan bool) error 
 		return err
 	} else {
 		// Print command start
-		a.Push(Prefix("Cmd", Green),
+		p.Push(Prefix("Cmd", Green),
 			Print("Start",
-				Green.Regular("'")+strings.Split(c.Cmd, " -")[0]+Green.Regular("'")))
+				Green.Regular("'")+strings.Split(c.Task, " -")[0]+Green.Regular("'")))
 		// Start time
 		lifetime = time.Now()
 	}
@@ -431,9 +431,9 @@ func (a *Activity) Exec(c Command, w *sync.WaitGroup, reload <-chan bool) error 
 			if len(output.Text()) > 0 {
 				if err {
 					//TODO check custom error pattern
-					a.Push(Prefix("Err", Red), output.Text())
+					p.Push(Prefix("Err", Red), output.Text())
 				} else {
-					a.Push(Prefix("Out", Blue), output.Text())
+					p.Push(Prefix("Out", Blue), output.Text())
 				}
 			}
 		}
@@ -448,12 +448,12 @@ func (a *Activity) Exec(c Command, w *sync.WaitGroup, reload <-chan bool) error 
 	// Wait command result
 	select {
 	case <-reload:
-		a.Recover(Prefix("Build process stopped", Yellow))
+		p.Recover(Prefix("Build process stopped", Yellow))
 		// Stop running command
 		build.Process.Kill()
 		break
 	case <-done:
-		a.Recover(Prefix("Build done", Green))
+		p.Recover(Prefix("Build done", Green))
 		break
 	}
 	return nil

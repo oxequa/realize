@@ -8,6 +8,7 @@ require (
 	github.com/oxequa/grace v0.0.0-20180330101621-d1b62e904ab2
 	github.com/sirupsen/logrus v1.3.0
 	github.com/tockins/fresh v0.0.0-20181012144221-d8b891ad12e4
+	github.com/urfave/cli v1.20.0
 	golang.org/x/net v0.0.0-20190119204137-ed066c81e75e
-	gopkg.in/yaml.v2 v2.2.2 // indirect
+	gopkg.in/yaml.v2 v2.2.2
 )
