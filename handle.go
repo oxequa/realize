@@ -19,8 +19,9 @@ import (
 
 // Watch paths and file extensions
 type Watch struct {
-	Ext  []string `yaml:"ext,omitempty" json:"ext,omitempty"`
+	Deep bool     `yaml:"deep" json:"deep"`
 	Path []string `yaml:"path,omitempty" json:"path,omitempty"`
+	Ext  []string `yaml:"extension,omitempty" json:"extension,omitempty"`
 }
 
 // Logger events, output, errors
@@ -39,7 +40,7 @@ type Ignore struct {
 
 // Series list of commands to exec in sequence
 type Series struct {
-	Tasks []interface{} `yaml:"sequence,omitempty" json:"sequence,omitempty"`
+	Tasks []interface{} `yaml:"series,omitempty" json:"series,omitempty"`
 }
 
 // Parallel list of commands to exec in parallel
@@ -66,10 +67,10 @@ type Project struct {
 	*Realize    `yaml:"-" json:"-"`
 	Name        string            `yaml:"name,omitempty" json:"name,omitempty"`
 	Logs        Logger            `yaml:"logs,omitempty" json:"logs,omitempty"`
-	Watch       *Watch            `yaml:"watch,omitempty" json:"watch,omitempty"`
-	Ignore      *Ignore           `yaml:"ignore,omitempty" json:"ignore,omitempty"`
-	Files       []string          `yaml:"files,omitempty" json:"files,omitempty"`
-	Folders     []string          `yaml:"folders,omitempty" json:"folders,omitempty"`
+	Watch       Watch             `yaml:"watch,omitempty" json:"watch,omitempty"`
+	Ignore      Ignore            `yaml:"ignore,omitempty" json:"ignore,omitempty"`
+	Files       []string          `yaml:"-" json:"-"`
+	Folders     []string          `yaml:"-" json:"-"`
 	Env         map[string]string `yaml:"env,omitempty" json:"env,omitempty"`
 	Tasks       []interface{}     `yaml:"tasks,omitempty" json:"tasks,omitempty"`
 	TasksAfter  []interface{}     `yaml:"after,omitempty" json:"after,omitempty"`
@@ -143,7 +144,7 @@ func (p *Project) Scan(wg *sync.WaitGroup) (e error) {
 			for _, g := range glob {
 				if _, err := os.Stat(g); err == nil {
 					if err = p.Walk(g, watcher); err != nil {
-						p.Recover(Prefix("Indexing", Red), err.Error())
+						p.Recover(Prefix("Indexed", Red), err.Error())
 					}
 				}
 			}
@@ -160,7 +161,7 @@ L:
 	for {
 		select {
 		case event := <-watcher.Events():
-			p.Recover(Prefix("File Changed", Magenta), event.Name)
+			p.Recover(Prefix("Changed", Cyan), event.Name, event.Op.String())
 			if time.Now().Truncate(time.Second).After(ltime) {
 				switch event.Op {
 				case fsnotify.Remove:
@@ -174,9 +175,9 @@ L:
 					}
 				case fsnotify.Create, fsnotify.Write, fsnotify.Rename:
 					if s, fi := p.Validate(event.Name); s {
-						if fi.IsDir() {
+						if fi != nil && fi.IsDir() {
 							if err = p.Walk(event.Name, watcher); err != nil {
-								p.Recover(Prefix("Indexing", Red), err.Error())
+								p.Recover(Prefix("Indexed", Red), err.Error())
 							}
 						} else {
 							// stop and restart
@@ -193,8 +194,8 @@ L:
 			p.Recover(Prefix("Watch", Red), err.Error())
 		case <-p.Exit:
 			// run task after
-			p.Recover(Prefix("Loop stopped", Red))
-			p.Run(reload, p.TasksAfter)
+			p.Push(Prefix("Stopped", Red))
+			p.Run(reload, p.TasksAfter...)
 			break L
 		}
 	}
@@ -203,14 +204,31 @@ L:
 
 // Walk file three
 func (p *Project) Walk(path string, watcher FileWatcher) error {
+	wdir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	p.Push(Prefix("Watching", Green), Magenta.Regular(path))
+	// Files walk
 	filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
-		wdir, err := os.Getwd()
-		if err != nil {
-			panic(err)
+		if !p.Watch.Deep {
+			if len(p.Watch.Path) > 0 && !CheckInSlice(path, p.Watch.Path) {
+				fi, _ := os.Stat(path)
+				if fi.IsDir() {
+					return filepath.SkipDir
+				}
+			}
 		}
 		if path == wdir || strings.HasPrefix(path, wdir) {
 			if res, _ := p.Validate(path); res {
-				p.Recover(Prefix("Indexing", Magenta), path)
+				fname := strings.Split(path, wdir)
+				if fname[1] != "" {
+					if Ext(fname[1]) == "" {
+						p.Recover(Prefix("Indexed", Cyan), Magenta.Regular(fname[1]))
+					} else {
+						p.Recover(Prefix("Indexed", Cyan), fname[1])
+					}
+				}
 				act := watcher.Walk(path, true)
 				if ext := Ext(act); ext != "" {
 					p.Files = append(p.Files, act)
@@ -273,25 +291,26 @@ func (p *Project) Run(reload <-chan bool, tasks ...interface{}) {
 
 // Validate a path
 func (p *Project) Validate(path string) (s bool, fi os.FileInfo) {
-	if len(path) == 0 {
+	// check temp file
+	if TempFile(path) {
 		return
 	}
 	// validate hidden
-	if p.Ignore != nil && p.Ignore.Hidden {
+	if p.Ignore.Hidden {
 		if Hidden(path) {
 			return
 		}
 	}
 	// validate extension
 	if e := Ext(path); e != "" {
-		if p.Ignore != nil && len(p.Ignore.Ext) > 0 {
+		if len(p.Ignore.Ext) > 0 {
 			for _, v := range p.Ignore.Ext {
 				if v == e {
 					return
 				}
 			}
 		}
-		if p.Watch != nil && len(p.Watch.Ext) > 0 {
+		if len(p.Watch.Ext) > 0 {
 			match := false
 			for _, v := range p.Watch.Ext {
 				if v == e {
@@ -309,7 +328,7 @@ func (p *Project) Validate(path string) (s bool, fi os.FileInfo) {
 		p.Recover(Prefix("Error", Red), err.Error())
 		return
 	} else {
-		if p.Ignore != nil && len(p.Ignore.Path) > 0 {
+		if len(p.Ignore.Path) > 0 {
 			for _, v := range p.Ignore.Path {
 				v, _ := filepath.Abs(v)
 				if strings.Contains(fpath, v) {
@@ -330,7 +349,7 @@ func (p *Project) Validate(path string) (s bool, fi os.FileInfo) {
 				}
 			}
 		}
-		if p.Watch != nil && len(p.Watch.Path) > 0 {
+		if len(p.Watch.Path) > 0 {
 			match := false
 			for _, v := range p.Watch.Path {
 				v, _ := filepath.Abs(v)
@@ -380,7 +399,7 @@ func (p *Project) Exec(c Command, w *sync.WaitGroup, reload <-chan bool) error {
 		}
 		// Print command end
 		p.Push(Prefix("Cmd", Green),
-			Print("Stop",
+			Print("End",
 				Green.Regular("'")+strings.Split(c.Task, " -")[0]+Green.Regular("'"), "in",
 				Magenta.Regular(big.NewFloat(time.Since(lifetime).Seconds()).Text('f', 3), "s")))
 		// Command done

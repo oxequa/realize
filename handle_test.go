@@ -72,7 +72,7 @@ func TestActivityWalk(t *testing.T) {
 	}
 	path, _ := filepath.Abs(dir)
 	path = filepath.Join(dir, string(os.PathSeparator))
-	model := Project{Ignore: &Ignore{Hidden: true}}
+	model := Project{Ignore: Ignore{Hidden: true}}
 	if err := model.Walk(path, watcher); err != nil {
 		t.Fatal(err)
 	}
@@ -118,10 +118,10 @@ func TestActivityScan(t *testing.T) {
 	var wg sync.WaitGroup
 	log.SetOutput(&buf)
 	wg.Add(1)
-	realize := Realize{Exit: make(chan bool)}
+	realize := Realize{Exit: make(chan os.Signal, 1)}
 	Project := Project{
 		Realize: &realize,
-		Watch: &Watch{
+		Watch: Watch{
 			Path: []string{
 				"../**/*.go",
 			},
@@ -142,7 +142,7 @@ func TestActivityScan(t *testing.T) {
 	// stop scan after 1.5 sec
 	go func() {
 		time.Sleep(1500 * time.Millisecond)
-		realize.Exit <- true
+		realize.Exit <- os.Interrupt
 	}()
 	Project.Scan(&wg)
 	if buf.Len() == 0 {
@@ -197,13 +197,13 @@ func TestActivityValidate(t *testing.T) {
 		"realize_test.go": false,
 	}
 	project := Project{
-		Ignore: &Ignore{
+		Ignore: Ignore{
 			Path: []string{
 				"notify.go",
 				"*_test.go",
 			},
 		},
-		Watch: &Watch{
+		Watch: Watch{
 			Path: []string{
 				"/style.go",
 				"./handle.go",
@@ -221,12 +221,12 @@ func TestActivityValidate(t *testing.T) {
 	}
 	// Test watch extensions and paths
 	project = Project{
-		Ignore: &Ignore{
+		Ignore: Ignore{
 			Ext: []string{
 				"html",
 			},
 		},
-		Watch: &Watch{
+		Watch: Watch{
 			Ext: []string{
 				"go",
 			},

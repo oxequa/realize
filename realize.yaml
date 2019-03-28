@@ -1,0 +1,26 @@
+settings:
+  logs:
+    recovery: false
+    file: false
+  server:
+    active: false
+    port: 0
+    host: ""
+  polling:
+    active: false
+    interval: 0s
+  flimit: 0
+projects:
+- name: realize3
+  watch:
+    deep: true
+    path:
+    - /Users/alessiopracchia/go/src/github.com/oxequa/realize3
+    extension:
+    - go
+  tasks:
+  - log: true
+    task: go install
+  after:
+  - log: true
+    task: go fmt ./...

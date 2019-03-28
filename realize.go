@@ -17,10 +17,10 @@ type Log struct{}
 
 // Realize main struct
 type Realize struct {
-	Sync     chan string `yaml:"-" json:"-"`
-	Exit     chan bool   `yaml:"-" json:"-"`
-	Settings Settings    `yaml:"settings" json:"settings"`
-	Projects []Project   `yaml:"projects,omitempty" json:"projects,omitempty"`
+	Sync     chan string    `yaml:"-" json:"-"`
+	Exit     chan os.Signal `yaml:"-" json:"-"`
+	Settings Settings       `yaml:"settings" json:"settings"`
+	Projects []Project      `yaml:"projects,omitempty" json:"projects,omitempty"`
 }
 
 // initial set up
@@ -65,6 +65,26 @@ func Hidden(path string) bool {
 	// need a way to check on windows
 }
 
+// TempFile check if a given filepath is a temp file
+func TempFile(path string) bool {
+	ext := filepath.Ext(path)
+	baseName := filepath.Base(path)
+	temp := strings.HasSuffix(ext, "~") ||
+		(ext == ".swp") || // vim
+		(ext == ".swx") || // vim
+		(ext == ".tmp") || // generic temp file
+		(ext == ".DS_Store") || // OSX Thumbnail
+		baseName == "4913" || // vim
+		strings.HasPrefix(ext, ".goutputstream") || // gnome
+		strings.HasSuffix(ext, "jb_old___") || // intelliJ
+		strings.HasSuffix(ext, "jb_tmp___") || // intelliJ
+		strings.HasSuffix(ext, "jb_bak___") || // intelliJ
+		strings.HasPrefix(ext, ".sb-") || // byword
+		strings.HasPrefix(baseName, ".#") || // emacs
+		strings.HasPrefix(baseName, "#") // emacs
+	return temp
+}
+
 func Print(msg ...interface{}) string {
 	var buffer bytes.Buffer
 	for i := 0; i < len(msg); i++ {
@@ -79,4 +99,14 @@ func (l Log) Write(bytes []byte) (int, error) {
 		return fmt.Fprint(Output, Yellow.Regular("["), time.Now().Format("15:04:05"), Yellow.Regular("]"), string(bytes))
 	}
 	return 0, nil
+}
+
+// Check in slice a given string
+func CheckInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
 }

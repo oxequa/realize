@@ -5,7 +5,9 @@ import (
 	"github.com/urfave/cli"
 	"log"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"sync"
 	"time"
 )
 
@@ -26,9 +28,9 @@ func main() {
 		Description: description,
 		Commands: []cli.Command{
 			{
-				Name:        "start",
-				Aliases:     []string{"s"},
-				Description: "Start on a given Go project. Create a config if it doesn't already exist.",
+				Name:        "run",
+				Aliases:     []string{"r"},
+				Description: "Run on a project. By default generate a config if it doesn't exist.",
 				Flags: []cli.Flag{
 					&cli.BoolFlag{Name: "fmt", Usage: "Enable go fmt"},
 					&cli.BoolFlag{Name: "mod", Usage: "Enable go mod"},
@@ -36,15 +38,15 @@ func main() {
 					&cli.BoolFlag{Name: "run", Usage: "Enable go run"},
 					&cli.BoolFlag{Name: "test", Usage: "Enable go test"},
 					&cli.BoolFlag{Name: "build", Usage: "Enable go build"},
-					&cli.BoolFlag{Name: "panel", Usage: "Start web panel"},
+					&cli.BoolFlag{Name: "panel", Usage: "Enable web panel"},
 					&cli.BoolFlag{Name: "install", Usage: "Enable go install"},
 					&cli.BoolFlag{Name: "generate", Usage: "Enable go generate"},
 					&cli.BoolFlag{Name: "polling", Usage: "Enable watch by polling"},
-					&cli.BoolFlag{Name: "raw", Usage: "Start without reading/making a config"},
-					&cli.StringFlag{Name: "path", Value: ".", Usage: "Start on custom path"},
-					&cli.StringFlag{Name: "name", Value: "", Usage: "Start filtering by project name"},
+					&cli.BoolFlag{Name: "raw", Usage: "Run without reading/making a config"},
+					&cli.StringFlag{Name: "path", Value: ".", Usage: "Run on custom path"},
+					&cli.StringFlag{Name: "name", Value: "", Usage: "Run filtering by project name"},
 				},
-				Action: start,
+				Action: run,
 			},
 		},
 	}
@@ -54,7 +56,7 @@ func main() {
 	}
 }
 
-func start(c *cli.Context) error {
+func run(c *cli.Context) error {
 	r := core.Realize{}
 	// Read/write config file
 	if !c.Bool("raw") {
@@ -88,12 +90,12 @@ func start(c *cli.Context) error {
 			project.TasksAfter = append(project.Tasks, core.Command{Log: true, Task: "go mod tidy"})
 		}
 		// Go fmt
-		if c.Bool("ftm") {
-			project.TasksAfter = append(project.Tasks, core.Command{Log: true, Task: "go fmt ./.."})
+		if c.Bool("fmt") {
+			project.TasksAfter = append(project.Tasks, core.Command{Log: true, Task: "go fmt ./..."})
 		}
 		// Go test
 		if c.Bool("test") {
-			project.TasksBefore = append(project.Tasks, core.Command{Log: true, Task: "go test ./.."})
+			project.TasksBefore = append(project.Tasks, core.Command{Log: true, Task: "go test ./..."})
 		}
 		// Go vet
 		if c.Bool("vet") {
@@ -115,7 +117,7 @@ func start(c *cli.Context) error {
 						{
 							Task: "go install",
 						}, {
-							Task: "go run",
+							Task: filepath.Base(wdir),
 						},
 					}),
 				})
@@ -123,11 +125,26 @@ func start(c *cli.Context) error {
 				project.Tasks = append(project.Tasks, core.Command{Log: true, Task: "go run"})
 			}
 		}
+		// Watch current dir and go files
+		project.Watch = core.Watch{
+			Deep: true,
+			Ext:  []string{"go"},
+			Path: []string{wdir},
+		}
 		// add project
 		r.Projects = append(r.Projects, project)
 	}
-	// Start tasks
-
+	// Capture ctrl c stop
+	r.Exit = make(chan os.Signal, 1)
+	signal.Notify(r.Exit, os.Interrupt)
+	// Start tasks loop
+	var wg sync.WaitGroup
+	wg.Add(len(r.Projects))
+	for k := range r.Projects {
+		r.Projects[k].Realize = &r
+		r.Projects[k].Scan(&wg)
+	}
+	wg.Wait()
 	// Write config
 	if !c.Bool("raw") {
 		err := r.Settings.Write(r)
