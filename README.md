@@ -13,7 +13,7 @@
 <hr>
 
 <p align="center">
-    <img src="https://gorealize.io/img/realize-ui-2.png">
+    <img src="https://i.imgur.com/Css8pHr.png">
 </p>
 
 
@@ -42,7 +42,7 @@
 
 ## Supporters
 <p align="center"><br>
-    <img src="http://gorealize.io/img/do_logo.png" width="180px">
+    <img src="https://i.imgur.com/0puJ3Ow.png" width="180px">
 </p>
 
 ## Quickstart
