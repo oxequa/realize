@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
@@ -54,6 +55,7 @@ func (s *Settings) Read(out interface{}) error {
 	content, err := s.Stream(config)
 	if err == nil {
 		err = yaml.Unmarshal(content, out)
+		fmt.Println(out)
 		return err
 	}
 	return err

@@ -19,8 +19,6 @@ projects:
     extension:
     - go
   tasks:
-  - log: true
-    task: go install
-  after:
-  - log: true
-    task: go fmt ./...
+  - series:
+    - task: go install
+    - task: realize3

@@ -388,7 +388,7 @@ func (p *Project) Exec(c Command, w *sync.WaitGroup, reload <-chan bool) error {
 	defer func() {
 		// ref https://github.com/golang/go/issues/5615
 		// ref https://github.com/golang/go/issues/6720
-		if build != nil {
+		if build != nil && build.Process != nil {
 			if runtime.GOOS == "windows" {
 				build.Process.Kill()
 				build.Process.Wait()

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/oxequa/realize3"
 	"github.com/urfave/cli"
 	"log"
@@ -61,6 +62,7 @@ func run(c *cli.Context) error {
 	// Read/write config file
 	if !c.Bool("raw") {
 		r.Settings.Read(&r)
+		fmt.Println(r.Projects[0].Tasks)
 	}
 	// Check polling flag
 	if c.Bool("polling") {
@@ -115,8 +117,10 @@ func run(c *cli.Context) error {
 				project.Tasks = append(project.Tasks, core.Series{
 					Tasks: core.ToInterface([]core.Command{
 						{
+							Log: true,
 							Task: "go install",
 						}, {
+							Log: true,
 							Task: filepath.Base(wdir),
 						},
 					}),
