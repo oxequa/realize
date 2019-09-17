@@ -2,10 +2,11 @@ package realize
 
 import (
 	"flag"
-	"gopkg.in/urfave/cli.v2"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"gopkg.in/urfave/cli.v1"
 )
 
 func TestParams(t *testing.T) {

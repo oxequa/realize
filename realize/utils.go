@@ -7,7 +7,7 @@ import (
 	"path"
 	"strings"
 
-	"gopkg.in/urfave/cli.v2"
+	"gopkg.in/urfave/cli.v1"
 )
 
 // Params parse one by one the given argumentes

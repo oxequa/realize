@@ -2,9 +2,10 @@ package realize
 
 import (
 	"flag"
-	"gopkg.in/urfave/cli.v2"
 	"path/filepath"
 	"testing"
+
+	"gopkg.in/urfave/cli.v1"
 )
 
 func TestSchema_Add(t *testing.T) {
