@@ -49,8 +49,8 @@
   name = "golang.org/x/net"
 
 [[constraint]]
-  branch = "v2"
-  name = "gopkg.in/urfave/cli.v2"
+  branch = "v1"
+  name = "gopkg.in/urfave/cli.v1"
 
 [[constraint]]
   name = "gopkg.in/yaml.v2"
