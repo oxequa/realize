@@ -49,8 +49,8 @@
   name = "golang.org/x/net"
 
 [[constraint]]
-  branch = "v2"
-  name = "gopkg.in/urfave/cli.v2"
+  name = "github.com/urfave/cli/v2"
+  version = "2.0.0"
 
 [[constraint]]
   name = "gopkg.in/yaml.v2"
