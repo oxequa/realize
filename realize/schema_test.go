@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/urfave/cli/v2"
+	"github.com/yyh-gl/cli/v2"
 )
 
 func TestSchema_Add(t *testing.T) {

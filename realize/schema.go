@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"reflect"
 
-	"github.com/urfave/cli/v2"
+	"github.com/yyh-gl/cli/v2"
 )
 
 // Schema projects list
