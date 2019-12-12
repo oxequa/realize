@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/oxequa/interact"
-	"github.com/oxequa/realize/realize"
+	"github.com/yyh-gl/realize/realize"
 	"github.com/urfave/cli/v2"
 )
 
