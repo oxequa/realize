@@ -49,7 +49,7 @@
   name = "golang.org/x/net"
 
 [[constraint]]
-  name = "github.com/yyh-gl/cli/v2"
+  name = "github.com/urfave/cli/v2"
   version = "2.0.0"
 
 [[constraint]]

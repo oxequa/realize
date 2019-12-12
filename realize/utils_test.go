@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/yyh-gl/cli/v2"
+	"github.com/urfave/cli/v2"
 )
 
 func TestParams(t *testing.T) {
