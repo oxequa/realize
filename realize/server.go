@@ -35,14 +35,20 @@ type Server struct {
 // Websocket projects
 func (s *Server) projects(c echo.Context) (err error) {
 	websocket.Handler(func(ws *websocket.Conn) {
+		s.Parent.mu.Lock()
 		msg, _ := json.Marshal(s.Parent)
-		err = websocket.Message.Send(ws, string(msg))
+		s.Parent.mu.Unlock()
+
+		websocket.Message.Send(ws, string(msg))
 		go func() {
 			for {
 				select {
 				case <-s.Parent.Sync:
+					s.Parent.mu.Lock()
 					msg, _ := json.Marshal(s.Parent)
-					err = websocket.Message.Send(ws, string(msg))
+					s.Parent.mu.Unlock()
+
+					err := websocket.Message.Send(ws, string(msg))
 					if err != nil {
 						break
 					}
@@ -52,11 +58,14 @@ func (s *Server) projects(c echo.Context) (err error) {
 		for {
 			// Read
 			text := ""
-			err = websocket.Message.Receive(ws, &text)
+			err := websocket.Message.Receive(ws, &text)
 			if err != nil {
 				break
 			} else {
+				s.Parent.mu.Lock()
 				err := json.Unmarshal([]byte(text), &s.Parent)
+				s.Parent.mu.Unlock()
+
 				if err == nil {
 					s.Parent.Settings.Write(s.Parent)
 					break
