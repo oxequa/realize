@@ -486,7 +486,13 @@ func (p *Project) cmd(stop <-chan bool, flag string, global bool) {
 // Watch the files tree of a project
 func (p *Project) walk(path string, info os.FileInfo, err error) error {
 	if p.shouldIgnore(path) {
-		return filepath.SkipDir
+		if info.IsDir() {
+			// If the path is a directory, skip all subdirectories as well
+			return filepath.SkipDir
+		} else {
+			// If the path is a single file, skip only that file
+			return nil
+		}
 	}
 
 	if p.Validate(path, true) {
