@@ -27,11 +27,12 @@ var (
 
 // Watch info
 type Watch struct {
-	Exts    []string  `yaml:"extensions" json:"extensions"`
-	Paths   []string  `yaml:"paths" json:"paths"`
-	Scripts []Command `yaml:"scripts,omitempty" json:"scripts,omitempty"`
-	Hidden  bool      `yaml:"hidden,omitempty" json:"hidden,omitempty"`
-	Ignore  []string  `yaml:"ignored_paths,omitempty" json:"ignored_paths,omitempty"`
+	Exts         []string  `yaml:"extensions" json:"extensions"`
+	Paths        []string  `yaml:"paths" json:"paths"`
+	Scripts      []Command `yaml:"scripts,omitempty" json:"scripts,omitempty"`
+	Hidden       bool      `yaml:"hidden,omitempty" json:"hidden,omitempty"`
+	Ignore       []string  `yaml:"ignored_paths,omitempty" json:"ignored_paths,omitempty"`
+	Dependencies bool      `yaml:"dependencies,omitempty" json:"dependencies,omitempty"`
 }
 
 type Ignore struct {
@@ -128,6 +129,22 @@ func (p *Project) Before() {
 		base, _ := filepath.Abs(p.Path)
 		base = filepath.Join(base, dir)
 		if _, err := os.Stat(base); err == nil {
+			if p.Watcher.Dependencies {
+				// Find all relevant Go files to this package and add them.
+				if files, err := FindGoFiles(base); err != nil {
+					p.Err(err)
+				} else {
+					for _, path := range files {
+						info, err := os.Stat(path)
+						if err != nil {
+							p.Err(err)
+						} else {
+							p.walk(path, info, nil)
+						}
+					}
+				}
+			}
+
 			if err := filepath.Walk(base, p.walk); err != nil {
 				p.Err(err)
 			}
@@ -318,6 +335,22 @@ L:
 							continue
 						}
 						if fi.IsDir() {
+							if p.Watcher.Dependencies {
+								// This directory changed so find all relevant Go files again.
+								if files, err := FindGoFiles(event.Name); err != nil {
+									p.Err(err)
+								} else {
+									for _, path := range files {
+										info, err := os.Stat(path)
+										if err != nil {
+											p.Err(err)
+										} else {
+											p.walk(path, info, nil)
+										}
+									}
+								}
+							}
+
 							filepath.Walk(event.Name, p.walk)
 						} else {
 							// stop and restart
