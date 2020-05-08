@@ -196,14 +196,15 @@ func (p *Project) Reload(path string, stop <-chan bool) {
 	}
 	// Go supported tools
 	if len(path) > 0 {
-		fi, err := os.Stat(path)
-		if filepath.Ext(path) == "" {
-			fi, err = os.Stat(path)
+		pathDir := filepath.Dir(path)
+		fi, err := os.Stat(pathDir)
+		if filepath.Ext(pathDir) == "" {
+			fi, err = os.Stat(pathDir)
 		}
 		if err != nil {
 			p.Err(err)
 		}
-		p.tools(stop, path, fi)
+		p.tools(stop, pathDir, fi)
 	}
 	// Prevent fake events on polling startup
 	p.init = true
