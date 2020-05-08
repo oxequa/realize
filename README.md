@@ -169,7 +169,7 @@ For more examples check: [Realize Examples](https://github.com/oxequa/realize-ex
       watcher:
           paths:                 // watched paths
           - /
-          ignore_paths:          // ignored paths
+          ignored_paths:          // ignored paths
           - vendor
           extensions:                  // watched extensions
           - go
