@@ -11,7 +11,7 @@ import (
 
 func TestRealize_Stop(t *testing.T) {
 	r := Realize{}
-	r.Projects = append(r.Schema.Projects, Project{exit: make(chan os.Signal, 1)})
+	r.Projects = []Project{exit: make(chan os.Signal, 1)}
 	r.Stop()
 	_, ok := <-r.Projects[0].exit
 	if ok != false {
