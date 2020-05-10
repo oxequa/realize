@@ -20,7 +20,7 @@
 ## Content
 
 ### - ⭐️ [Top Features](#top-features)
-### - 💃🏻 [Get started](#get-started)
+### - 💃🏻 [Quickstart](#quickstart)
 ### - 📄 [Config sample](#config-sample)
 ### - 📚 [Commands List](#commands-list)
 ### - 🛠 [Support and Suggestions](#support-and-suggestions)
