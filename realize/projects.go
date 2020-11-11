@@ -562,10 +562,25 @@ func (p *Project) stamp(t string, o BufferOut, msg string, stream string) {
 	}()
 }
 
+// buildEnvs returns a copy of strings representing the environment,
+// in the form "key=value".
 func (p Project) buildEnvs() (envs []string) {
-	for k, v := range p.Env {
-		envs = append(envs, fmt.Sprintf("%s=%s", strings.Replace(k, "=", "", -1), v))
+	envMap := make(map[string]string)
+
+	for _, env := range os.Environ() {
+		e := strings.SplitN(env, "=", 2)
+
+		envMap[e[0]] = e[1]
 	}
+
+	for k, v := range p.Env {
+		envMap[strings.Replace(k, "=", "", -1)] = v
+	}
+
+	for k, v := range envMap {
+		envs = append(envs, fmt.Sprintf("%s=%s", k, v))
+	}
+
 	return
 }
 
